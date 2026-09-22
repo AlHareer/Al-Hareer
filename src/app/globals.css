@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-color: #FAF6F0;
+    --card-bg: #F3ECE1;
+    --text-primary: #2B231D;
+    --text-secondary: #655B53;
+    --accent-brown: #4A3525;
+    --accent-hover: #36261A;
+    --gold: #D4AF37;
+    --white: #FFFFFF;
+    --border-color: #E2D7C7;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-body), 'Montserrat', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), 'Cormorant Garamond', serif;
+    color: var(--text-primary);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FAF6F0;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C6B09B;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4A3525;
+  }
+
+  .font-script-luxury {
+    font-family: 'Alex Brush', var(--font-script), 'Caveat', cursive;
+  }
+
+  .font-serif-luxury {
+    font-family: 'Playfair Display', var(--font-heading), 'Cormorant Garamond', Georgia, serif;
+  }
+
+  @keyframes marqueeContinuous {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee-infinite {
+    display: flex;
+    width: max-content;
+    animation: marqueeContinuous 30s linear infinite;
+  }
+
+  .animate-marquee-infinite:hover {
+    animation-play-state: paused;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm bg-brand-500 text-white font-medium text-sm transition-all duration-300 hover:bg-brand-600 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 cursor-pointer;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm border border-brand-500 text-brand-500 font-medium text-sm transition-all duration-300 hover:bg-brand-500 hover:text-white cursor-pointer;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm bg-gold text-brand-900 font-semibold text-sm transition-all duration-300 hover:bg-gold-dark hover:text-white hover:-translate-y-0.5 shadow-md cursor-pointer;
+  }
+
+  .tag-pill {
+    @apply inline-block text-[11px] uppercase tracking-[2.5px] font-semibold text-brand-500 mb-2;
+  }
+
+  .glass-header {
+    @apply bg-[#FAF6F0]/95 backdrop-blur-md border-b border-[#E2D7C7]/80;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-[#E2D7C7]/60 shadow-luxury;
+  }
+}
+
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
