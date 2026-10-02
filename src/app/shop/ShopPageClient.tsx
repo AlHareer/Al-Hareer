@@ -334,7 +334,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
 
       // Occasion filter
       if (selectedOccasions.length > 0) {
-        const productOcc = (product.occasion || product.details?.occasion || product.category || '').toLowerCase();
+        const productOcc = (product.details?.occasion || product.category || '').toLowerCase();
         const matchesOcc = selectedOccasions.some((occ) =>
           productOcc.includes(occ.toLowerCase())
         );
