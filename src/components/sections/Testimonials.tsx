@@ -3,11 +3,11 @@
 import React from 'react';
 import Image from 'next/image';
 import { Star, CheckCircle2 } from 'lucide-react';
-import { TESTIMONIALS } from '@/data/testimonials';
+import type { Testimonial } from '@/types';
 
-export default function Testimonials() {
+export default function Testimonials({ testimonials }: { testimonials: Testimonial[] }) {
   // Double-duplicated list to ensure perfectly smooth -50% infinite marquee loop across all screen sizes
-  const baseList = [...TESTIMONIALS, ...TESTIMONIALS];
+  const baseList = [...testimonials, ...testimonials];
   const marqueeList = [...baseList, ...baseList];
 
   return (
@@ -86,13 +86,19 @@ export default function Testimonials() {
               {/* Card Bottom: Customer Profile */}
               <div className="flex items-center gap-3.5 pt-5 border-t border-cream-200/80 mt-5">
                 <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-cream-300 flex-shrink-0 bg-cream-200 shadow-sm">
-                  <Image
-                    src={review.image}
-                    alt={review.name}
-                    fill
-                    sizes="48px"
-                    className="object-cover"
-                  />
+                  {review.image ? (
+                    <Image
+                      src={review.image}
+                      alt={review.name}
+                      fill
+                      sizes="48px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="w-full h-full flex items-center justify-center bg-brand-100 text-brand-700 font-bold text-base sm:text-lg select-none">
+                      {review.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <h4 className="font-heading text-sm sm:text-base font-bold text-brand-700 truncate">

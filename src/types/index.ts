@@ -18,9 +18,12 @@ export interface Product {
   tag?: string;
   colors: ProductColor[];
   sizes: string[];
+  sizesOutOfStock?: string[];
+  variantPrices?: { size: string; price: number; originalPrice?: number }[];
   description: string;
   fabric: string;
   inStock: boolean;
+  videoUrl?: string;
   details?: {
     material?: string;
     color?: string;
@@ -30,6 +33,9 @@ export interface Product {
     fit?: string;
     care?: string;
   };
+  // Detail-page-only field — undefined in list views (shop grid, related
+  // products, etc.) since fetching it there would be wasted work.
+  faqs?: { question: string; answer: string }[];
 }
 
 export interface CartItem {
@@ -50,8 +56,9 @@ export interface Testimonial {
 }
 
 export interface OccasionItem {
-  id: string;
+  id?: string;
   title: string;
   image: string;
   tag: string;
+  link?: string;
 }

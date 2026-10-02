@@ -11,7 +11,6 @@ import {
   Phone,
   Eye,
   EyeOff,
-  ArrowRight,
   CheckCircle2,
   ShieldCheck,
   X,
@@ -40,6 +39,12 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useUI } from '@/context/UIContext';
 import { useAuth } from '@/context/AuthContext';
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { createCustomerAccount, updateCustomerProfile } from '@/actions/customerAuth';
+import { getOrdersForUser, getAddressesForUser } from '@/lib/orders';
+import { cancelOwnOrder, addCustomerAddress } from '@/actions/customerAccount';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { getFooterSettings } from '@/lib/siteSettings';
 
 export interface OrderItem {
   name: string;
@@ -71,119 +76,6 @@ export interface Order {
   shippingAddress: OrderShippingAddress;
   paymentMethod: string;
 }
-
-// Default initial order dataset (matching the user's mockup screenshot)
-const INITIAL_ORDERS: Order[] = [
-  {
-    id: '#BNF1001',
-    productName: 'Embroidered Anarkali Suit',
-    productImage: '/images/your-image-19.jpg',
-    date: '12 Sep 2025',
-    status: 'Delivered',
-    total: 1799,
-    itemsCount: 1,
-    items: [
-      {
-        name: 'Embroidered Anarkali Suit',
-        size: 'M',
-        color: 'Emerald Green',
-        qty: 1,
-        price: 1799,
-        image: '/images/your-image-19.jpg',
-      },
-    ],
-    shippingAddress: {
-      fullName: 'Sana Khan',
-      phone: '+91 98765 43210',
-      address: 'Flat 402, Royal Palms Residency, MG Road',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pinCode: '400001',
-    },
-    paymentMethod: 'UPI (GPay / PhonePe)',
-  },
-  {
-    id: '#BNF1002',
-    productName: 'Chiffon Dupatta Kurta Set',
-    productImage: '/images/shopby/festive.jpg',
-    date: '05 Sep 2025',
-    status: 'Shipped',
-    total: 499,
-    itemsCount: 1,
-    items: [
-      {
-        name: 'Chiffon Dupatta Kurta Set',
-        size: 'L',
-        color: 'Rose Pink',
-        qty: 1,
-        price: 499,
-        image: '/images/shopby/festive.jpg',
-      },
-    ],
-    shippingAddress: {
-      fullName: 'Sana Khan',
-      phone: '+91 98765 43210',
-      address: 'Flat 402, Royal Palms Residency, MG Road',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pinCode: '400001',
-    },
-    paymentMethod: 'Credit Card (VISA)',
-  },
-  {
-    id: '#BNF1003',
-    productName: 'Pearl Drop Silk Kurta',
-    productImage: '/images/shopby/wedding.jpg',
-    date: '28 Aug 2025',
-    status: 'Delivered',
-    total: 399,
-    itemsCount: 1,
-    items: [
-      {
-        name: 'Pearl Drop Silk Kurta',
-        size: 'S',
-        color: 'Ivory Gold',
-        qty: 1,
-        price: 399,
-        image: '/images/shopby/wedding.jpg',
-      },
-    ],
-    shippingAddress: {
-      fullName: 'Sana Khan',
-      phone: '+91 98765 43210',
-      address: 'Plot 12, Gulmohar Avenue, Bandra West',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pinCode: '400050',
-    },
-    paymentMethod: 'Cash on Delivery',
-  },
-];
-
-const INITIAL_ADDRESSES = [
-  {
-    id: 'addr-1',
-    name: 'Sana Khan',
-    phone: '+91 98765 43210',
-    address: 'Flat 402, Royal Palms Residency, MG Road, Landmark: Near City Mall',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pinCode: '400001',
-    isDefault: true,
-    type: 'Home',
-  },
-  {
-    id: 'addr-2',
-    name: 'Sana Khan (Office)',
-    phone: '+91 98765 43210',
-    address: 'Level 8, Tower B, Prestige Tech Park, Bandra Kurla Complex',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pinCode: '400051',
-    isDefault: false,
-    type: 'Office',
-  },
-];
 
 type OrderStatusFilter = 'all' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -455,6 +347,7 @@ const getTrackingSteps = (status: string) => {
 function AuthAndDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const shipping = useShippingSettings();
   const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'signin';
   const initialTab = searchParams.get('tab') || 'dashboard';
 
@@ -462,7 +355,7 @@ function AuthAndDashboardContent() {
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   const { showToast } = useUI();
-  const { user, isLoggedIn, login, logout } = useAuth();
+  const { user, isLoggedIn, isLoading: authLoading, logout } = useAuth();
 
   // Sync tab with search params
   useEffect(() => {
@@ -479,69 +372,36 @@ function AuthAndDashboardContent() {
     setTrackError('');
   }, [activeTab]);
 
-  // Real-time Orders & Addresses State
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
-  const [addresses, setAddresses] = useState(INITIAL_ADDRESSES);
+  // Real orders & addresses, loaded from Supabase for the signed-in user
+  // (RLS restricts these queries to the current user's own rows — see
+  // db/schema.sql's `own_rows` policies).
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [addresses, setAddresses] = useState<Awaited<ReturnType<typeof getAddressesForUser>>>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [orderFilter, setOrderFilter] = useState<OrderStatusFilter>('all');
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
-  // Load real stored orders & addresses from localStorage on mount and sync in real time
-  const loadStoredData = () => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedOrders = localStorage.getItem('alhareer_orders');
-        if (savedOrders) {
-          const parsed = JSON.parse(savedOrders);
-          if (Array.isArray(parsed)) {
-            const orderMap = new Map();
-            parsed.forEach((o: any) => {
-              if (o && o.id) orderMap.set(o.id, o);
-            });
-            INITIAL_ORDERS.forEach((o: any) => {
-              if (!orderMap.has(o.id)) {
-                orderMap.set(o.id, o);
-              }
-            });
-            setOrders(Array.from(orderMap.values()));
-          }
-        } else {
-          setOrders(INITIAL_ORDERS);
-        }
-
-        const savedAddresses = localStorage.getItem('alhareer_saved_addresses');
-        if (savedAddresses) {
-          const parsed = JSON.parse(savedAddresses);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setAddresses(parsed);
-          }
-        }
-      } catch (e) {
-        console.error('Error loading localStorage account data', e);
-      }
+  const loadStoredData = async () => {
+    if (!isLoggedIn) {
+      setOrders([]);
+      setAddresses([]);
+      return;
+    }
+    setOrdersLoading(true);
+    try {
+      const [realOrders, realAddresses] = await Promise.all([getOrdersForUser(), getAddressesForUser()]);
+      setOrders(realOrders);
+      setAddresses(realAddresses);
+    } catch (e) {
+      console.error('Error loading account data from Supabase', e);
+    } finally {
+      setOrdersLoading(false);
     }
   };
 
   useEffect(() => {
     loadStoredData();
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'alhareer_orders' || e.key === 'alhareer_saved_addresses') {
-        loadStoredData();
-      }
-    };
-
-    const handleCustomOrderUpdate = () => {
-      loadStoredData();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('alhareer_orders_updated', handleCustomOrderUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('alhareer_orders_updated', handleCustomOrderUpdate);
-    };
-  }, []);
+  }, [isLoggedIn]);
 
   // Filtered orders & badge count computations
   const filterCounts = {
@@ -566,16 +426,18 @@ function AuthAndDashboardContent() {
     return statusMatch && searchMatch;
   });
 
-  // Handle Cancel Order in real-time
-  const handleCancelOrder = (orderId: string) => {
-    const updated = orders.map((o) =>
-      o.id === orderId ? { ...o, status: 'Cancelled' } : o
-    );
-    setOrders(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('alhareer_orders', JSON.stringify(updated));
-      window.dispatchEvent(new Event('alhareer_orders_updated'));
+  // Handle Cancel Order — persists to Supabase (own_rows RLS on orders is
+  // SELECT-only, so this goes through a server action that re-checks
+  // ownership before writing).
+  const handleCancelOrder = async (orderId: string) => {
+    if (!user) return;
+    const result = await cancelOwnOrder(user.id, orderId);
+    if (!result.success) {
+      showToast(result.error || 'Failed to cancel order.', 'error');
+      return;
     }
+    const updated = orders.map((o) => (o.id === orderId ? { ...o, status: 'Cancelled' } : o));
+    setOrders(updated);
     if (selectedOrder && selectedOrder.id === orderId) {
       setSelectedOrder({ ...selectedOrder, status: 'Cancelled' });
     }
@@ -601,9 +463,9 @@ function AuthAndDashboardContent() {
 
   // Account Settings Form State (synced with logged-in user)
   const [settingsData, setSettingsData] = useState({
-    name: user?.name || 'Sana Khan',
-    email: user?.email || 'sana@example.com',
-    phone: user?.phone || '+91 98765 43210',
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
     currentPassword: '',
     newPassword: '',
   });
@@ -613,10 +475,15 @@ function AuthAndDashboardContent() {
       setSettingsData({
         name: user.name,
         email: user.email,
-        phone: user.phone || '+91 98765 43210',
+        phone: user.phone || '',
         currentPassword: '',
         newPassword: '',
       });
+      setNewAddressForm((prev) => ({
+        ...prev,
+        name: prev.name || user.name || '',
+        phone: prev.phone || user.phone || '',
+      }));
     }
   }, [user]);
 
@@ -624,13 +491,15 @@ function AuthAndDashboardContent() {
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [isAddAddressOpen, setIsAddAddressOpen] = useState(false);
   const [newAddressForm, setNewAddressForm] = useState({
-    name: user?.name || 'Sana Khan',
-    phone: '+91 98765 43210',
+    name: user?.name || '',
+    phone: user?.phone || '',
     address: '',
+    addressLine2: '',
     city: '',
     state: '',
     pinCode: '',
     type: 'Home',
+    setAsDefault: false,
   });
 
   // Track Order States
@@ -639,6 +508,11 @@ function AuthAndDashboardContent() {
   const [trackError, setTrackError] = useState('');
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [supportEmail, setSupportEmail] = useState('');
+
+  useEffect(() => {
+    getFooterSettings().then((s) => setSupportEmail(s.home_contact_email as string || ''));
+  }, []);
 
   // Handle Refresh Tracking Data & Clear Input
   const handleRefreshTracking = () => {
@@ -678,31 +552,9 @@ function AuthAndDashboardContent() {
       }
       showToast(`📦 Live tracking retrieved for order ${found.id}`, 'success');
     } else {
-      // Demo preview for custom entered ID
-      const demoOrder = {
-        id: idToSearch.startsWith('#') ? idToSearch : `#${idToSearch}`,
-        productName: 'Royal Embroidered Anarkali Ensemble',
-        productImage: '/images/your-image-19.jpg',
-        date: 'Today',
-        status: 'Shipped',
-        total: 1799,
-        itemsCount: 1,
-        shippingAddress: {
-          fullName: displayName,
-          phone: '+91 98765 43210',
-          address: 'Flat 402, Royal Palms Residency, MG Road',
-          city: 'Mumbai',
-          state: 'Maharashtra',
-          pinCode: '400001',
-        },
-        paymentMethod: 'Prepaid Royal Express',
-      };
-      setTrackedOrderResult(demoOrder);
-      setTrackError('');
-      if (activeTab !== 'track') {
-        setIsTrackingModalOpen(true);
-      }
-      showToast(`📦 Live tracking retrieved for order ${demoOrder.id}`, 'info');
+      setTrackedOrderResult(null);
+      setTrackError(`No order found matching "${idToSearch}". Check the order number and try again.`);
+      showToast('No matching order found in your account.', 'error');
     }
   };
 
@@ -722,22 +574,8 @@ function AuthAndDashboardContent() {
   // Terms Modal
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // Demo Credentials from .env
-  const DEMO_EMAIL = (process.env.NEXT_PUBLIC_DEMO_EMAIL || 'admin@alhareer.com').trim().toLowerCase();
-  const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD || 'AlHareer@123';
-
-  // Handle Autofill Demo
-  const handleAutofillDemo = () => {
-    setSignInData({
-      email: DEMO_EMAIL,
-      password: DEMO_PASSWORD,
-      rememberMe: true,
-    });
-    showToast('✨ Demo credentials autofilled from .env!', 'info');
-  };
-
-  // Handle Sign In Submit
-  const handleSignIn = (e: React.FormEvent) => {
+  // Handle Sign In Submit — real Supabase Auth
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredEmail = signInData.email.trim().toLowerCase();
     const enteredPassword = signInData.password.trim();
@@ -748,24 +586,19 @@ function AuthAndDashboardContent() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (enteredEmail === DEMO_EMAIL && enteredPassword === DEMO_PASSWORD) {
-        login({ email: enteredEmail, name: 'Sana Khan', role: 'VIP Customer' });
-        showToast('🎉 Welcome back, Sana Khan! Signed in successfully.', 'success');
-      } else if (enteredEmail === DEMO_EMAIL && enteredPassword !== DEMO_PASSWORD) {
-        showToast('Incorrect password for demo account. Check your .env file.', 'error');
-      } else {
-        const generatedName = enteredEmail.split('@')[0].replace(/[._]/g, ' ');
-        const capName = generatedName.charAt(0).toUpperCase() + generatedName.slice(1);
-        login({ email: enteredEmail, name: capName || 'Sana Khan', role: 'VIP Member' });
-        showToast(`🎉 Welcome back, ${capName}! Signed in successfully.`, 'success');
-      }
-    }, 600);
+    const supabase = createBrowserSupabaseClient();
+    const { error } = await supabase.auth.signInWithPassword({ email: enteredEmail, password: enteredPassword });
+    setIsLoading(false);
+
+    if (error) {
+      showToast(error.message.includes('Invalid login') ? 'Incorrect email or password.' : error.message, 'error');
+      return;
+    }
+    showToast('🎉 Welcome back! Signed in successfully.', 'success');
   };
 
-  // Handle Register Submit
-  const handleRegister = (e: React.FormEvent) => {
+  // Handle Register Submit — real Supabase Auth (no email confirmation step for now)
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !registerData.fullName.trim() ||
@@ -793,16 +626,32 @@ function AuthAndDashboardContent() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    const result = await createCustomerAccount(
+      registerData.fullName.trim(),
+      registerData.phone.trim(),
+      registerData.email.trim(),
+      registerData.password
+    );
+
+    if (!result.success) {
       setIsLoading(false);
-      login({
-        email: registerData.email.trim().toLowerCase(),
-        name: registerData.fullName.trim(),
-        phone: registerData.phone.trim(),
-        role: 'VIP Member',
-      });
-      showToast('🎉 Account created successfully! Welcome to Al Hareer.', 'success');
-    }, 700);
+      showToast(result.error || 'Failed to create account.', 'error');
+      return;
+    }
+
+    const supabase = createBrowserSupabaseClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: registerData.email.trim().toLowerCase(),
+      password: registerData.password,
+    });
+    setIsLoading(false);
+
+    if (error) {
+      showToast('Account created — please sign in.', 'info');
+      setMode('signin');
+      return;
+    }
+    showToast('🎉 Account created successfully! Welcome to Al Hareer.', 'success');
   };
 
   // Handle Forgot Password Submit
@@ -821,46 +670,71 @@ function AuthAndDashboardContent() {
     }, 2000);
   };
 
-  // Handle Save Settings
-  const handleSaveSettings = (e: React.FormEvent) => {
+  // Handle Save Settings — updates name/phone (email changes need a
+  // confirmation flow we're deferring until Brevo is wired in, so email
+  // stays read-only here for now).
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settingsData.name.trim() || !settingsData.email.trim()) {
       showToast('Name and email cannot be empty', 'error');
       return;
     }
-    login({
-      name: settingsData.name.trim(),
-      email: settingsData.email.trim(),
-      phone: settingsData.phone.trim(),
-      role: 'VIP Member',
+    const supabase = createBrowserSupabaseClient();
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: settingsData.name.trim(), phone: settingsData.phone.trim() },
     });
+    if (authError) {
+      showToast(authError.message, 'error');
+      return;
+    }
+    if (user) {
+      await updateCustomerProfile(user.id, settingsData.name.trim(), settingsData.phone.trim());
+    }
     showToast('✅ Account details updated successfully!', 'success');
   };
 
-  // Handle Add Address
-  const handleAddAddress = (e: React.FormEvent) => {
+  // Handle Add Address — persists to Supabase (own_rows RLS on addresses is
+  // SELECT-only, so this goes through a server action).
+  const handleAddAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAddressForm.address.trim() || !newAddressForm.city.trim() || !newAddressForm.pinCode.trim()) {
+    if (!user) return;
+    if (
+      !newAddressForm.address.trim() ||
+      !newAddressForm.city.trim() ||
+      !newAddressForm.state.trim() ||
+      !newAddressForm.pinCode.trim()
+    ) {
       showToast('Please complete all address fields', 'error');
       return;
     }
-    const newAddr = {
-      id: `addr-${Date.now()}`,
+    const result = await addCustomerAddress(user.id, {
       name: newAddressForm.name,
       phone: newAddressForm.phone,
       address: newAddressForm.address,
+      addressLine2: newAddressForm.addressLine2,
       city: newAddressForm.city,
-      state: newAddressForm.state || 'Maharashtra',
+      state: newAddressForm.state,
       pinCode: newAddressForm.pinCode,
-      isDefault: addresses.length === 0,
-      type: newAddressForm.type,
-    };
-    const updated = [newAddr, ...addresses];
-    setAddresses(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('alhareer_saved_addresses', JSON.stringify(updated));
+      addressType: newAddressForm.type,
+      isDefault: addresses.length === 0 || newAddressForm.setAsDefault,
+    });
+    if (!result.success) {
+      showToast(result.error || 'Failed to save address.', 'error');
+      return;
     }
+    await loadStoredData();
     setIsAddAddressOpen(false);
+    setNewAddressForm({
+      name: user.name || '',
+      phone: user.phone || '',
+      address: '',
+      addressLine2: '',
+      city: '',
+      state: '',
+      pinCode: '',
+      type: 'Home',
+      setAsDefault: false,
+    });
     showToast('📍 New address saved successfully!', 'success');
   };
 
@@ -871,9 +745,12 @@ function AuthAndDashboardContent() {
   };
 
   // Display details for logged-in profile
-  const displayName = user?.name || 'Sana Khan';
-  const displayEmail = user?.email || 'sana@example.com';
-  const userInitial = displayName.charAt(0).toUpperCase() || 'S';
+  const displayName = user?.name || 'Guest';
+  const displayEmail = user?.email || '';
+  const userInitial = displayName.charAt(0).toUpperCase() || 'G';
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+    : '';
 
   return (
     <div className="min-h-screen bg-[#FAF6F0] flex flex-col justify-between selection:bg-[#4A3525] selection:text-white pb-20 lg:pb-0">
@@ -884,7 +761,9 @@ function AuthAndDashboardContent() {
       <main className="flex-1 py-4 sm:py-7 md:py-10">
         <div className="max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-10">
           
-          {isLoggedIn ? (
+          {authLoading ? (
+            <div className="flex items-center justify-center py-24 text-sm text-[#7A6F66]">Loading your account…</div>
+          ) : isLoggedIn ? (
             /* ========================================================================= */
             /* VIEW 1: FULL USER ACCOUNT DASHBOARD (MATCHING USER SCREENSHOT)            */
             /* ========================================================================= */
@@ -1161,7 +1040,7 @@ function AuthAndDashboardContent() {
                               Member
                             </p>
                             <p className="text-[9.5px] sm:text-[11px] text-[#7A6F66] mt-1 font-medium truncate">
-                              Sep 2025
+                              {memberSince}
                             </p>
                           </div>
                         </div>
@@ -1182,7 +1061,6 @@ function AuthAndDashboardContent() {
                               className="text-xs font-bold text-[#8B6B52] hover:text-[#4A3525] flex items-center gap-1 transition-colors cursor-pointer"
                             >
                               <span>View All</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                           </div>
 
@@ -1420,7 +1298,6 @@ function AuthAndDashboardContent() {
                           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#2B231D] hover:bg-[#4A3525] text-white px-6 py-3 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer shrink-0 active:scale-95"
                         >
                           <span>Continue Shopping</span>
-                          <ArrowRight className="w-4 h-4" />
                         </Link>
                       </div>
 
@@ -1430,7 +1307,7 @@ function AuthAndDashboardContent() {
                           <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[#4A3525] shrink-0 stroke-[1.8]" />
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-[#2B231D] truncate">Free Shipping</p>
-                            <p className="text-[10px] text-[#7A6F66] truncate">Above ₹999</p>
+                            <p className="text-[10px] text-[#7A6F66] truncate">Above ₹{shipping.free_threshold.toLocaleString('en-IN')}</p>
                           </div>
                         </div>
 
@@ -1454,7 +1331,7 @@ function AuthAndDashboardContent() {
                           <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-[#4A3525] shrink-0 stroke-[1.8]" />
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-[#2B231D] truncate">Need Help?</p>
-                            <p className="text-[10px] text-[#7A6F66] truncate">support@alhareer.com</p>
+                            <p className="text-[10px] text-[#7A6F66] truncate">{supportEmail || 'Contact Support'}</p>
                           </div>
                         </div>
                       </div>
@@ -1512,7 +1389,6 @@ function AuthAndDashboardContent() {
                             className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] text-xs font-semibold rounded-xl border border-[#E5DACD] transition-colors shrink-0"
                           >
                             <span>Explore Catalog</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
                           </Link>
                         </div>
                       </div>
@@ -1695,7 +1571,6 @@ function AuthAndDashboardContent() {
                           >
                             <ShoppingBag className="w-4 h-4" />
                             <span>Start Shopping</span>
-                            <ArrowRight className="w-4 h-4" />
                           </Link>
                         </div>
                       </div>
@@ -1804,7 +1679,6 @@ function AuthAndDashboardContent() {
                                 className="flex-1 sm:flex-none bg-[#3B2B1F] hover:bg-[#2B231D] text-white px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 active:scale-95"
                               >
                                 <span>Track</span>
-                                <ArrowRight className="w-4 h-4" />
                               </button>
 
                               <button
@@ -2078,6 +1952,25 @@ function AuthAndDashboardContent() {
                       </button>
                     </div>
 
+                    {addresses.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center space-y-3">
+                        <div className="w-14 h-14 rounded-full bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525]">
+                          <MapPin className="w-6 h-6 stroke-[1.5]" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="font-heading text-base font-bold text-[#2B231D]">No saved addresses</h4>
+                          <p className="text-xs text-[#7A6F66] max-w-xs">Add a delivery address to make checkout faster.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsAddAddressOpen(true)}
+                          className="mt-2 px-5 py-2.5 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Your First Address</span>
+                        </button>
+                      </div>
+                    ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {addresses.map((addr) => (
                         <div
@@ -2113,6 +2006,7 @@ function AuthAndDashboardContent() {
                         </div>
                       ))}
                     </div>
+                    )}
                   </div>
                 )}
 
@@ -2197,19 +2091,9 @@ function AuthAndDashboardContent() {
                 {mode === 'signin' && (
                   <div className="animate-in fade-in duration-300">
                     <div className="mb-5 sm:mb-6">
-                      <div className="flex items-center justify-between">
-                        <h1 className="font-heading text-xl sm:text-3xl font-bold text-[#2B231D]">
-                          Sign In
-                        </h1>
-                        <button
-                          type="button"
-                          onClick={handleAutofillDemo}
-                          className="text-[10.5px] sm:text-[11px] font-semibold text-[#8B6B52] bg-[#FAF6F1] hover:bg-[#EFE8E0] border border-[#E5DACD] px-2.5 py-1 rounded-full transition-colors cursor-pointer flex items-center gap-1 active:scale-95"
-                          title="Click to autofill test credentials from .env"
-                        >
-                          <span>⚡ Demo Login</span>
-                        </button>
-                      </div>
+                      <h1 className="font-heading text-xl sm:text-3xl font-bold text-[#2B231D]">
+                        Sign In
+                      </h1>
                       <p className="text-xs sm:text-sm text-[#7A6F66] mt-1">
                         Welcome back! Please sign in to continue.
                       </p>
@@ -2285,7 +2169,6 @@ function AuthAndDashboardContent() {
                           ) : (
                             <>
                               <span>Sign In</span>
-                              <ArrowRight className="w-4 h-4" />
                             </>
                           )}
                         </button>
@@ -2470,7 +2353,6 @@ function AuthAndDashboardContent() {
                           ) : (
                             <>
                               <span>Create Account</span>
-                              <ArrowRight className="w-4 h-4" />
                             </>
                           )}
                         </button>
@@ -2848,6 +2730,17 @@ function AuthAndDashboardContent() {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-[#2B231D] mb-1">Apartment, Suite, etc. (Optional)</label>
+                <input
+                  type="text"
+                  value={newAddressForm.addressLine2}
+                  onChange={(e) => setNewAddressForm({ ...newAddressForm, addressLine2: e.target.value })}
+                  placeholder="Flat / floor / building name"
+                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-xs font-semibold text-[#2B231D] mb-1">City</label>
@@ -2860,17 +2753,58 @@ function AuthAndDashboardContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#2B231D] mb-1">PIN Code</label>
+                  <label className="block text-xs font-semibold text-[#2B231D] mb-1">State</label>
                   <input
                     type="text"
                     required
-                    maxLength={6}
-                    value={newAddressForm.pinCode}
-                    onChange={(e) => setNewAddressForm({ ...newAddressForm, pinCode: e.target.value })}
+                    value={newAddressForm.state}
+                    onChange={(e) => setNewAddressForm({ ...newAddressForm, state: e.target.value })}
                     className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#2B231D] mb-1">PIN Code</label>
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  value={newAddressForm.pinCode}
+                  onChange={(e) => setNewAddressForm({ ...newAddressForm, pinCode: e.target.value })}
+                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">Address Type</label>
+                <div className="flex gap-2">
+                  {['Home', 'Office', 'Other'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setNewAddressForm({ ...newAddressForm, type: t })}
+                      className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                        newAddressForm.type === t
+                          ? 'bg-[#4A3525] text-white border-[#4A3525]'
+                          : 'bg-[#FAF6F1] text-[#7A6F66] border-[#E5DACD] hover:bg-[#F0EAE1]'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 pt-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newAddressForm.setAsDefault}
+                  onChange={(e) => setNewAddressForm({ ...newAddressForm, setAsDefault: e.target.checked })}
+                  className="h-4 w-4 accent-[#4A3525]"
+                />
+                <span className="text-xs font-medium text-[#2B231D]">Set as default address</span>
+              </label>
 
               <div className="flex gap-2.5 pt-2">
                 <button

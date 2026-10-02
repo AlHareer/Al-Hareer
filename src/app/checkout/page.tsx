@@ -14,11 +14,9 @@ import {
   Check,
   CheckCircle2,
   Lock,
-  ArrowRight,
   ShieldCheck,
   RotateCcw,
   Headphones,
-  Zap,
   ChevronDown,
   ChevronUp,
   Tag,
@@ -28,13 +26,20 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useCart } from '@/context/CartContext';
 import { useUI } from '@/context/UIContext';
-import { PRODUCTS } from '@/data/products';
+import { useAuth } from '@/context/AuthContext';
+import { placeOrder, validateCoupon } from '@/actions/checkout';
+import { getFooterSettings } from '@/lib/siteSettings';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { useQuantityDiscountSettings, computeQuantityDiscount } from '@/hooks/useQuantityDiscount';
 import { CartItem } from '@/types';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, updateQuantity, removeFromCart, clearCart, subtotal, totalItems } = useCart();
   const { showToast } = useUI();
+  const { user } = useAuth();
+  const shipping = useShippingSettings();
+  const qtySettings = useQuantityDiscountSettings();
 
   // Shipping Form State
   const [formData, setFormData] = useState({
@@ -47,17 +52,33 @@ export default function CheckoutPage() {
     pinCode: '',
   });
 
-  // Shipping Method State ('standard' | 'express')
-  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
+  // Prefill contact details for a signed-in customer (only fields they
+  // haven't already typed into — never clobber in-progress edits).
+  useEffect(() => {
+    if (!user) return;
+    setFormData((prev) => ({
+      ...prev,
+      fullName: prev.fullName || user.name,
+      email: prev.email || user.email,
+      phone: prev.phone || user.phone || prev.phone,
+    }));
+  }, [user]);
 
-  // Payment Method State ('upi' | 'card' | 'netbanking' | 'cod')
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking' | 'cod'>('upi');
+  // Payment Method State
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('cod');
 
   // Coupon State
   const [couponOpen, setCouponOpen] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [couponApplied, setCouponApplied] = useState(false);
+  const [isCouponLoading, setIsCouponLoading] = useState(false);
+
+  // Contact info from settings
+  const [contactEmail, setContactEmail] = useState('support@alhareer.com');
+  useEffect(() => {
+    getFooterSettings().then((s) => { if (s.home_contact_email) setContactEmail(s.home_contact_email); });
+  }, []);
 
   // Order Submission State
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -77,38 +98,51 @@ export default function CheckoutPage() {
   const currentSubtotal = subtotal;
   const currentTotalItems = totalItems;
 
-  const shippingCost = shippingMethod === 'express' ? 100 : 0;
-  const codFee = paymentMethod === 'cod' ? (currentSubtotal >= 999 ? 0 : 49) : 0;
-  const finalTotal = Math.max(0, currentSubtotal - discountAmount + shippingCost + codFee);
+  const shippingCost = 0;
+  const codFee = paymentMethod === 'cod' ? (currentSubtotal >= shipping.free_threshold ? 0 : shipping.cod_charge) : 0;
+  const qtyDiscountAmount = computeQuantityDiscount(qtySettings, currentTotalItems);
+  const finalTotal = Math.max(0, currentSubtotal - discountAmount - qtyDiscountAmount + shippingCost + codFee);
 
   // Apply Coupon
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    const code = couponCode.trim().toUpperCase();
-    if (code === 'TRADITION10' || code === 'ALHAREER10') {
-      const disc = Math.round(currentSubtotal * 0.1);
-      setDiscountAmount(disc);
-      setCouponApplied(true);
-      showToast('🎉 10% Luxury Heritage Discount Applied!', 'success');
-    } else if (code === 'ROYAL500' && currentSubtotal >= 2999) {
-      setDiscountAmount(500);
-      setCouponApplied(true);
-      showToast('🎉 ₹500 Privilege Voucher Applied!', 'success');
-    } else {
-      showToast('Invalid coupon code. Try TRADITION10', 'error');
+    const code = couponCode.trim();
+    if (!code) return;
+    setIsCouponLoading(true);
+    try {
+      const result = await validateCoupon(code, currentSubtotal);
+      if (result.valid) {
+        setDiscountAmount(result.discount);
+        setCouponApplied(true);
+        showToast(result.displayMsg, 'success');
+      } else {
+        showToast(result.message, 'error');
+      }
+    } catch {
+      showToast('Unable to validate coupon. Please try again.', 'error');
+    } finally {
+      setIsCouponLoading(false);
     }
   };
 
   // Form Submit / Place Order
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.fullName.trim() || !formData.phone.trim() || !formData.email.trim()) {
       showToast('Please fill in your Contact Details (Name, Phone & Email)', 'error');
       return;
     }
+    if (formData.phone.replace(/\D/g, '').length !== 10) {
+      showToast('Please enter a valid 10-digit mobile number', 'error');
+      return;
+    }
     if (!formData.address.trim() || !formData.city.trim() || !formData.state.trim() || !formData.pinCode.trim()) {
       showToast('Please complete your full delivery address and PIN code', 'error');
+      return;
+    }
+    if (formData.pinCode.length !== 6) {
+      showToast('Please enter a valid 6-digit PIN code', 'error');
       return;
     }
     if (cart.length === 0) {
@@ -118,65 +152,35 @@ export default function CheckoutPage() {
 
     setIsPlacingOrder(true);
 
-    setTimeout(() => {
-      setIsPlacingOrder(false);
-      const generatedId = `BNF-${Math.floor(100000 + Math.random() * 900000)}`;
-      setConfirmedOrderId(generatedId);
+    try {
+      const { orderNumber } = await placeOrder({
+        cart,
+        fullName: formData.fullName,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pinCode: formData.pinCode,
+        subtotal: currentSubtotal,
+        shippingCost,
+        discountAmount: discountAmount + qtyDiscountAmount,
+        couponCode: couponApplied ? couponCode.trim().toUpperCase() : undefined,
+        total: finalTotal,
+        paymentMethod,
+        userId: user?.id,
+      });
+
+      setConfirmedOrderId(orderNumber);
       setOrderConfirmed(true);
-
-      // Save real-time order and address to localStorage for Account Dashboard
-      if (typeof window !== 'undefined') {
-        const primaryItem = cart[0];
-        const newOrder = {
-          id: generatedId,
-          productName: primaryItem ? primaryItem.product.name : 'Luxury Ethnic Ensemble',
-          productImage: primaryItem ? (primaryItem.product.colors?.find(c => c.name === primaryItem.selectedColor)?.image || primaryItem.product.image) : '/images/your-image-19.jpg',
-          date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-          status: 'Processing',
-          total: finalTotal,
-          itemsCount: totalItems,
-          items: cart.map(item => ({
-            name: item.product.name,
-            size: item.selectedSize,
-            color: item.selectedColor,
-            qty: item.quantity,
-            price: item.product.price,
-            image: item.product.colors?.find(c => c.name === item.selectedColor)?.image || item.product.image,
-          })),
-          shippingAddress: { ...formData },
-          paymentMethod: paymentMethod,
-        };
-
-        try {
-          const existingOrders = JSON.parse(localStorage.getItem('alhareer_orders') || '[]');
-          localStorage.setItem('alhareer_orders', JSON.stringify([newOrder, ...existingOrders]));
-          window.dispatchEvent(new Event('alhareer_orders_updated'));
-
-          const existingAddresses = JSON.parse(localStorage.getItem('alhareer_saved_addresses') || '[]');
-          const newAddress = {
-            id: `addr-${Date.now()}`,
-            name: formData.fullName,
-            phone: formData.phone,
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            pinCode: formData.pinCode,
-            isDefault: existingAddresses.length === 0,
-            type: 'Home',
-          };
-          if (!existingAddresses.some((a: any) => a.address.toLowerCase() === formData.address.toLowerCase())) {
-            localStorage.setItem('alhareer_saved_addresses', JSON.stringify([newAddress, ...existingAddresses]));
-          }
-        } catch (e) {
-          console.error('Error saving real-time order', e);
-        }
-      }
-
-      if (cart.length > 0) {
-        clearCart();
-      }
+      clearCart();
       showToast('🎉 Order Placed Successfully! Your royal package is being prepared.', 'success');
-    }, 1400);
+    } catch (err) {
+      console.error('Failed to place order', err);
+      showToast('Something went wrong placing your order. Please try again.', 'error');
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   return (
@@ -295,8 +299,9 @@ export default function CheckoutPage() {
                       type="tel"
                       required
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="9876543210"
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                      placeholder="10-digit mobile number"
+                      maxLength={10}
                       className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
                     />
                   </div>
@@ -378,95 +383,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* 2. SHIPPING METHOD CARD */}
-              <div className="bg-white p-5 sm:p-7 rounded-xl border border-[#E8DFD5] shadow-xs space-y-4">
-                <div className="flex items-center gap-3 pb-3 border-b border-[#F0EAE1]">
-                  <div className="w-9 h-9 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525]">
-                    <Truck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h2 className="font-heading text-lg sm:text-xl font-bold text-[#2B231D]">
-                      2. Shipping Method
-                    </h2>
-                    <p className="text-xs text-[#7A6F66]">
-                      Choose how you want to receive your order
-                    </p>
-                  </div>
-                </div>
-
-                {/* Two Selectable Cards Side by Side */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* Standard Delivery */}
-                  <label
-                    onClick={() => setShippingMethod('standard')}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer select-none ${
-                      shippingMethod === 'standard'
-                        ? 'border-[#4A3525] bg-[#FAF6F1] shadow-2xs'
-                        : 'border-[#E8DFD5] bg-white hover:bg-[#FAF6F1]/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                          shippingMethod === 'standard'
-                            ? 'border-[#4A3525] bg-[#4A3525]'
-                            : 'border-[#A89C8F]'
-                        }`}
-                      >
-                        {shippingMethod === 'standard' && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <Truck className="w-4 h-4 text-[#4A3525]" />
-                        <div>
-                          <p className="text-xs font-bold text-[#2B231D]">Standard Delivery</p>
-                          <p className="text-[11px] text-[#7A6F66]">3 – 5 business days</p>
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold text-[#1E7E34] bg-[#25D366]/15 px-2 py-0.5 rounded">
-                      Free
-                    </span>
-                  </label>
-
-                  {/* Express Delivery */}
-                  <label
-                    onClick={() => setShippingMethod('express')}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer select-none ${
-                      shippingMethod === 'express'
-                        ? 'border-[#4A3525] bg-[#FAF6F1] shadow-2xs'
-                        : 'border-[#E8DFD5] bg-white hover:bg-[#FAF6F1]/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                          shippingMethod === 'express'
-                            ? 'border-[#4A3525] bg-[#4A3525]'
-                            : 'border-[#A89C8F]'
-                        }`}
-                      >
-                        {shippingMethod === 'express' && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <Zap className="w-4 h-4 text-[#D4AF37]" />
-                        <div>
-                          <p className="text-xs font-bold text-[#2B231D]">Express Delivery</p>
-                          <p className="text-[11px] text-[#7A6F66]">1 – 2 business days</p>
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold text-[#4A3525]">
-                      ₹100
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* 3. PAYMENT METHOD CARD */}
+              {/* 2. PAYMENT METHOD CARD */}
               <div className="bg-white p-5 sm:p-7 rounded-xl border border-[#E8DFD5] shadow-xs space-y-4">
                 <div className="flex items-center gap-3 pb-3 border-b border-[#F0EAE1]">
                   <div className="w-9 h-9 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525]">
@@ -474,7 +391,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <h2 className="font-heading text-lg sm:text-xl font-bold text-[#2B231D]">
-                      3. Payment Method
+                      2. Payment Method
                     </h2>
                     <p className="text-xs text-[#7A6F66]">
                       Choose your preferred payment method
@@ -482,13 +399,13 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Payment Options List */}
+                {/* Payment Options — Online & COD */}
                 <div className="space-y-2.5">
-                  {/* UPI */}
+                  {/* Online Payment */}
                   <label
-                    onClick={() => setPaymentMethod('upi')}
+                    onClick={() => setPaymentMethod('online')}
                     className={`flex items-center justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer select-none ${
-                      paymentMethod === 'upi'
+                      paymentMethod === 'online'
                         ? 'border-[#4A3525] bg-[#FAF6F1] shadow-2xs'
                         : 'border-[#E8DFD5] bg-white hover:bg-[#FAF6F1]/50'
                     }`}
@@ -496,82 +413,23 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                          paymentMethod === 'upi'
+                          paymentMethod === 'online'
                             ? 'border-[#4A3525] bg-[#4A3525]'
                             : 'border-[#A89C8F]'
                         }`}
                       >
-                        {paymentMethod === 'upi' && (
+                        {paymentMethod === 'online' && (
                           <div className="w-1.5 h-1.5 rounded-full bg-white" />
                         )}
                       </div>
-                      <span className="text-xs sm:text-sm font-semibold text-[#2B231D]">
-                        UPI (Google Pay, PhonePe, Paytm, QR)
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-bold text-[#2A7E4B] bg-[#25D366]/15 px-2 py-0.5 rounded tracking-wider">
-                      UPI ❯
-                    </span>
-                  </label>
-
-                  {/* Credit / Debit Card */}
-                  <label
-                    onClick={() => setPaymentMethod('card')}
-                    className={`flex items-center justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer select-none ${
-                      paymentMethod === 'card'
-                        ? 'border-[#4A3525] bg-[#FAF6F1] shadow-2xs'
-                        : 'border-[#E8DFD5] bg-white hover:bg-[#FAF6F1]/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                          paymentMethod === 'card'
-                            ? 'border-[#4A3525] bg-[#4A3525]'
-                            : 'border-[#A89C8F]'
-                        }`}
-                      >
-                        {paymentMethod === 'card' && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                        )}
+                      <div>
+                        <span className="text-xs sm:text-sm font-semibold text-[#2B231D]">
+                          Online Payment
+                        </span>
+                        <p className="text-[11px] text-[#7A6F66] mt-0.5">UPI, Card, Net Banking</p>
                       </div>
-                      <span className="text-xs sm:text-sm font-semibold text-[#2B231D]">
-                        Credit / Debit Card
-                      </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#7A6F66]">
-                      <span className="bg-[#FAF6F1] px-1.5 py-0.5 rounded border border-[#DACDC0]">VISA</span>
-                      <span className="bg-[#FAF6F1] px-1.5 py-0.5 rounded border border-[#DACDC0]">Mastercard</span>
-                      <span className="bg-[#FAF6F1] px-1.5 py-0.5 rounded border border-[#DACDC0]">RuPay</span>
-                    </div>
-                  </label>
-
-                  {/* Net Banking */}
-                  <label
-                    onClick={() => setPaymentMethod('netbanking')}
-                    className={`flex items-center justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer select-none ${
-                      paymentMethod === 'netbanking'
-                        ? 'border-[#4A3525] bg-[#FAF6F1] shadow-2xs'
-                        : 'border-[#E8DFD5] bg-white hover:bg-[#FAF6F1]/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                          paymentMethod === 'netbanking'
-                            ? 'border-[#4A3525] bg-[#4A3525]'
-                            : 'border-[#A89C8F]'
-                        }`}
-                      >
-                        {paymentMethod === 'netbanking' && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <span className="text-xs sm:text-sm font-semibold text-[#2B231D]">
-                        Net Banking (All Indian Banks)
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-[#8B6B52]">All 50+ Banks</span>
+                    <span className="text-[11px] text-[#1E7E34] font-semibold">No extra fee</span>
                   </label>
 
                   {/* Cash on Delivery (COD) */}
@@ -602,7 +460,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                     <span className="text-[11px] text-[#7A6F66]">
-                      {currentSubtotal >= 999 ? 'Free COD' : '₹49 handling fee'}
+                      {currentSubtotal >= shipping.free_threshold ? 'Free COD' : `₹${shipping.cod_charge} handling fee`}
                     </span>
                   </label>
                 </div>
@@ -621,10 +479,7 @@ export default function CheckoutPage() {
                       </span>
                     ) : (
                       <>
-                        <span className="flex items-center gap-2">
-                          <span>Place Order</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </span>
+                        <span>Place Order</span>
                         <span>₹{finalTotal.toLocaleString('en-IN')}</span>
                       </>
                     )}
@@ -789,15 +644,23 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
+                  {qtyDiscountAmount > 0 && (
+                    <div className="flex items-center justify-between text-[#1E7E34]">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <span>Quantity Discount</span>
+                        <span className="text-[10px] uppercase font-bold tracking-wider bg-[#1E7E34]/10 text-[#1E7E34] px-1.5 py-0.5 rounded">
+                          Auto
+                        </span>
+                      </span>
+                      <span className="font-bold">-₹{qtyDiscountAmount.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between text-[#7A6F66]">
                     <span>Shipping</span>
-                    {shippingMethod === 'express' ? (
-                      <span className="font-semibold text-[#2B231D]">₹100</span>
-                    ) : (
-                      <span className="font-bold text-[#1E7E34] bg-[#1E7E34]/10 px-2 py-0.5 rounded text-[11px]">
-                        FREE
-                      </span>
-                    )}
+                    <span className="font-bold text-[#1E7E34] bg-[#1E7E34]/10 px-2 py-0.5 rounded text-[11px]">
+                      FREE
+                    </span>
                   </div>
 
                   {codFee > 0 && (
@@ -854,15 +717,21 @@ export default function CheckoutPage() {
                         type="text"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
-                        placeholder="e.g. TRADITION10"
+                        placeholder="Enter coupon code"
                         className="flex-1 text-xs px-3 py-2 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] uppercase outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus:border-[#4A3525]"
                       />
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
-                        className="bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                        disabled={isCouponLoading || !couponCode.trim()}
+                        className="bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Apply
+                        {isCouponLoading ? (
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                            <span>Checking...</span>
+                          </span>
+                        ) : 'Apply'}
                       </button>
                     </div>
                   )}
@@ -875,7 +744,7 @@ export default function CheckoutPage() {
                 <div className="flex flex-col items-center gap-1 p-4 bg-white rounded-lg border border-[#E8DFD5] shadow-2xs">
                   <Truck className="w-6 h-6 text-[#4A3525]" />
                   <span className="font-bold text-[11px] text-[#2B231D]">Free Shipping</span>
-                  <span className="text-[9.5px] text-[#7A6F66]">On orders above ₹999</span>
+                  <span className="text-[9.5px] text-[#7A6F66]">On orders above ₹{shipping.free_threshold.toLocaleString('en-IN')}</span>
                 </div>
 
                 <div className="flex flex-col items-center gap-1 p-4 bg-white rounded-lg border border-[#E8DFD5] shadow-2xs">
@@ -893,7 +762,7 @@ export default function CheckoutPage() {
                 <div className="flex flex-col items-center gap-1 p-4 bg-white rounded-lg border border-[#E8DFD5] shadow-2xs">
                   <Headphones className="w-6 h-6 text-[#4A3525]" />
                   <span className="font-bold text-[11px] text-[#2B231D]">Need Help?</span>
-                  <span className="text-[9.5px] text-[#7A6F66]">support@alhareer.com</span>
+                  <span className="text-[9.5px] text-[#7A6F66]">{contactEmail}</span>
                 </div>
               </div>
 

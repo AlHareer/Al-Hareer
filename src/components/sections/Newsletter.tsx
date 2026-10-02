@@ -2,17 +2,27 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { ArrowRight, Mail, Gift, Crown, Percent, Bell, Check } from 'lucide-react';
+import { Mail, Gift, Crown, Percent, Bell, Check } from 'lucide-react';
 import { useUI } from '@/context/UIContext';
+import type { ContentSettings } from '@/lib/siteSettings';
+import { subscribeNewsletter } from '@/actions/customerContact';
 
-export default function Newsletter() {
+export default function Newsletter({ settings }: { settings: ContentSettings }) {
+  const [headingLine1, headingLine2] = settings.home_newsletter_heading.split('\n');
+  const newsletterImage = settings.home_newsletter_image || '/images/your-image-19.jpg';
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const { showToast } = useUI();
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+
+    const result = await subscribeNewsletter(email);
+    if (!result.success) {
+      showToast(result.error || 'Failed to subscribe. Please try again.', 'error');
+      return;
+    }
 
     setSubscribed(true);
     showToast('✨ Welcome to the Al Hareer Privilege Club!');
@@ -41,15 +51,19 @@ export default function Newsletter() {
 
                 {/* Main Heading */}
                 <h2 className="font-heading text-3xl sm:text-4xl lg:text-[42px] font-normal text-[#2B231D] leading-[1.14] mt-4">
-                  Be the First <br />
-                  <span className="font-serif italic font-normal text-[#3E2D20]">
-                    to Experience More
-                  </span>
+                  {headingLine1}
+                  {headingLine2 && (
+                    <>
+                      {' '}
+                      <br />
+                      <span className="font-serif italic font-normal text-[#3E2D20]">{headingLine2}</span>
+                    </>
+                  )}
                 </h2>
 
                 {/* Subtitle */}
                 <p className="text-xs sm:text-sm text-[#655B53] font-body leading-relaxed max-w-md mt-3">
-                  Subscribe to get exclusive previews, festive offers, styling inspiration and updates straight to your inbox.
+                  {settings.home_newsletter_subtitle}
                 </p>
 
                 {/* Subscribe Form */}
@@ -74,10 +88,8 @@ export default function Newsletter() {
                       className="inline-flex items-center justify-center gap-2 px-7 py-3 sm:py-3.5 bg-[#3E2B1E] text-white font-medium text-xs sm:text-sm rounded-lg sm:rounded-l-none hover:bg-[#2A1D14] transition-all duration-300 shadow-sm whitespace-nowrap cursor-pointer hover:shadow-md"
                     >
                       <span>{subscribed ? 'Joined' : 'Join Now'}</span>
-                      {subscribed ? (
+                      {subscribed && (
                         <Check className="w-4 h-4 text-gold" />
-                      ) : (
-                        <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                       )}
                     </button>
                   </div>
@@ -138,7 +150,7 @@ export default function Newsletter() {
               
               {/* Main Model Photo */}
               <Image
-                src="/images/your-image-19.jpg"
+                src={newsletterImage}
                 alt="Al Hareer Community Heritage"
                 fill
                 priority

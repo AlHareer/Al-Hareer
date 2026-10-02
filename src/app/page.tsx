@@ -1,5 +1,7 @@
 import Navbar from '@/components/layout/Navbar';
 import Hero from '@/components/sections/Hero';
+import ShopByCategory from '@/components/sections/ShopByCategory';
+import CategoryShowcase from '@/components/sections/CategoryShowcase';
 import ShopByOccasion from '@/components/shopby/ShopByOccasion';
 import SplitBanner from '@/components/sections/SplitBanner';
 import FeaturedCollection from '@/components/sections/FeaturedCollection';
@@ -10,46 +12,75 @@ import MomentsSection from '@/components/sections/MomentsSection';
 import Testimonials from '@/components/sections/Testimonials';
 import ContactSection from '@/components/sections/ContactSection';
 import Newsletter from '@/components/sections/Newsletter';
+import HomeFaqSection from '@/components/sections/HomeFaqSection';
 import Footer from '@/components/layout/Footer';
+import { getFeaturedProducts, getProductTypeShowcase } from '@/lib/products';
+import { getTestimonials, getHomeContentSettings, getActiveHeroSlides, getSocialLinks, getHomeFaqs } from '@/lib/siteSettings';
+import type { OccasionItem } from '@/types';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [products, testimonials, homeSettings, heroSlides, showcase, socialLinks, faqs] = await Promise.all([
+    getFeaturedProducts(),
+    getTestimonials(),
+    getHomeContentSettings(),
+    getActiveHeroSlides(),
+    getProductTypeShowcase(),
+    getSocialLinks(),
+    getHomeFaqs(),
+  ]);
+  const mergedSettings = { ...homeSettings, ...socialLinks };
+
+  let occasions: OccasionItem[] = [];
+  try {
+    occasions = JSON.parse(mergedSettings.home_shopby_occasions || '[]');
+  } catch { occasions = []; }
+
   return (
     <main className="min-h-screen flex flex-col bg-cream-100 selection:bg-brand-500 selection:text-white">
       {/* Navigation Header */}
       <Navbar />
 
       {/* Hero Banner */}
-      <Hero />
+      <Hero slides={heroSlides} settings={mergedSettings} />
+
+      {/* Shop by Category (circular avatar row) */}
+      <ShopByCategory settings={mergedSettings} />
+
+      {/* Shop by Collection (big image block grid) */}
+      <CategoryShowcase items={showcase} settings={mergedSettings} />
 
       {/* Trust & Value Pillars (Dark Olive Strip) */}
-      <TrustBar />
+      <TrustBar settings={mergedSettings} />
 
       {/* Shop by Occasion Grid */}
-      <ShopByOccasion />
+      <ShopByOccasion occasions={occasions} settings={mergedSettings} />
 
       {/* Comfort & Fabric Split Banner */}
-      <SplitBanner />
+      <SplitBanner settings={mergedSettings} />
 
       {/* Featured Collection & Product Catalog */}
-      <FeaturedCollection />
+      <FeaturedCollection products={products} settings={mergedSettings} />
 
       {/* About Us Brand Heritage */}
-      <AboutSection />
+      <AboutSection settings={mergedSettings} />
 
       {/* Our Story 3-Column Showcase */}
-      <OurStory />
+      <OurStory settings={mergedSettings} />
 
       {/* Moments & Celebration Outfits */}
-      <MomentsSection />
+      <MomentsSection settings={mergedSettings} />
 
       {/* Verified Customer Reviews */}
-      <Testimonials />
+      <Testimonials testimonials={testimonials} />
+
+      {/* FAQ Preview */}
+      <HomeFaqSection faqs={faqs} />
 
       {/* Contact Concierge & Location */}
-      <ContactSection />
+      <ContactSection settings={mergedSettings} />
 
       {/* VIP Club Newsletter */}
-      <Newsletter />
+      <Newsletter settings={mergedSettings} />
 
       {/* Footer */}
       <Footer />

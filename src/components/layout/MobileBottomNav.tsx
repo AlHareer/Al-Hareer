@@ -24,6 +24,11 @@ export default function MobileBottomNav() {
     setMounted(true);
   }, []);
 
+  // Do not render bottom navigation bar on any admin dashboard routes
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   const isHomeActive = pathname === '/';
   const isWishlistActive = pathname === '/wishlist';
   const isCartActive = isCartOpen || pathname === '/cart' || pathname === '/checkout';

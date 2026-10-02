@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Play, X, Leaf, Wind, Scissors, Users } from "lucide-react";
+import { Leaf, Wind, Scissors, Users } from "lucide-react";
+import type { ContentSettings } from "@/lib/siteSettings";
 
-export default function AboutSection() {
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
+export default function AboutSection({ settings }: { settings: ContentSettings }) {
+  const [headingLine1, headingLine2] = settings.home_aboutteaser_heading.split('\n');
+  const aboutImage = settings.home_aboutteaser_image || '/images/your-image-19.jpg';
 
   return (
     <section
@@ -93,7 +95,7 @@ export default function AboutSection() {
           <div className="lg:col-span-6 relative">
             <div className="relative w-full h-[340px] sm:h-[400px] lg:h-[580px] rounded-2xl sm:rounded-3xl lg:rounded-l-2xl lg:rounded-tr-[110px] lg:rounded-br-[110px] overflow-hidden shadow-2xl border-4 border-[#E2D7C7]/100">
               <Image
-                src="/images/your-image-19.jpg"
+                src={aboutImage}
                 alt="About Al Hareer Craftsmanship"
                 fill
                 priority
@@ -229,24 +231,20 @@ export default function AboutSection() {
 
             {/* Main Headline */}
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-[44px] xl:text-[50px] font-medium text-[#2B231D] leading-[1.15] tracking-tight">
-              Tradition, Quality &amp; <br />
-              <span className="font-serif italic font-normal text-[#3E2D20]">
-                Modern Elegance
-              </span>
+              {headingLine1}
+              {headingLine2 && (
+                <>
+                  {' '}
+                  <br />
+                  <span className="font-serif italic font-normal text-[#3E2D20]">{headingLine2}</span>
+                </>
+              )}
             </h2>
 
             {/* Description Text */}
             <div className="space-y-4 text-sm sm:text-[15px] text-[#655B53] font-body leading-relaxed max-w-xl">
-              <p>
-                Al Hareer is a contemporary traditional menswear brand created for
-                men who appreciate timeless style, premium fabrics, and
-                breathable ease.
-              </p>
-              <p>
-                We bring together the richness of Indian and South Asian fashion
-                with modern cuts, subtle placket detailing, and refined
-                aesthetics suited for festivities, weddings, and everyday grace.
-              </p>
+              <p>{settings.home_aboutteaser_paragraph}</p>
+              <p>{settings.home_aboutteaser_paragraph2}</p>
             </div>
 
             {/* 4 Feature Columns */}
@@ -307,58 +305,13 @@ export default function AboutSection() {
                 className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-[4px] bg-[#3E2D20] text-white font-medium text-sm transition-all duration-300 hover:bg-[#2A1D14] hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
               >
                 <span>Discover Our Story</span>
-                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
 
-              {/* Watch Video Button */}
-              <button
-                type="button"
-                onClick={() => setIsVideoOpen(true)}
-                className="group inline-flex items-center gap-3 text-sm font-medium text-[#2B231D] hover:text-[#4A3525] transition-colors cursor-pointer"
-              >
-                <span className="w-11 h-11 rounded-full bg-[#EADDCF] flex items-center justify-center transition-all duration-300 group-hover:bg-[#DFCDB8] group-hover:scale-105 shadow-sm">
-                  <Play className="w-4 h-4 text-[#3E2D20] fill-[#3E2D20] ml-0.5" />
-                </span>
-                <span className="tracking-wide">Watch Video</span>
-              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Brand Craftsmanship Video Modal */}
-      {isVideoOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-4xl bg-[#1A1410] rounded-2xl overflow-hidden shadow-2xl border border-cream-300/30">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#2B231D]">
-              <div className="flex items-center gap-3">
-                <span className="font-heading text-lg text-cream-100 font-semibold tracking-wider">
-                  Al Hareer Craftsmanship &amp; Heritage
-                </span>
-              </div>
-              <button
-                onClick={() => setIsVideoOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
-                aria-label="Close video"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Video Player */}
-            <div className="relative aspect-video w-full bg-black">
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube-nocookie.com/embed/fJ9rUzIMcZQ?autoplay=1&rel=0"
-                title="Al Hareer Craftsmanship"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

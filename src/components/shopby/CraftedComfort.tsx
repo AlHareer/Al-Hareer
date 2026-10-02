@@ -2,9 +2,14 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { ArrowRight, Leaf, Scissors, Layers } from 'lucide-react';
+import { Leaf, Scissors, Layers } from 'lucide-react';
+import type { ContentSettings } from '@/lib/siteSettings';
 
-export default function CraftedComfort() {
+export default function CraftedComfort({ settings }: { settings: ContentSettings }) {
+  const [headingLine1, headingLine2] = settings.home_splitbanner_heading.split('\n');
+  const img1 = settings.home_splitbanner_image1 || '/images/shopby/comfort-kurta.jpg';
+  const img2 = settings.home_splitbanner_image2 || '/images/shopby/heritage-fabric.jpg';
+
   return (
     <section className="py-10 sm:py-16 md:py-14 bg-cream-100/60 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,21 +28,25 @@ export default function CraftedComfort() {
               <div className="flex items-center gap-2.5">
                 <span className="w-5 h-[1.5px] bg-[#8B6B52]" />
                 <span className="text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-brand-600 uppercase">
-                  BESPOKE COMFORT
+                  COMFORT FIRST
                 </span>
               </div>
 
               {/* Heading */}
               <h2 className="font-heading text-3xl sm:text-4xl xl:text-[42px] font-bold text-brand-700 leading-[1.15]">
-                Crafted For Comfort, <br />
-                <span className="italic font-serif-luxury font-normal text-brand-600">
-                  Designed For You
-                </span>
+                {headingLine1}
+                {headingLine2 && (
+                  <>
+                    {' '}
+                    <br />
+                    <span className="italic font-serif-luxury font-normal text-brand-600">{headingLine2}</span>
+                  </>
+                )}
               </h2>
 
               {/* Description */}
               <p className="text-sm sm:text-[15px] text-muted leading-relaxed max-w-md">
-                Breathable organic fabrics, tailored seams, and timeless cuts — because you deserve nothing less than supreme ease and heritage luxury.
+                {settings.home_splitbanner_description}
               </p>
 
               {/* Explore Button */}
@@ -47,7 +56,6 @@ export default function CraftedComfort() {
                   className="inline-flex items-center gap-2.5 px-6 py-3 rounded-lg bg-[#3E2B1E] text-white font-medium text-sm transition-all duration-300 hover:bg-brand-700 hover:shadow-luxury group cursor-pointer"
                 >
                   <span>Explore Now</span>
-                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
               </div>
             </div>
@@ -106,7 +114,7 @@ export default function CraftedComfort() {
           {/* Block 2: Middle Olive Kurta Portrait Card */}
           <div className="md:col-span-1 lg:col-span-3 xl:col-span-3 relative rounded-[5px] overflow-hidden min-h-[380px] sm:min-h-[440px] lg:min-h-[480px] border border-cream-300/80 shadow-sm group">
             <Image
-              src="/images/shopby/comfort-kurta.jpg"
+              src={img1}
               alt="Man wearing olive green linen kurta"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -130,8 +138,8 @@ export default function CraftedComfort() {
           {/* Block 3: Right Handloom Fabric Card with Top-Right Stamp & Bottom Pill */}
           <div className="md:col-span-1 lg:col-span-5 xl:col-span-5 relative rounded-[5px] overflow-hidden min-h-[380px] sm:min-h-[440px] lg:min-h-[480px] flex flex-col justify-between p-4 sm:p-6 border border-cream-300/80 shadow-sm group">
             <Image
-              src="/images/shopby/heritage-fabric.jpg"
-              alt="The Finest Heritage Handloom Fabrics"
+              src={img2}
+              alt="Handloom Fabrics"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 42vw"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -158,21 +166,17 @@ export default function CraftedComfort() {
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="w-4 h-[1.5px] bg-brand-500" />
                   <span className="text-[9.5px] sm:text-[11px] font-bold tracking-[0.18em] text-brand-700 uppercase">
-                    HANDLOOM EXCELLENCE
+                    HANDLOOM FABRIC
                   </span>
                 </div>
 
                 {/* Center Divider & Title */}
                 <div className="flex items-center gap-3 border-l border-brand-300/80 pl-3 sm:pl-4 min-w-0">
                   <h3 className="font-heading text-xs sm:text-base md:text-lg font-semibold text-brand-800 truncate">
-                    The Finest Heritage Fabrics
+                    Quality Fabric, Made to Last
                   </h3>
                 </div>
 
-                {/* Right: Circular Arrow Button */}
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-brand-400/80 flex items-center justify-center text-brand-700 group-hover/pill:bg-[#3E2B1E] group-hover/pill:border-[#3E2B1E] group-hover/pill:text-white transition-all duration-300 shrink-0">
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover/pill:translate-x-0.5" />
-                </div>
               </a>
             </div>
 

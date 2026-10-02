@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, Star, ShoppingBag, Heart, ShieldCheck, ArrowRight, Minus, Plus } from 'lucide-react';
+import { X, Star, ShoppingBag, Heart, ShieldCheck, Minus, Plus } from 'lucide-react';
 import { useUI } from '@/context/UIContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -103,24 +103,28 @@ export default function ProductQuickViewModal() {
 
               {/* Rating & In-Stock Pill */}
               <div className="flex items-center gap-2 pt-0.5">
-                <div className="flex text-amber-500">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3 h-3 ${
-                        i < Math.floor(quickViewProduct.rating)
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-amber-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-[11px] font-bold text-brand-800">
-                  {quickViewProduct.rating}
-                </span>
-                <span className="text-[10px] text-muted">
-                  ({quickViewProduct.reviewCount})
-                </span>
+                {quickViewProduct.reviewCount > 0 && (
+                  <>
+                    <div className="flex text-amber-500">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < Math.floor(quickViewProduct.rating)
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-amber-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[11px] font-bold text-brand-800">
+                      {quickViewProduct.rating}
+                    </span>
+                    <span className="text-[10px] text-muted">
+                      ({quickViewProduct.reviewCount})
+                    </span>
+                  </>
+                )}
                 <span className="ml-auto text-[9.5px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">
                   In Stock
                 </span>
@@ -247,7 +251,7 @@ export default function ProductQuickViewModal() {
                   onClick={closeQuickView}
                   className="font-semibold text-brand-700 hover:text-brand-900 underline underline-offset-2 flex items-center gap-1"
                 >
-                  Full Details & Guide <ArrowRight className="w-3 h-3" />
+                  Full Details & Guide
                 </Link>
                 <div className="flex items-center gap-1 text-[10px]">
                   <ShieldCheck className="w-3 h-3 text-brand-600" />

@@ -36,13 +36,15 @@ module.exports = {
           light: "#F5E6BE",
           DEFAULT: "#D4AF37", // Gold accent
           dark: "#AA820A",
-          metallic: "linear-gradient(135deg, #D4AF37 0%, #EDC967 50%, #B8860B 100%)",
         },
       },
+      backgroundImage: {
+        "gold-metallic": "linear-gradient(135deg, #D4AF37 0%, #EDC967 50%, #B8860B 100%)",
+      },
       fontFamily: {
-        heading: ["var(--font-heading)", "Cormorant Garamond", "serif"],
+        heading: ["var(--font-heading)", "Montserrat", "sans-serif"],
         body: ["var(--font-body)", "Montserrat", "sans-serif"],
-        script: ["var(--font-script)", "Caveat", "cursive"],
+        script: ["var(--font-script)", "Montserrat", "sans-serif"],
       },
       boxShadow: {
         luxury: "0 10px 30px -10px rgba(74, 53, 37, 0.08)",
@@ -58,10 +60,15 @@ module.exports = {
           "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
           "50%": { opacity: "1", transform: "scale(1.05)" },
         },
+        marqueeContinuous: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         float: "float 4s ease-in-out infinite",
         "pulse-glow": "pulseGlow 2.5s ease-in-out infinite",
+        "marquee-infinite": "marqueeContinuous 30s linear infinite",
       },
     },
   },

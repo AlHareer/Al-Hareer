@@ -2,52 +2,34 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import type { ContentSettings } from '@/lib/siteSettings';
 import {
-  ArrowRight,
-  Play,
   Truck,
   Award,
   RotateCcw,
   Heart,
   ChevronLeft,
   ChevronRight,
-  X,
-  Sparkles,
 } from 'lucide-react';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
-const heroSlides = [
-  {
-    id: 1,
-    image: '/images/img_01/hero_img01.png',
-    tag: 'TIMELESS TRADITION',
-    titleLine1: 'Tradition',
-    titleLine2: 'Wears Better',
-    titleLine3: 'Today',
-    subtitle: 'Premium Kurta Pajama Sets for Every Occasion. Where timeless style meets modern comfort.',
-  },
-  {
-    id: 2,
-    image: '/images/img_01/hero_img01.png',
-    tag: 'ROYAL HERITAGE',
-    titleLine1: 'Elegance',
-    titleLine2: 'Woven In Every',
-    titleLine3: 'Thread',
-    subtitle: 'Pure Mulberry Silks and Slub Cotton tailored for festive celebrations and milestones.',
-  },
-  {
-    id: 3,
-    image: '/images/img_01/hero_img01.png',
-    tag: 'MODERN BESPOKE',
-    titleLine1: 'Comfort',
-    titleLine2: 'Designed For',
-    titleLine3: 'Celebration',
-    subtitle: 'Tailored ethnic silhouettes engineered for effortless charm and all-day celebration ease.',
-  },
-];
+export type HeroSlideData = {
+  id: number;
+  image: string;
+  tag: string;
+  titleLine1: string;
+  titleLine2: string;
+  titleLine3: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+};
 
-export default function Hero() {
+export default function Hero({ slides: heroSlides, settings }: { slides: HeroSlideData[]; settings: ContentSettings }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const shipping = useShippingSettings();
+
+  if (heroSlides.length === 0) return null;
 
   // Auto slide interval
   useEffect(() => {
@@ -162,22 +144,12 @@ export default function Hero() {
             {/* Action Buttons */}
             <div className="flex items-center gap-4 mb-3 mt-8">
               <a
-                href="#shop"
+                href={activeData.buttonLink || '/shop'}
                 className="inline-flex items-center gap-2 bg-[#423124] hover:bg-[#302217] text-white px-6 py-2.5 rounded-[5px] text-[13px] xl:text-sm font-medium transition-all duration-300 shadow-[0_4px_12px_rgba(66,49,36,0.2)] hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
               >
-                <span>Shop Collection</span>
-                <ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                <span>{activeData.buttonText || 'Shop Collection'}</span>
               </a>
 
-              <button
-                onClick={() => setIsVideoModalOpen(true)}
-                className="inline-flex items-center gap-2.5 text-[#2B231D] hover:text-[#423124] font-medium text-[13px] xl:text-sm group cursor-pointer transition-colors"
-              >
-                <span className="w-6 h-6 xl:w-7 xl:h-7 rounded-full border border-[#2B231D] flex items-center justify-center group-hover:bg-[#2B231D] group-hover:text-white transition-all shadow-sm">
-                  <Play className="w-2 xl:w-2.5 h-2 xl:h-2.5 fill-current ml-0.5" />
-                </span>
-                <span>Watch Our Story</span>
-              </button>
             </div>
           </div>
 
@@ -193,7 +165,7 @@ export default function Hero() {
                   Free Shipping
                 </h4>
                 <p className="text-[9.5px] xl:text-[10px] text-[#7A6F66] mt-0.5 leading-snug">
-                  On Orders Above ₹999
+                  On Orders Above ₹{shipping.free_threshold.toLocaleString('en-IN')}
                 </p>
               </div>
 
@@ -315,22 +287,12 @@ export default function Hero() {
             {/* Action Buttons */}
             <div className="w-full flex flex-col sm:flex-row gap-2 pt-1">
               <a
-                href="#shop"
+                href={activeData.buttonLink || '/shop'}
                 className="w-full sm:flex-1 bg-[#423124] hover:bg-[#302217] text-white py-2.5 rounded-full text-xs sm:text-sm font-medium flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"
               >
-                <span>Shop Collection</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>{activeData.buttonText || 'Shop Collection'}</span>
               </a>
 
-              <button
-                onClick={() => setIsVideoModalOpen(true)}
-                className="w-full sm:flex-1 bg-transparent border border-[#2B231D] text-[#2B231D] hover:bg-black/5 py-2.5 rounded-full text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-colors active:scale-[0.99]"
-              >
-                <span className="w-4 h-4 rounded-full border border-current flex items-center justify-center">
-                  <Play className="w-2 h-2 fill-current ml-0.5" />
-                </span>
-                <span>Watch Our Story</span>
-              </button>
             </div>
 
             {/* 4 Feature Items in Clean 2x2 Minimal Grid */}
@@ -338,7 +300,7 @@ export default function Hero() {
               <div className="flex flex-col items-center text-center p-1.5">
                 <Truck className="w-3.5 h-3.5 text-[#2B231D] stroke-[1.6] mb-0.5" />
                 <span className="text-[11px] font-bold text-[#2B231D]">Free Shipping</span>
-                <span className="text-[9px] text-[#7A6F66]">On Orders Above ₹999</span>
+                <span className="text-[9px] text-[#7A6F66]">On Orders Above ₹{shipping.free_threshold.toLocaleString('en-IN')}</span>
               </div>
 
               <div className="flex flex-col items-center text-center p-1.5">
@@ -363,45 +325,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* WATCH OUR STORY VIDEO MODAL POPUP                                         */}
-      {/* ========================================================================= */}
-      {isVideoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-3xl bg-[#1F1813] rounded-2xl overflow-hidden shadow-2xl border border-[#4A3525]">
-            <div className="flex items-center justify-between p-4 border-b border-[#36261A]">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                <span className="font-serif-luxury text-lg font-bold text-[#FAF6F1]">
-                  AL HAREER Heritage Craftsmanship
-                </span>
-              </div>
-              <button
-                onClick={() => setIsVideoModalOpen(false)}
-                className="p-1.5 text-[#A39E93] hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1"
-                title="AL HAREER Brand Story"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-
-            <div className="p-4 bg-[#2B231D] text-center">
-              <p className="text-xs text-[#DFCFC0]">
-                Every stitch is handcrafted by master artisans with over 40 years of South Asian handloom heritage.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

@@ -1,26 +1,24 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Search, X, ShoppingBag } from 'lucide-react';
 import { useUI } from '@/context/UIContext';
-import { PRODUCTS } from '@/data/products';
+import { searchProducts } from '@/lib/products';
+import type { Product } from '@/types';
 
 export default function SearchModal() {
   const { isSearchOpen, setIsSearchOpen, openQuickView } = useUI();
   const [query, setQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-  const filteredProducts = useMemo(() => {
-    if (!query.trim()) return PRODUCTS.slice(0, 4);
-    const q = query.toLowerCase();
-    return PRODUCTS.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.fabric.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.colors.some((c) => c.name.toLowerCase().includes(q))
-    );
-  }, [query]);
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    const timeout = setTimeout(() => {
+      searchProducts(query).then(setFilteredProducts).catch(() => setFilteredProducts([]));
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [query, isSearchOpen]);
 
   if (!isSearchOpen) return null;
 

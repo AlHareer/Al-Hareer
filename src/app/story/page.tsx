@@ -1,70 +1,50 @@
-'use client';
-
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
   Home,
-  ArrowRight,
   Feather,
-  Sparkles,
-  Heart,
-  Clock,
   Compass,
   Award,
-  Shirt,
   Scissors,
-  CheckCircle2,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { getStoryContentSettings } from '@/lib/siteSettings';
 
-export default function OurStoryPage() {
-  const milestones = [
-    {
-      year: '2018',
-      title: 'The First Handspun Stitch',
-      desc: 'Frustrated by scratchy synthetic kurtas in the market, our founders partnered with two master weaving families in Varanasi to craft 4 signature pure cotton kurtas.',
-    },
-    {
-      year: '2020',
-      title: 'The Festive & Silk Renaissance',
-      desc: 'Introduced authentic Chanderi silk and silk-cotton blends, expanding beyond daily whites into royal emerald greens, deep maroons, and midnight blacks.',
-    },
-    {
-      year: '2023',
-      title: 'Global Indian Diaspora',
-      desc: 'Dressing grooms and celebration attendees across 20+ countries, bringing effortless Indian royal heritage to weddings in the US, UK, Canada, and UAE.',
-    },
-    {
-      year: 'Today',
-      title: 'The 48 Signature Silhouettes',
-      desc: 'From Nehru waistcoats to bespoke churi pajamas and artisanal long kurtas, continuing our pledge of unhurried, generational Indian luxury.',
-    },
-  ];
+function parseJsonList<T>(raw: string | undefined, fallback: T[]): T[] {
+  try {
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) && parsed.length === fallback.length ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
-  const values = [
-    {
-      icon: <Feather className="w-5 h-5 text-[#4A3525]" />,
-      title: 'Living Tradition',
-      desc: 'We do not view Indian wear as mere ceremonial costume. We make it an organic, comfortable extension of everyday life.',
-    },
-    {
-      icon: <Scissors className="w-5 h-5 text-[#4A3525]" />,
-      title: 'Master Tailoring',
-      desc: 'No boxy cuts. Every silhouette follows human anatomy with tailored shoulders and clean falls that look regal on every body type.',
-    },
-    {
-      icon: <Compass className="w-5 h-5 text-[#4A3525]" />,
-      title: 'Conscious Production',
-      desc: 'Direct fair-trade wages for artisans, small-batch runs to eliminate fashion waste, and recyclable plastic-free packaging.',
-    },
-    {
-      icon: <Award className="w-5 h-5 text-[#4A3525]" />,
-      title: 'Uncompromising Touch',
-      desc: 'If a textile does not pass our softness, breathability, and colorfast wash test, it never enters our collection.',
-    },
-  ];
+const VALUE_ICONS = [Feather, Scissors, Compass, Award];
+
+export default async function OurStoryPage() {
+  const s = await getStoryContentSettings();
+
+  const ch2Stats = parseJsonList<{ value: string; label: string; desc: string }>(s.story_ch2_stats_items, [
+    { value: '100%', label: 'Slow Weft Certified', desc: 'Pre-washed, zero synthetic polyester' },
+    { value: 'Fair-Pay', label: 'Direct Weaver Support', desc: 'Eliminating exploitative middlemen' },
+  ]);
+
+  const milestones = parseJsonList<{ year: string; title: string; desc: string }>(s.story_milestones_items, [
+    { year: '2018', title: 'The First Handspun Stitch', desc: '' },
+    { year: '2020', title: 'The Festive & Silk Renaissance', desc: '' },
+    { year: '2023', title: 'Global Indian Diaspora', desc: '' },
+    { year: 'Today', title: 'The 48 Signature Silhouettes', desc: '' },
+  ]);
+
+  const valuesText = parseJsonList<{ title: string; desc: string }>(s.story_values_items, [
+    { title: 'Living Tradition', desc: '' },
+    { title: 'Master Tailoring', desc: '' },
+    { title: 'Conscious Production', desc: '' },
+    { title: 'Uncompromising Touch', desc: '' },
+  ]);
+  const values = valuesText.map((v, i) => ({ ...v, icon: VALUE_ICONS[i] }));
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF6F0] text-[#2B231D] selection:bg-[#4A3525] selection:text-white">
@@ -76,7 +56,7 @@ export default function OurStoryPage() {
         <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[55%] md:w-[48%] lg:w-[42%] pointer-events-none select-none overflow-hidden">
           <div className="relative w-full h-full">
             <Image
-              src="/images/shop-banner-arch.jpg"
+              src={s.story_hero_image || '/images/shop-banner-arch.jpg'}
               alt="Al Hareer Chronicles - Our Story"
               fill
               priority
@@ -105,17 +85,17 @@ export default function OurStoryPage() {
               <div className="flex items-center gap-2 sm:gap-2.5 mb-1 sm:mb-1.5 justify-start lg:justify-center">
                 <span className="w-5 sm:w-7 lg:w-8 h-[1.5px] bg-[#4A3525]"></span>
                 <span className="text-[9.5px] sm:text-[11px] font-semibold tracking-[0.2em] text-[#4A3525] uppercase">
-                  THE AL HAREER CHRONICLES
+                  {s.story_hero_eyebrow}
                 </span>
                 <span className="hidden lg:inline-block w-8 h-[1.5px] bg-[#4A3525]"></span>
               </div>
 
               <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl lg:text-[42px] font-black text-[#1F1813] tracking-tight leading-[1.08] mb-1">
-                Our Story
+                {s.story_hero_title}
               </h1>
 
               <p className="font-body text-[#7A6F66] text-xs sm:text-sm font-normal leading-snug">
-                Rooted in Tradition. Styled for Today.
+                {s.story_hero_subtitle}
               </p>
             </div>
 
@@ -137,34 +117,34 @@ export default function OurStoryPage() {
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-            
+
             {/* Story Text */}
             <div className="lg:col-span-6 space-y-5 sm:space-y-6">
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-[1.5px] bg-[#4A3525]"></span>
                 <span className="text-xs font-bold tracking-[0.25em] uppercase text-[#4A3525]">
-                  CHAPTER ONE • THE GENESIS
+                  {s.story_ch1_eyebrow}
                 </span>
               </div>
 
               <h2 className="font-heading text-3xl sm:text-4xl lg:text-[42px] font-bold text-[#1F1813] leading-tight">
-                Born From a Disconnect Between Pride &amp; Comfort
+                {s.story_ch1_heading}
               </h2>
 
               <p className="text-sm sm:text-base text-[#5C5147] leading-relaxed">
-                Every Indian man knows the familiar feeling: an upcoming family wedding, Eid celebration, or Diwali puja, followed by the exhausting search for an ethnic outfit. Most options on modern racks were either paper-stiff polyesters that turned stifling within minutes, or ill-fitting garments made without regard for silhouette.
+                {s.story_ch1_paragraph1}
               </p>
 
               <p className="text-sm sm:text-base text-[#5C5147] leading-relaxed">
-                Al Hareer started in 2018 with a singular mission: to make ethnic menswear so comfortable, breathable, and gracefully fitted that you would eagerly choose to wear it, not just endure it for rituals.
+                {s.story_ch1_paragraph2}
               </p>
 
               <div className="p-4 rounded-xl bg-[#FAF6F1] border-l-4 border-[#4A3525] border-y border-r border-[#E8DFD5]">
                 <p className="font-heading text-base sm:text-lg italic text-[#4A3525]">
-                  &ldquo;A man should look noble in his roots without sacrificing an ounce of physical ease.&rdquo;
+                  &ldquo;{s.story_ch1_quote}&rdquo;
                 </p>
                 <p className="text-[11px] uppercase tracking-wider text-[#7A6F66] font-semibold mt-1">
-                  — Founding Motto, Al Hareer Atelier
+                  — {s.story_ch1_quote_attribution}
                 </p>
               </div>
             </div>
@@ -173,7 +153,7 @@ export default function OurStoryPage() {
             <div className="lg:col-span-6 grid grid-cols-2 gap-4 sm:gap-6">
               <div className="relative aspect-[3/4] sm:aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border-2 border-[#E5DACD] group">
                 <Image
-                  src="/images/your-image-19.jpg"
+                  src={s.story_ch1_image1 || '/images/your-image-19.jpg'}
                   alt="The Handloom Roots"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
@@ -187,7 +167,7 @@ export default function OurStoryPage() {
 
               <div className="relative aspect-[3/4] sm:aspect-[4/5] rounded-2xl overflow-hidden shadow-lg border-2 border-[#E5DACD] group mt-6 sm:mt-8">
                 <Image
-                  src="/images/same.jpg"
+                  src={s.story_ch1_image2 || '/images/same.jpg'}
                   alt="Modern Ethnic Fitting"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
@@ -208,12 +188,12 @@ export default function OurStoryPage() {
       <section className="py-14 sm:py-20 bg-white border-y border-[#E8DFD5]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-            
+
             {/* Visual Image */}
             <div className="lg:col-span-5 relative order-2 lg:order-1">
               <div className="relative aspect-[4/5] w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-4 border-[#E5DACD]">
                 <Image
-                  src="/images/shopby/wedding.jpg"
+                  src={s.story_ch2_image || '/images/shopby/wedding.jpg'}
                   alt="Weaving Mastery"
                   fill
                   className="object-cover object-top"
@@ -222,10 +202,10 @@ export default function OurStoryPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
                 <div className="absolute bottom-5 left-5 right-5 text-white">
                   <p className="font-heading text-xl font-bold">
-                    Master Weaver Ramzan Ali &amp; Clan
+                    {s.story_ch2_weaver_name}
                   </p>
                   <p className="text-xs text-white/80 font-light mt-0.5">
-                    3rd-generation jacquard loom artisans, Chanderi clusters.
+                    {s.story_ch2_weaver_desc}
                   </p>
                 </div>
               </div>
@@ -236,33 +216,30 @@ export default function OurStoryPage() {
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-[1.5px] bg-[#4A3525]"></span>
                 <span className="text-xs font-bold tracking-[0.25em] uppercase text-[#4A3525]">
-                  CHAPTER TWO • THE WEAVERS
+                  {s.story_ch2_eyebrow}
                 </span>
               </div>
 
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#1F1813] leading-tight">
-                Keeping the Handloom Hearth Burning
+                {s.story_ch2_heading}
               </h2>
 
               <p className="text-sm sm:text-base text-[#5C5147] leading-relaxed">
-                Behind every Al Hareer kurta are real people—hands that have spun threads for four decades, eyes that spot a thread tension discrepancy in milliseconds, and hearts full of pride for their craft.
+                {s.story_ch2_paragraph1}
               </p>
 
               <p className="text-sm sm:text-base text-[#5C5147] leading-relaxed">
-                In an era where powerlooms churn out synthetic replicas in seconds, our artisans work with wooden pit looms, guiding silken threads by pedal and shuttle. By paying above-standard fair living wages and providing year-round steady orders, we ensure this irreplaceable heritage is passed on to the next generation.
+                {s.story_ch2_paragraph2}
               </p>
 
               <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="p-3.5 rounded-lg bg-[#FAF6F1] border border-[#E5DACD]">
-                  <p className="font-heading text-2xl font-bold text-[#4A3525]">100%</p>
-                  <p className="text-xs font-semibold text-[#2B231D] mt-0.5">Slow Weft Certified</p>
-                  <p className="text-[11px] text-[#7A6F66] mt-0.5">Pre-washed, zero synthetic polyester</p>
-                </div>
-                <div className="p-3.5 rounded-lg bg-[#FAF6F1] border border-[#E5DACD]">
-                  <p className="font-heading text-2xl font-bold text-[#4A3525]">Fair-Pay</p>
-                  <p className="text-xs font-semibold text-[#2B231D] mt-0.5">Direct Weaver Support</p>
-                  <p className="text-[11px] text-[#7A6F66] mt-0.5">Eliminating exploitative middlemen</p>
-                </div>
+                {ch2Stats.map((stat, i) => (
+                  <div key={i} className="p-3.5 rounded-lg bg-[#FAF6F1] border border-[#E5DACD]">
+                    <p className="font-heading text-2xl font-bold text-[#4A3525]">{stat.value}</p>
+                    <p className="text-xs font-semibold text-[#2B231D] mt-0.5">{stat.label}</p>
+                    <p className="text-[11px] text-[#7A6F66] mt-0.5">{stat.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -275,13 +252,13 @@ export default function OurStoryPage() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
             <span className="text-xs font-bold tracking-[0.25em] uppercase text-[#4A3525] block mb-1">
-              CHAPTER THREE • THE EVOLUTION
+              {s.story_ch3_eyebrow}
             </span>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#1F1813]">
-              Milestones of Our Journey
+              {s.story_ch3_heading}
             </h2>
             <p className="text-xs sm:text-sm text-[#7A6F66] mt-2">
-              From four prototype shirts in a humble living room to dressing gentlemen around the globe.
+              {s.story_ch3_subtitle}
             </p>
           </div>
 
@@ -314,32 +291,35 @@ export default function OurStoryPage() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
             <span className="text-xs font-bold tracking-[0.25em] uppercase text-[#4A3525] block mb-1">
-              THE AL HAREER CODE
+              {s.story_ch4_eyebrow}
             </span>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#1F1813]">
-              What We Stand For
+              {s.story_ch4_heading}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((v, i) => (
-              <div
-                key={i}
-                className="p-6 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] flex flex-col justify-between hover:shadow-xs transition-all"
-              >
-                <div>
-                  <div className="w-11 h-11 rounded-full bg-white border border-[#DACDC0] flex items-center justify-center mb-4">
-                    {v.icon}
+            {values.map((v, i) => {
+              const Icon = v.icon;
+              return (
+                <div
+                  key={i}
+                  className="p-6 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] flex flex-col justify-between hover:shadow-xs transition-all"
+                >
+                  <div>
+                    <div className="w-11 h-11 rounded-full bg-white border border-[#DACDC0] flex items-center justify-center mb-4">
+                      <Icon className="w-5 h-5 text-[#4A3525]" />
+                    </div>
+                    <h3 className="font-heading text-lg font-bold text-[#2B231D] mb-2">
+                      {v.title}
+                    </h3>
+                    <p className="text-xs text-[#655B53] leading-relaxed">
+                      {v.desc}
+                    </p>
                   </div>
-                  <h3 className="font-heading text-lg font-bold text-[#2B231D] mb-2">
-                    {v.title}
-                  </h3>
-                  <p className="text-xs text-[#655B53] leading-relaxed">
-                    {v.desc}
-                  </p>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -349,10 +329,10 @@ export default function OurStoryPage() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
           <span className="w-8 h-[1.5px] bg-[#4A3525] mx-auto block mb-3"></span>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#1F1813] mb-2">
-            Step Into The Legacy
+            {s.story_cta_heading}
           </h2>
           <p className="text-xs sm:text-sm text-[#7A6F66] max-w-md mx-auto mb-6">
-            Discover our collection of handcrafted kurtas, kurta sets, and bespoke waistcoats.
+            {s.story_cta_subtitle}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -360,7 +340,6 @@ export default function OurStoryPage() {
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-[#4A3525] hover:bg-[#36261A] text-white font-semibold text-sm tracking-wide transition-all shadow-md hover:shadow-lg group cursor-pointer"
             >
               <span>Explore The Catalog</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
             <Link

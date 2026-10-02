@@ -2,9 +2,13 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { OCCASIONS } from '@/data/occasions';
+import type { OccasionItem } from '@/types';
+import type { ContentSettings } from '@/lib/siteSettings';
 
-export default function ShopByOccasion() {
+export default function ShopByOccasion({ occasions, settings }: { occasions: OccasionItem[]; settings: ContentSettings }) {
+  const heading = settings.home_occasions_heading || 'Shop By Occasion';
+  const subtitle = settings.home_occasions_subtitle || 'Find the right look for family functions, festivals, and celebrations.';
+
   return (
     <section className="py-10 sm:py-16 md:py-14 bg-cream-50 border-y border-cream-300">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -12,27 +16,27 @@ export default function ShopByOccasion() {
         <div className="flex items-center justify-center gap-3 mb-2">
           <span className="w-6 sm:w-10 h-[1.5px] bg-[#C6B09B]/70" />
           <span className="text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-brand-600 uppercase">
-            CURATED ENSEMBLES
+FOR EVERY OCCASION
           </span>
           <span className="w-6 sm:w-10 h-[1.5px] bg-[#C6B09B]/70" />
         </div>
 
         {/* Section Heading */}
         <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-brand-700 tracking-tight">
-          Shop By Occasion
+          {heading}
         </h2>
 
         {/* Subtitle */}
         <p className="text-sm sm:text-base text-muted max-w-xl mx-auto mt-2 font-normal leading-relaxed">
-          From intimate family rituals to grand celebrations, find the perfect look for every moment.
+          {subtitle}
         </p>
 
         {/* Responsive Grid: 2 cols on mobile, 3 cols on tablet, 6 cols on desktop */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5 lg:gap-5 mt-10 sm:mt-12 md:mt-14">
-          {OCCASIONS.map((occasion) => (
+          {occasions.map((occasion, idx) => (
             <a
-              key={occasion.id}
-              href="/#shop"
+              key={occasion.id || occasion.title || idx}
+              href={occasion.link || '/shop'}
               className="group flex flex-col items-center cursor-pointer select-none"
             >
               {/* Image Card */}

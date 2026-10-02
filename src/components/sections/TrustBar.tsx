@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Leaf, Gem, Star } from 'lucide-react';
+import type { ContentSettings } from '@/lib/siteSettings';
 
 const HangerIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -18,30 +19,24 @@ const HangerIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const pillars = [
-  {
-    icon: HangerIcon,
-    title: 'Traditional Roots',
-    subtitle: 'Inspired by Heritage',
-  },
-  {
-    icon: Leaf,
-    title: 'Modern Comfort',
-    subtitle: 'Made for Today',
-  },
-  {
-    icon: Gem,
-    title: 'Elegant Designs',
-    subtitle: 'For Every Occasion',
-  },
-  {
-    icon: Star,
-    title: 'A Better Tomorrow',
-    subtitle: 'Through Conscious Fashion',
-  },
+const ICONS = [HangerIcon, Leaf, Gem, Star];
+const FALLBACK_ITEMS = [
+  { title: 'Traditional Roots', subtitle: 'Inspired by Heritage' },
+  { title: 'Modern Comfort', subtitle: 'Made for Today' },
+  { title: 'Elegant Designs', subtitle: 'For Every Occasion' },
+  { title: 'A Better Tomorrow', subtitle: 'Through Conscious Fashion' },
 ];
 
-export default function TrustBar() {
+export default function TrustBar({ settings }: { settings: ContentSettings }) {
+  let items = FALLBACK_ITEMS;
+  try {
+    const parsed = JSON.parse(settings.home_trustbar_items || '[]');
+    if (Array.isArray(parsed) && parsed.length === 4) items = parsed;
+  } catch {
+    // keep FALLBACK_ITEMS
+  }
+  const pillars = items.map((item, i) => ({ ...item, icon: ICONS[i] }));
+
   return (
     <section className="relative w-full bg-[#252821] text-[#FAF6F1] py-4 sm:py-5 border-t border-[#363A2F] overflow-hidden select-none">
       {/* Left Gradient Edge Mask for Smooth Luxury Fade */}

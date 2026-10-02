@@ -1,10 +1,27 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { ArrowUp, Phone } from 'lucide-react';
+import { getFooterSettings } from '@/lib/siteSettings';
 
 export default function FloatingWhatsApp() {
+  const pathname = usePathname();
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [phone, setPhone] = useState('+91 73966 90308');
+
+  // Hide on all admin dashboard routes
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
+  useEffect(() => {
+    getFooterSettings()
+      .then((s) => setPhone(s.home_contact_phone))
+      .catch(() => {});
+  }, []);
+
+  const digits = phone.replace(/\D/g, '').slice(-10);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,7 +62,7 @@ export default function FloatingWhatsApp() {
 
       {/* 2. DIRECT CALL BUTTON */}
       <a
-        href="tel:+917396690308"
+        href={`tel:+91${digits}`}
         className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#2B231D] hover:bg-[#4A3525] text-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer border border-[#DACDC0]/30"
         aria-label="Call Al Hareer Customer Care"
       >
@@ -54,7 +71,7 @@ export default function FloatingWhatsApp() {
 
       {/* 3. WHATSAPP CHAT BUTTON (USING USER'S CUSTOM SVG) */}
       <a
-        href="https://wa.me/917396690308?text=Hi%20Al%20Hareer,%20I'd%20like%20to%20know%20more%20about%20your%20Kurta%20Pajama%20collection!"
+        href={`https://wa.me/91${digits}?text=Hi%20Al%20Hareer,%20I'd%20like%20to%20know%20more%20about%20your%20Kurta%20Pajama%20collection!`}
         target="_blank"
         rel="noreferrer"
         className="relative block rounded-full transition-transform duration-300 hover:scale-110 active:scale-95 drop-shadow-xl cursor-pointer"

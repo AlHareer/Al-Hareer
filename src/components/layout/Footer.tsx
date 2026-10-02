@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import BrandLogo from '@/components/layout/BrandLogo';
 import Link from 'next/link';
 import { Phone, Mail, MapPin, ArrowUp, Leaf, ShieldCheck, Truck } from 'lucide-react';
 import {
@@ -11,8 +12,29 @@ import {
   WhatsAppIcon,
   LinkedInIcon,
 } from '@/components/ui/SocialIcons';
+import { getFooterSettings, getSocialLinks, type ContentSettings } from '@/lib/siteSettings';
+
+const FALLBACK_CONTACT: ContentSettings = {
+  home_contact_phone: '+91 73966 90308',
+  home_contact_email: 'support@alhareer.com',
+  home_contact_address: 'Jabalpur, Madhya Pradesh, India',
+};
+const FALLBACK_SOCIAL: ContentSettings = {
+  instagram_url: 'https://instagram.com',
+  facebook_url: 'https://facebook.com',
+  youtube_url: 'https://youtube.com',
+  whatsapp_number: '917396690308',
+};
 
 export default function Footer() {
+  const [contact, setContact] = useState<ContentSettings>(FALLBACK_CONTACT);
+  const [social, setSocial] = useState<ContentSettings>(FALLBACK_SOCIAL);
+
+  useEffect(() => {
+    getFooterSettings().then(setContact).catch(() => {});
+    getSocialLinks().then(setSocial).catch(() => {});
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -45,12 +67,7 @@ export default function Footer() {
           <div className="lg:col-span-4 xl:col-span-3 space-y-4">
             {/* Brand Logo & Tagline */}
             <div>
-              <h3 className="font-heading text-2xl sm:text-[28px] font-bold tracking-[0.25em] text-[#2B231D] leading-none">
-                AL HAREER
-              </h3>
-              <p className="text-[10px] sm:text-[10.5px] uppercase tracking-[0.24em] text-[#655B53] font-medium mt-1.5 leading-tight">
-                TRADITION IN STYLE
-              </p>
+              <BrandLogo size="lg" />
               <div className="w-8 h-[2px] bg-gold mt-3 mb-3" />
             </div>
 
@@ -62,7 +79,7 @@ export default function Footer() {
             {/* 5 Social Media Icons */}
             <div className="flex items-center gap-2.5 pt-1">
               <a
-                href="https://instagram.com"
+                href={social.instagram_url}
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-full bg-[#EDE4D6] hover:bg-[#4A3525] hover:text-white text-[#4A3525] flex items-center justify-center transition-all duration-300 shadow-sm"
@@ -71,7 +88,7 @@ export default function Footer() {
                 <InstagramIcon className="w-3.5 h-3.5" />
               </a>
               <a
-                href="https://facebook.com"
+                href={social.facebook_url}
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-full bg-[#EDE4D6] hover:bg-[#4A3525] hover:text-white text-[#4A3525] flex items-center justify-center transition-all duration-300 shadow-sm"
@@ -80,7 +97,7 @@ export default function Footer() {
                 <FacebookIcon className="w-3.5 h-3.5" />
               </a>
               <a
-                href="https://youtube.com"
+                href={social.youtube_url}
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-full bg-[#EDE4D6] hover:bg-[#4A3525] hover:text-white text-[#4A3525] flex items-center justify-center transition-all duration-300 shadow-sm"
@@ -89,7 +106,7 @@ export default function Footer() {
                 <YoutubeIcon className="w-3.5 h-3.5" />
               </a>
               <a
-                href="https://wa.me/917396690308"
+                href={`https://wa.me/${social.whatsapp_number}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-full bg-[#EDE4D6] hover:bg-[#4A3525] hover:text-white text-[#4A3525] flex items-center justify-center transition-all duration-300 shadow-sm"
@@ -224,8 +241,11 @@ export default function Footer() {
                   <Phone className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <a href="tel:+917396690308" className="text-xs sm:text-[13px] font-semibold text-[#2B231D] hover:text-[#4A3525] transition-colors block">
-                    +91 73966 90308
+                  <a
+                    href={`tel:+91${contact.home_contact_phone.replace(/\D/g, '').slice(-10)}`}
+                    className="text-xs sm:text-[13px] font-semibold text-[#2B231D] hover:text-[#4A3525] transition-colors block"
+                  >
+                    {contact.home_contact_phone}
                   </a>
                   <span className="text-[10.5px] text-[#8C8178] block">
                     Mon - Sat, 10:00 AM - 7:00 PM
@@ -239,8 +259,11 @@ export default function Footer() {
                   <Mail className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <a href="mailto:support@alhareer.com" className="text-xs sm:text-[13px] font-semibold text-[#2B231D] hover:text-[#4A3525] transition-colors block">
-                    support@alhareer.com
+                  <a
+                    href={`mailto:${contact.home_contact_email}`}
+                    className="text-xs sm:text-[13px] font-semibold text-[#2B231D] hover:text-[#4A3525] transition-colors block"
+                  >
+                    {contact.home_contact_email}
                   </a>
                   <span className="text-[10.5px] text-[#8C8178] block">
                     We reply within 24 hours
@@ -255,7 +278,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <span className="text-xs sm:text-[13px] font-semibold text-[#2B231D] block">
-                    Jabalpur, Madhya Pradesh, India
+                    {contact.home_contact_address}
                   </span>
                   <span className="text-[10.5px] text-[#8C8178] block">
                     Our Studio &amp; Head Office
@@ -281,7 +304,7 @@ export default function Footer() {
             {/* Architectural Arch Photo */}
             <div className="relative w-28 sm:w-32 lg:w-36 h-36 sm:h-44 lg:h-48 rounded-t-full overflow-hidden shadow-md border-2 border-[#E2D7C7] flex-shrink-0 bg-cream-200">
               <Image
-                src="/images/footer-arch.jpg"
+                src={contact.footer_arch_image || '/images/footer-arch.jpg'}
                 alt="Tradition Meets Modern Living"
                 fill
                 sizes="(max-width: 640px) 120px, 150px"

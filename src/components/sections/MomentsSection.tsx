@@ -2,29 +2,31 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { ContentSettings } from '@/lib/siteSettings';
 
-export default function MomentsSection() {
+export default function MomentsSection({ settings }: { settings: ContentSettings }) {
+  const [headingLine1, headingLine2] = settings.home_moments_heading.split('\n');
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const moments = [
-    {
-      title: 'Festivals Feel Brighter',
-      image: '/images/your-image-20.jpg',
-      subtitle: 'Diwali, Eid & Celebrations',
-    },
-    {
-      title: 'Weddings Look Grand',
-      image: '/images/your-image-21.jpg',
-      subtitle: 'Sangeet, Baraat & Receptions',
-    },
-    {
-      title: 'Everyday Feels Better',
-      image: '/images/your-image-22.jpg',
-      subtitle: 'Casual Grace & Comfort',
-    },
+  const FALLBACK_IMAGES = ['/images/your-image-20.jpg', '/images/your-image-21.jpg', '/images/your-image-22.jpg'];
+  const FALLBACK_MOMENTS = [
+    { title: 'Festivals Feel Brighter', image: '/images/your-image-20.jpg', subtitle: 'Diwali, Eid & Celebrations' },
+    { title: 'Weddings Look Grand', image: '/images/your-image-21.jpg', subtitle: 'Sangeet, Baraat & Receptions' },
+    { title: 'Everyday Feels Better', image: '/images/your-image-22.jpg', subtitle: 'Casual Grace & Comfort' },
   ];
+  let moments = FALLBACK_MOMENTS;
+  try {
+    const parsed = JSON.parse(settings.home_moments_cards || '[]');
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      moments = parsed.map((c: { title?: string; subtitle?: string; image?: string }, i: number) => ({
+        title: c.title || FALLBACK_MOMENTS[i]?.title || '',
+        subtitle: c.subtitle || FALLBACK_MOMENTS[i]?.subtitle || '',
+        image: c.image || FALLBACK_IMAGES[i] || '',
+      }));
+    }
+  } catch { /* keep fallback */ }
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -79,12 +81,18 @@ export default function MomentsSection() {
             </div>
 
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-[42px] font-bold text-brand-700 leading-tight">
-              Not Just Outfits, <br />
-              <span className="italic font-normal text-brand-500">But Moments</span>
+              {headingLine1}
+              {headingLine2 && (
+                <>
+                  {' '}
+                  <br />
+                  <span className="italic font-normal text-brand-500">{headingLine2}</span>
+                </>
+              )}
             </h2>
 
             <p className="text-xs sm:text-sm text-muted leading-relaxed max-w-md mx-auto lg:mx-0">
-              From joyful festive gatherings to lifelong wedding vows, our ensembles are woven into your cherished memories.
+              {settings.home_moments_paragraph}
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
@@ -92,7 +100,7 @@ export default function MomentsSection() {
                 href="#shop"
                 className="btn-primary w-full sm:w-auto shadow-md"
               >
-                Shop Festive Collection <ArrowRight className="w-4 h-4 ml-1" />
+                Shop Festive Collection
               </a>
 
               {/* Mobile Arrow Navigation */}
@@ -118,7 +126,7 @@ export default function MomentsSection() {
           </div>
 
           {/* Right 3 Moment Cards (Smooth horizontal swipe on mobile, 3-col grid on desktop) */}
-          <div className="lg:col-span-8 min-w-0 w-full overflow-hidden">
+          <div className="lg:col-span-8 min-w-0 w-full">
             <div
               ref={scrollRef}
               onScroll={handleScroll}
@@ -135,7 +143,7 @@ export default function MomentsSection() {
                     alt={item.title}
                     fill
                     sizes="(max-width: 640px) 75vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-brand-900/95 via-brand-900/35 to-transparent pointer-events-none" />
 

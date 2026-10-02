@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Montserrat, Caveat } from 'next/font/google';
+import { Montserrat } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
@@ -12,13 +12,9 @@ import SearchModal from '@/components/modals/SearchModal';
 import FloatingWhatsApp from '@/components/layout/FloatingWhatsApp';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-heading',
-  display: 'swap',
-});
-
+// A single normal sans-serif font (Montserrat) used everywhere — headings,
+// body text, and the handful of previously-decorative "luxury"/script
+// classes all now resolve to it (see globals.css / tailwind.config.js).
 const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
@@ -26,7 +22,14 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 
-const caveat = Caveat({
+const montserratHeading = Montserrat({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-heading',
+  display: 'swap',
+});
+
+const montserratScript = Montserrat({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-script',
@@ -45,15 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${montserrat.variable} ${caveat.variable} scroll-smooth`}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${montserrat.variable} ${montserratHeading.variable} ${montserratScript.variable} scroll-smooth`}>
+      <head />
       <body className="min-h-screen bg-cream-100 text-brand-700 antialiased selection:bg-brand-500 selection:text-white">
         <AuthProvider>
           <UIProvider>

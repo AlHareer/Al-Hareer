@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -15,7 +15,6 @@ import {
   Calendar,
   Navigation,
   ChevronDown,
-  ArrowRight,
   Scissors,
   Gift,
 } from 'lucide-react';
@@ -24,16 +23,29 @@ import Footer from '@/components/layout/Footer';
 import Newsletter from '@/components/sections/Newsletter';
 import { WhatsAppIcon } from '@/components/ui/SocialIcons';
 import { useUI } from '@/context/UIContext';
+import { submitInquiry } from '@/actions/customerContact';
+import { getFooterSettings, type ContentSettings } from '@/lib/siteSettings';
+
+const FALLBACK_CONTACT: ContentSettings = {
+  home_contact_phone: '+91 73966 90308',
+  home_contact_email: 'support@alhareer.com',
+  home_contact_address: 'Jabalpur, Madhya Pradesh, India',
+};
 
 export default function ContactPage() {
   const { showToast } = useUI();
+  const [contact, setContact] = useState<ContentSettings>(FALLBACK_CONTACT);
+  useEffect(() => {
+    getFooterSettings().then(setContact).catch(() => {});
+  }, []);
+  const digits = contact.home_contact_phone.replace(/\D/g, '').slice(-10);
 
   // Form State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    inquiryType: 'Bespoke Kurta Sets',
+    inquiryType: 'Kurta Sets',
     subject: '',
     message: '',
   });
@@ -41,15 +53,15 @@ export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const inquiryTypes = [
-    'Bespoke Kurta Sets',
-    'Wedding & Groomswear',
-    'Studio Visit Appointment',
-    'Custom Sizing & Fit',
-    'Bulk / Corporate Gifting',
-    'Order Status & Support',
+    'Kurta Sets',
+    'Wedding Wear',
+    'Store Visit',
+    'Sizing & Fit',
+    'Bulk Orders',
+    'Order Support',
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       showToast('Please fill in your name, email, and message.', 'error');
@@ -57,19 +69,31 @@ export default function ContactPage() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      showToast('✨ Thank you! Our styling concierge will contact you within 24 hours.', 'success');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        inquiryType: 'Bespoke Kurta Sets',
-        subject: '',
-        message: '',
-      });
-    }, 1000);
+    const subject = [formData.inquiryType, formData.subject.trim()].filter(Boolean).join(' — ');
+    const result = await submitInquiry({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      subject,
+      message: formData.message,
+    });
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      showToast(result.error || 'Something went wrong. Please try again.', 'error');
+      return;
+    }
+
+    setIsSubmitted(true);
+    showToast('✨ Thanks! We\'ll get back to you within 24 hours.', 'success');
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      inquiryType: 'Kurta Sets',
+      subject: '',
+      message: '',
+    });
   };
 
   return (
@@ -83,7 +107,7 @@ export default function ContactPage() {
           <div className="relative w-full h-full">
             <Image
               src="/images/shop-banner-arch.jpg"
-              alt="Al Hareer Heritage Atelier"
+              alt="Al Hareer Store"
               fill
               priority
               className="object-cover object-right opacity-30 sm:opacity-80"
@@ -111,7 +135,7 @@ export default function ContactPage() {
               <div className="flex items-center gap-2 sm:gap-2.5 mb-1 sm:mb-1.5 justify-start lg:justify-center">
                 <span className="w-5 sm:w-7 lg:w-8 h-[1.5px] bg-[#4A3525]"></span>
                 <span className="text-[9.5px] sm:text-[11px] font-semibold tracking-[0.2em] text-[#4A3525] uppercase">
-                  GET IN TOUCH WITH CONCIERGE
+                  GET IN TOUCH
                 </span>
                 <span className="hidden lg:inline-block w-8 h-[1.5px] bg-[#4A3525]"></span>
               </div>
@@ -121,7 +145,7 @@ export default function ContactPage() {
               </h1>
 
               <p className="font-body text-[#7A6F66] text-xs sm:text-sm font-normal leading-snug">
-                Personal Styling, Bespoke Orders &amp; Flagship Atelier Visits
+                Questions, orders, or store visits — we're here to help
               </p>
             </div>
 
@@ -150,14 +174,14 @@ export default function ContactPage() {
                   <Phone className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B6B52]">
-                  Direct Voice &amp; WhatsApp
+                  Call &amp; WhatsApp
                 </span>
                 <h3 className="font-heading text-xl font-bold text-[#2B231D] mt-1 mb-2">
-                  Call Our Concierge
+                  Call Us
                 </h3>
               
                 <div className="space-y-1 text-xs">
-                  <p className="font-semibold text-sm text-[#2B231D]">+91 73966 90308</p>
+                  <p className="font-semibold text-sm text-[#2B231D]">{contact.home_contact_phone}</p>
                   <p className="text-[#8B6B52] flex items-center gap-1.5 text-[11px]">
                     <Clock className="w-3.5 h-3.5" />
                     <span>Mon – Sat: 10:00 AM – 8:30 PM IST</span>
@@ -167,14 +191,14 @@ export default function ContactPage() {
 
               <div className="pt-5 mt-5 border-t border-[#F0EAE1] grid grid-cols-2 gap-2">
                 <a
-                  href="tel:+917396690308"
+                  href={`tel:+91${digits}`}
                   className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-[#FAF6F1] hover:bg-[#4A3525] text-[#4A3525] hover:text-white text-xs font-semibold transition-colors border border-[#E5DACD]"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>Call Now</span>
                 </a>
                 <a
-                  href="https://wa.me/917396690308?text=Hello%20Al%20Hareer%20Concierge,%20I%20would%20like%20to%20inquire%20about%20your%20collection."
+                  href={`https://wa.me/91${digits}?text=Hi,%20I'd%20like%20to%20know%20more%20about%20your%20collection.`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-[#25D366]/10 hover:bg-[#25D366] text-[#1E7E34] hover:text-white text-xs font-semibold transition-colors border border-[#25D366]/30"
@@ -192,15 +216,15 @@ export default function ContactPage() {
                   <Mail className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B6B52]">
-                  Electronic Concierge
+                  Email
                 </span>
                 <h3 className="font-heading text-xl font-bold text-[#2B231D] mt-1 mb-2">
-                  Email Stylist Team
+                  Email Us
                 </h3>
-               
+
                 <div className="space-y-1 text-xs">
-                  <a href="mailto:support@alhareer.com" className="font-semibold text-sm text-[#2B231D] hover:text-[#4A3525] block">
-                    support@alhareer.com
+                  <a href={`mailto:${contact.home_contact_email}`} className="font-semibold text-sm text-[#2B231D] hover:text-[#4A3525] block">
+                    {contact.home_contact_email}
                   </a>
                   <p className="text-[#8B6B52] flex items-center gap-1.5 text-[11px]">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#2A7E4B]" />
@@ -211,12 +235,11 @@ export default function ContactPage() {
 
               <div className="pt-5 mt-5 border-t border-[#F0EAE1]">
                 <a
-                  href="mailto:support@alhareer.com"
+                  href={`mailto:${contact.home_contact_email}`}
                   className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-[#FAF6F1] hover:bg-[#4A3525] text-[#4A3525] hover:text-white text-xs font-semibold transition-colors border border-[#E5DACD]"
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  <span>Write to Concierge</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <span>Send an Email</span>
                 </a>
               </div>
             </div>
@@ -228,19 +251,19 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B6B52]">
-                  Design Studio &amp; Atelier
+                  Our Store
                 </span>
                 <h3 className="font-heading text-xl font-bold text-[#2B231D] mt-1 mb-2">
-                  Visit Jabalpur Atelier
+                  Visit Us in Jabalpur
                 </h3>
-               
+
                 <div className="space-y-1 text-xs">
                   <p className="font-semibold text-sm text-[#2B231D]">
                     Civil Lines, Jabalpur, Madhya Pradesh 482001
                   </p>
                   <p className="text-[#8B6B52] flex items-center gap-1.5 text-[11px]">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Complimentary Valet &amp; Private Fitting Suite</span>
+                    <span>Free parking &amp; fitting room</span>
                   </p>
                 </div>
               </div>
@@ -252,7 +275,6 @@ export default function ContactPage() {
                 >
                   <Navigation className="w-3.5 h-3.5" />
                   <span>View Map &amp; Directions</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
@@ -276,7 +298,7 @@ export default function ContactPage() {
                   Send Us A Message
                 </h2>
                 <p className="text-xs sm:text-sm text-[#7A6F66] mt-1.5">
-                  Have a question about custom fittings, bespoke groomswear, or order dispatch? Fill out the inquiry form and our concierge will get back to you promptly.
+                  Have a question about sizing, an order, or anything else? Fill out the form below and we'll get back to you soon.
                 </p>
               </div>
 
@@ -289,7 +311,7 @@ export default function ContactPage() {
                     Message Sent Successfully!
                   </h3>
                   <p className="text-xs sm:text-sm text-[#7A6F66] max-w-md mx-auto leading-relaxed">
-                    Thank you for reaching out to Al Hareer. Our senior styling advisor will review your inquiry and connect with you via phone or email within 24 hours.
+                    Thanks for reaching out. We'll get back to you by phone or email within 24 hours.
                   </p>
                   <button
                     onClick={() => setIsSubmitted(false)}
@@ -304,7 +326,7 @@ export default function ContactPage() {
                   {/* Inquiry Type Select Option */}
                   <div>
                     <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">
-                      Select Inquiry Type <span className="text-[#8B2D2D]">*</span>
+                      What is this about? <span className="text-[#8B2D2D]">*</span>
                     </label>
                     <div className="relative">
                       <select
@@ -328,14 +350,14 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">
-                        Your Full Name <span className="text-[#8B2D2D]">*</span>
+                        Your Name <span className="text-[#8B2D2D]">*</span>
                       </label>
                       <input
                         type="text"
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="e.g. Vikramaditya Sharma"
+                        placeholder="e.g. Vikram Sharma"
                         className="w-full text-xs sm:text-sm px-4 py-3 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] focus:outline-none focus:border-[#4A3525] focus:bg-white transition-all"
                       />
                     </div>
@@ -378,7 +400,7 @@ export default function ContactPage() {
                         type="text"
                         value={formData.subject}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        placeholder="e.g. Wedding Kurta Fitting Consultation"
+                        placeholder="e.g. Wedding kurta fitting"
                         className="w-full text-xs sm:text-sm px-4 py-3 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] focus:outline-none focus:border-[#4A3525] focus:bg-white transition-all"
                       />
                     </div>
@@ -387,14 +409,14 @@ export default function ContactPage() {
                   {/* Message */}
                   <div>
                     <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">
-                      Your Message or Consultation Details <span className="text-[#8B2D2D]">*</span>
+                      Your Message <span className="text-[#8B2D2D]">*</span>
                     </label>
                     <textarea
                       required
                       rows={5}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Please describe your requirements, preferred occasion date, or size details..."
+                      placeholder="Tell us what you need..."
                       className="w-full text-xs sm:text-sm px-4 py-3 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] focus:outline-none focus:border-[#4A3525] focus:bg-white transition-all resize-none"
                     />
                   </div>
@@ -408,18 +430,18 @@ export default function ContactPage() {
                     {isSubmitting ? (
                       <>
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Transmitting Inquiry...</span>
+                        <span>Sending...</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        <span>Submit Inquiry</span>
+                        <span>Send Message</span>
                       </>
                     )}
                   </button>
 
                   <p className="text-[11px] text-[#A89C8F]">
-                    🔒 Your personal details are completely private and secured under our privacy guarantee.
+                    🔒 Your information is kept private and secure.
                   </p>
                 </form>
               )}
@@ -433,7 +455,7 @@ export default function ContactPage() {
                 <div className="relative w-full h-48 sm:h-56">
                   <Image
                     src="/images/footer-arch.jpg"
-                    alt="Al Hareer Heritage Studio"
+                    alt="Al Hareer Store"
                     fill
                     className="object-cover object-center"
                     sizes="400px"
@@ -441,15 +463,15 @@ export default function ContactPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
                   <div className="absolute top-4 left-4">
                     <span className="text-[10px] font-bold tracking-[0.2em] uppercase bg-white/95 backdrop-blur-xs text-[#2B231D] px-2.5 py-1 rounded shadow-xs">
-                      ATELIER PRIVILEGE
+                      VISIT US
                     </span>
                   </div>
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <p className="font-heading text-xl font-bold leading-tight mb-1">
-                      The Jabalpur Flagship Atelier
+                      Our Jabalpur Store
                     </p>
                     <p className="text-xs text-white/80 font-light">
-                      Step into an era of regal hospitality, personalized drapery, and heritage tailoring.
+                      Come see our fabrics and get help finding the right fit.
                     </p>
                   </div>
                 </div>
@@ -458,7 +480,7 @@ export default function ContactPage() {
               {/* 4 Feature Pillars */}
               <div className="bg-white p-6 sm:p-7 rounded-2xl border border-[#E8DFD5] shadow-xs space-y-5">
                 <h4 className="font-heading text-lg font-bold text-[#2B231D] pb-3 border-b border-[#F0EAE1]">
-                  Why Connect With Our Atelier
+                  Why Visit Us
                 </h4>
 
                 <div className="space-y-4 text-xs">
@@ -467,9 +489,9 @@ export default function ContactPage() {
                       <Scissors className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-[#2B231D] text-sm">Made-to-Measure Customization</p>
+                      <p className="font-semibold text-[#2B231D] text-sm">Free Alterations</p>
                       <p className="text-[#7A6F66] text-xs leading-relaxed mt-0.5">
-                        Complimentary bespoke collar, shoulder, and hem adjustments tailored to your posture.
+                        We'll adjust the collar, shoulders, and length so it fits you properly, at no extra cost.
                       </p>
                     </div>
                   </div>
@@ -479,9 +501,9 @@ export default function ContactPage() {
                       <Sparkles className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-[#2B231D] text-sm">Pure Artisanal Textiles</p>
+                      <p className="font-semibold text-[#2B231D] text-sm">See the Fabric in Person</p>
                       <p className="text-[#7A6F66] text-xs leading-relaxed mt-0.5">
-                        Direct access to handloom Chanderi silk, breathable pure slub cotton, and woven Nehru jacket brocades.
+                        Check out our Chanderi silk, cotton, and other fabrics before you buy.
                       </p>
                     </div>
                   </div>
@@ -491,9 +513,9 @@ export default function ContactPage() {
                       <Calendar className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-[#2B231D] text-sm">Private Video Styling Call</p>
+                      <p className="font-semibold text-[#2B231D] text-sm">Video Call Option</p>
                       <p className="text-[#7A6F66] text-xs leading-relaxed mt-0.5">
-                        Can’t visit Jabalpur? Book a live 1-on-1 WhatsApp video session to inspect fabrics and colors in natural light.
+                        Can't make it to Jabalpur? Book a WhatsApp video call and we'll show you the fabrics and colors.
                       </p>
                     </div>
                   </div>
@@ -503,9 +525,9 @@ export default function ContactPage() {
                       <Gift className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-[#2B231D] text-sm">Signature Keepsake Gift Box</p>
+                      <p className="font-semibold text-[#2B231D] text-sm">Gift Packaging</p>
                       <p className="text-[#7A6F66] text-xs leading-relaxed mt-0.5">
-                        Each garment is hand-pressed, perfumed with aromatic herbal extracts, and packed in luxury presentation boxes.
+                        Every order is neatly pressed and packed, ready to gift.
                       </p>
                     </div>
                   </div>
@@ -514,7 +536,7 @@ export default function ContactPage() {
                 {/* Instant WhatsApp Quick Box */}
                 <div className="pt-3 border-t border-[#F0EAE1]">
                   <a
-                    href="https://wa.me/917396690308?text=Hello%20Al%20Hareer%20Concierge,%20I%20would%20like%20to%20schedule%20a%20private%20styling%20appointment."
+                    href={`https://wa.me/91${digits}?text=Hi,%20I'd%20like%20to%20book%20a%20visit.`}
                     target="_blank"
                     rel="noreferrer"
                     className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 hover:bg-[#25D366]/20 transition-colors group"
@@ -524,11 +546,10 @@ export default function ContactPage() {
                         <WhatsAppIcon className="w-4 h-4" />
                       </div>
                       <div className="text-left">
-                        <p className="text-xs font-bold text-[#1E7E34]">Direct WhatsApp Concierge</p>
-                        <p className="text-[11px] text-[#554D46]">Fastest response under 15 minutes</p>
+                        <p className="text-xs font-bold text-[#1E7E34]">WhatsApp Us</p>
+                        <p className="text-[11px] text-[#554D46]">Usually reply within 15 minutes</p>
                       </div>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#1E7E34] group-hover:translate-x-1 transition-transform" />
                   </a>
                 </div>
               </div>
@@ -553,10 +574,10 @@ export default function ContactPage() {
               <span className="w-6 h-[1.5px] bg-[#4A3525]" />
             </div>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#2B231D]">
-              Visit Our Jabalpur Studio
+              Visit Our Jabalpur Store
             </h2>
             <p className="text-xs sm:text-sm text-[#7A6F66] mt-2">
-              Centrally situated in Civil Lines, Jabalpur. Easy access from Jabalpur Railway Station (10 mins) and Dumna Airport (25 mins).
+              Located in Civil Lines, Jabalpur — 10 minutes from the railway station, 25 minutes from the airport.
             </p>
           </div>
 
@@ -566,7 +587,7 @@ export default function ContactPage() {
             {/* Responsive Google Maps Embed */}
             <div className="relative w-full h-[380px] sm:h-[460px] md:h-[500px] bg-[#EFE8E0]">
               <iframe
-                title="Al Hareer Flagship Atelier Location in Jabalpur"
+                title="Al Hareer Store Location in Jabalpur"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117362.7788484931!2d79.87059714341999!3d23.175787680190138!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3981ae1a0fb6ce7f%3A0x436ee49e6f6f1524!2sJabalpur%2C%20Madhya%20Pradesh!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
                 width="100%"
                 height="100%"
@@ -583,12 +604,12 @@ export default function ContactPage() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#4A3525]">
-                  Atelier Open Today
+                  Open Today
                 </span>
               </div>
 
               <h4 className="font-heading text-lg font-bold text-[#2B231D]">
-                Al Hareer Heritage Atelier
+                Al Hareer Store
               </h4>
               <p className="text-xs text-[#7A6F66] mt-1 leading-relaxed">
                 Civil Lines, Jabalpur, Madhya Pradesh 482001, India
@@ -604,8 +625,8 @@ export default function ContactPage() {
                   <span className="font-semibold text-[#2B231D]">11:00 AM – 6:00 PM</span>
                 </div>
                 <div className="flex items-center justify-between pt-1 text-[11px] text-[#8B6B52]">
-                  <span>Valet Parking:</span>
-                  <span className="font-semibold">Complimentary Available</span>
+                  <span>Parking:</span>
+                  <span className="font-semibold">Free</span>
                 </div>
               </div>
 
@@ -620,7 +641,7 @@ export default function ContactPage() {
                   <span>Get Directions</span>
                 </a>
                 <a
-                  href="tel:+917396690308"
+                  href={`tel:+91${digits}`}
                   className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#2B231D] text-xs font-semibold border border-[#DACDC0] transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5 text-[#4A3525]" />

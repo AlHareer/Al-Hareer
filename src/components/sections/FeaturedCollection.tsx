@@ -3,65 +3,21 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingBag, Eye, Star, ArrowRight } from 'lucide-react';
-import { PRODUCTS } from '@/data/products';
+import { Heart, ShoppingBag, Eye, Star } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useUI } from '@/context/UIContext';
+import type { ContentSettings } from '@/lib/siteSettings';
 
-export default function FeaturedCollection() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+export default function FeaturedCollection({ products, settings }: { products: Product[]; settings: ContentSettings }) {
   const [selectedColors, setSelectedColors] = useState<{ [productId: string]: { name: string; image: string } }>({});
   
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { openQuickView, showToast } = useUI();
 
-  const categories = [
-    { id: 'all', label: 'All Collection' },
-    { id: 'bestsellers', label: 'Bestsellers' },
-    { id: 'kurta-sets', label: 'Kurta Sets' },
-    { id: 'kurtas', label: 'Kurtas' },
-    { id: 'waistcoats', label: 'Waistcoats' },
-    { id: 'new-arrivals', label: 'New Arrivals' },
-  ];
-
-  const filteredProducts = PRODUCTS.filter((product) => {
-    if (selectedCategory === 'all') return true;
-    if (selectedCategory === 'bestsellers') {
-      return (
-        product.tag === 'BESTSELLER' ||
-        product.tag === 'TRENDING' ||
-        product.tag === 'POPULAR' ||
-        product.rating >= 4.9
-      );
-    }
-    if (selectedCategory === 'kurta-sets') {
-      return product.productType === 'Kurta Sets' || product.name.toLowerCase().includes('set');
-    }
-    if (selectedCategory === 'kurtas') {
-      return product.productType === 'Kurtas' && !product.name.toLowerCase().includes('set');
-    }
-    if (selectedCategory === 'waistcoats') {
-      return (
-        product.productType === 'Waistcoats' ||
-        product.name.toLowerCase().includes('waistcoat') ||
-        product.name.toLowerCase().includes('jacket')
-      );
-    }
-    if (selectedCategory === 'new-arrivals') {
-      return (
-        product.tag === 'NEW' ||
-        product.tag === 'EXCLUSIVE' ||
-        (product.id && product.id.startsWith('kurta-'))
-      );
-    }
-    return true;
-  });
-
-  // Strict 8-product limit for the Featured Collection section on Home page
-  const displayedProducts = filteredProducts.slice(0, 8);
+  const displayedProducts = products;
 
   const handleColorSelect = (productId: string, colorName: string, imageSrc: string) => {
     setSelectedColors((prev) => ({
@@ -86,29 +42,13 @@ export default function FeaturedCollection() {
           <div className="text-center md:text-left">
             <span className="tag-pill">— SHOP Al Hareer</span>
             <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-brand-700">
-              Featured Collection
+              {settings.home_featured_heading || 'Featured Products'}
             </h2>
             <p className="text-sm sm:text-base text-muted mt-1 max-w-xl mx-auto md:mx-0">
-              Handcrafted traditional silhouettes for the discerning gentleman.
+              Traditional styles, made by hand.
             </p>
           </div>
 
-          {/* Category Filter Tabs */}
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
-                  selectedCategory === cat.id
-                    ? 'bg-[#4A3525] text-white shadow-sm'
-                    : 'bg-white text-[#5C5147] hover:bg-[#EAE2D7] hover:text-[#2B231D] border border-[#E8DFD5]'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Product Grid: Exactly 8 products (2 cols mobile, 3 cols tablet, 4 cols desktop) */}
@@ -185,23 +125,25 @@ export default function FeaturedCollection() {
                 <div className="p-3 sm:p-4 lg:p-4 flex-1 flex flex-col justify-between space-y-2 lg:space-y-2.5">
                   <div>
                     {/* Stars */}
-                    <div className="flex items-center gap-1 sm:gap-1.5 text-amber-500 text-xs mb-1">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
-                              i < Math.floor(product.rating)
-                                ? 'fill-amber-400 text-amber-400'
-                                : 'text-amber-300'
-                            }`}
-                          />
-                        ))}
+                    {product.reviewCount > 0 && (
+                      <div className="flex items-center gap-1 sm:gap-1.5 text-amber-500 text-xs mb-1">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
+                                i < Math.floor(product.rating)
+                                  ? 'fill-amber-400 text-amber-400'
+                                  : 'text-amber-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-muted">
+                          ({product.reviewCount})
+                        </span>
                       </div>
-                      <span className="text-[10px] sm:text-[11px] font-semibold text-muted">
-                        ({product.reviewCount})
-                      </span>
-                    </div>
+                    )}
 
                     <Link
                       href={`/product/${product.id}`}
@@ -259,7 +201,6 @@ export default function FeaturedCollection() {
             className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#4A3525] hover:bg-[#36261A] text-white font-semibold text-sm sm:text-base tracking-wide transition-all duration-300 shadow-sm hover:shadow-luxury group cursor-pointer w-full max-w-[320px] justify-center mx-auto"
           >
             <span>Shop Now</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>

@@ -3,20 +3,31 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Check } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, Check } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useUI } from '@/context/UIContext';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { useQuantityDiscountSettings, computeQuantityDiscount, nextQuantityTier } from '@/hooks/useQuantityDiscount';
 
 export default function CartDrawer() {
   const router = useRouter();
-  const { cart, removeFromCart, updateQuantity, clearCart, isCartOpen, setIsCartOpen, subtotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart, isCartOpen, setIsCartOpen, subtotal, totalItems } = useCart();
   const { showToast } = useUI();
+  const shipping = useShippingSettings();
+  const qtySettings = useQuantityDiscountSettings();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   if (!isCartOpen) return null;
 
-  const freeShippingThreshold = 2999;
-  const progressPercent = Math.min((subtotal / freeShippingThreshold) * 100, 100);
+  const freeShippingThreshold = shipping.free_threshold;
+  const flatRate = shipping.flat_rate;
+  const progressPercent = freeShippingThreshold > 0
+    ? Math.min((subtotal / freeShippingThreshold) * 100, 100)
+    : 100;
+
+  const qtyDiscount = computeQuantityDiscount(qtySettings, totalItems);
+  const nextTier = nextQuantityTier(qtySettings, totalItems);
+  const cartTotal = subtotal - qtyDiscount + (subtotal >= freeShippingThreshold ? 0 : flatRate);
 
   const handleCheckout = () => {
     setIsCartOpen(false);
@@ -56,7 +67,7 @@ export default function CartDrawer() {
               </p>
             ) : (
               <p className="text-xs text-muted">
-                Add <span className="font-bold text-brand-700">₹{freeShippingThreshold - subtotal}</span> more for <span className="font-semibold text-brand-500">Free Express Shipping</span>
+                Add <span className="font-bold text-brand-700">₹{(freeShippingThreshold - subtotal).toLocaleString('en-IN')}</span> more for <span className="font-semibold text-brand-500">Free Shipping</span>
               </p>
             )}
             <div className="w-full bg-cream-300 h-1.5 rounded-full mt-2 overflow-hidden">
@@ -82,7 +93,7 @@ export default function CartDrawer() {
                   onClick={() => setIsCartOpen(false)}
                   className="btn-primary mt-2"
                 >
-                  Explore Collection <ArrowRight className="w-4 h-4" />
+                  Explore Collection
                 </button>
               </div>
             ) : (
@@ -181,12 +192,26 @@ export default function CartDrawer() {
                 <div className="flex justify-between">
                   <span>Shipping</span>
                   <span className="text-emerald-700 font-medium">
-                    {subtotal >= freeShippingThreshold ? 'FREE' : '₹149'}
+                    {subtotal >= freeShippingThreshold ? 'FREE' : flatRate > 0 ? `₹${flatRate}` : 'FREE'}
                   </span>
                 </div>
+                {qtyDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-700">
+                    <span className="flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Quantity Discount
+                    </span>
+                    <span className="font-semibold">-₹{qtyDiscount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {nextTier && (
+                  <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">
+                    Add {nextTier.min_quantity - totalItems} more item{nextTier.min_quantity - totalItems > 1 ? 's' : ''} to get <span className="font-bold">₹{nextTier.discount} off</span>
+                  </p>
+                )}
                 <div className="flex justify-between text-base font-bold text-brand-700 pt-2.5 border-t border-cream-300">
                   <span>Total Amount</span>
-                  <span>₹{(subtotal + (subtotal >= freeShippingThreshold ? 0 : 149)).toLocaleString('en-IN')}</span>
+                  <span>₹{Math.max(0, cartTotal).toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
@@ -202,7 +227,7 @@ export default function CartDrawer() {
                   </span>
                 ) : (
                   <>
-                    Proceed To Checkout <ArrowRight className="w-4 h-4" />
+                    Proceed To Checkout
                   </>
                 )}
               </button>

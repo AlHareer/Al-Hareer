@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Send } from 'lucide-react';
 import { InstagramIcon, FacebookIcon, YoutubeIcon, WhatsAppIcon } from '@/components/ui/SocialIcons';
 import { useUI } from '@/context/UIContext';
+import type { ContentSettings } from '@/lib/siteSettings';
+import { submitInquiry } from '@/actions/customerContact';
 
-export default function ContactSection() {
+export default function ContactSection({ settings }: { settings: ContentSettings }) {
   const { showToast } = useUI();
   const [formData, setFormData] = useState({
     name: '',
@@ -16,21 +18,26 @@ export default function ContactSection() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      showToast('✉️ Message sent successfully! Our stylist will contact you soon.');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-      });
-    }, 1000);
+    const result = await submitInquiry(formData);
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      showToast(result.error || 'Failed to send your message. Please try again.', 'error');
+      return;
+    }
+
+    showToast('✉️ Message sent successfully! Our stylist will contact you soon.');
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+    });
   };
 
   return (
@@ -39,10 +46,10 @@ export default function ContactSection() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="tag-pill">— GET IN TOUCH</span>
           <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-brand-700">
-            We&apos;d Love To Hear From You
+            {settings.home_contact_heading}
           </h2>
           <p className="text-sm sm:text-base text-muted mt-2">
-            Have questions about styling, bespoke orders, bulk requirements, or fit? Our concierge team is at your service.
+            {settings.home_contact_subtitle}
           </p>
         </div>
 
@@ -67,8 +74,11 @@ export default function ContactSection() {
                   <h4 className="font-heading text-sm font-bold text-brand-700 uppercase tracking-wide">
                     Call Us
                   </h4>
-                  <a href="tel:+917396690308" className="text-sm text-muted hover:text-brand-500 font-medium transition-colors">
-                    +91 73966 90308
+                  <a
+                    href={`tel:+91${settings.home_contact_phone.replace(/\D/g, '').slice(-10)}`}
+                    className="text-sm text-muted hover:text-brand-500 font-medium transition-colors"
+                  >
+                    {settings.home_contact_phone}
                   </a>
                 </div>
               </div>
@@ -81,8 +91,11 @@ export default function ContactSection() {
                   <h4 className="font-heading text-sm font-bold text-brand-700 uppercase tracking-wide">
                     Email Us
                   </h4>
-                  <a href="mailto:support@alhareer.com" className="text-sm text-muted hover:text-brand-500 font-medium transition-colors">
-                    support@alhareer.com
+                  <a
+                    href={`mailto:${settings.home_contact_email}`}
+                    className="text-sm text-muted hover:text-brand-500 font-medium transition-colors"
+                  >
+                    {settings.home_contact_email}
                   </a>
                 </div>
               </div>
@@ -96,7 +109,7 @@ export default function ContactSection() {
                     Design Studio
                   </h4>
                   <p className="text-sm text-muted">
-                    Jabalpur, Madhya Pradesh, India
+                    {settings.home_contact_address}
                   </p>
                 </div>
               </div>
@@ -110,7 +123,7 @@ export default function ContactSection() {
                     Business Hours
                   </h4>
                   <p className="text-sm text-muted">
-                    Monday – Saturday: 10:00 AM – 7:00 PM IST
+                    {settings.home_contact_hours}
                   </p>
                 </div>
               </div>
@@ -122,35 +135,41 @@ export default function ContactSection() {
                 Follow Al Hareer
               </h5>
               <div className="flex items-center gap-3">
+                {(settings.instagram_url || 'https://instagram.com') !== '#' && (
+                  <a
+                    href={settings.instagram_url || 'https://instagram.com'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                    aria-label="Instagram"
+                  >
+                    <InstagramIcon className="w-4 h-4" />
+                  </a>
+                )}
+                {(settings.facebook_url || 'https://facebook.com') !== '#' && (
+                  <a
+                    href={settings.facebook_url || 'https://facebook.com'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                    aria-label="Facebook"
+                  >
+                    <FacebookIcon className="w-4 h-4" />
+                  </a>
+                )}
+                {(settings.youtube_url || 'https://youtube.com') !== '#' && (
+                  <a
+                    href={settings.youtube_url || 'https://youtube.com'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                    aria-label="YouTube"
+                  >
+                    <YoutubeIcon className="w-4 h-4" />
+                  </a>
+                )}
                 <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
-                  aria-label="Instagram"
-                >
-                  <InstagramIcon className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
-                  aria-label="Facebook"
-                >
-                  <FacebookIcon className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://youtube.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
-                  aria-label="YouTube"
-                >
-                  <YoutubeIcon className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://wa.me/917396690308"
+                  href={`https://wa.me/${settings.whatsapp_number || `91${settings.home_contact_phone?.replace(/\D/g, '').slice(-10)}`}`}
                   target="_blank"
                   rel="noreferrer"
                   className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
