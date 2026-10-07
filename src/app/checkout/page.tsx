@@ -27,6 +27,7 @@ import Footer from '@/components/layout/Footer';
 import { useCart } from '@/context/CartContext';
 import { useUI } from '@/context/UIContext';
 import { useAuth } from '@/context/AuthContext';
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import Script from 'next/script';
 import { placeOrder, verifyRazorpayPayment, cancelPendingOrder, validateCoupon, getPaymentSettings } from '@/actions/checkout';
 import { getFooterSettings } from '@/lib/siteSettings';
@@ -40,7 +41,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart, updateQuantity, removeFromCart, clearCart, subtotal, totalItems } = useCart();
   const { showToast } = useUI();
-  const { user } = useAuth();
+  const { user, isLoggedIn, isLoading: authLoading } = useAuth();
   const shipping = useShippingSettings();
   const qtySettings = useQuantityDiscountSettings();
 
@@ -205,6 +206,10 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!isLoggedIn) {
+      showToast('Please sign in to place your order', 'error');
+      return;
+    }
     if (!formData.fullName.trim() || !formData.phone.trim() || !formData.email.trim()) {
       showToast('Please fill in your Contact Details (Name, Phone & Email)', 'error');
       return;
@@ -229,6 +234,7 @@ export default function CheckoutPage() {
     setIsPlacingOrder(true);
 
     try {
+      const { data: sessionData } = await createBrowserSupabaseClient().auth.getSession();
       const result = await placeOrder({
         cart,
         fullName: formData.fullName,
@@ -244,7 +250,7 @@ export default function CheckoutPage() {
         couponCode: couponApplied ? couponCode.trim().toUpperCase() : undefined,
         total: finalTotal,
         paymentMethod,
-        userId: user?.id,
+        accessToken: sessionData.session?.access_token,
       });
 
       if (result.isRazorpay) {
@@ -392,16 +398,33 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <div className="text-[12px] text-[#024F5F] hidden sm:block">
-                    <span>Already have an account? </span>
-                    <Link
-                      href="/account?mode=signin"
-                      className="font-semibold text-[#024F5F] underline hover:text-[#00303A]"
-                    >
-                      Sign in
-                    </Link>
-                  </div>
+                  {!isLoggedIn && (
+                    <div className="text-[12px] text-[#024F5F] hidden sm:block">
+                      <span>Already have an account? </span>
+                      <Link
+                        href="/account?mode=signin"
+                        className="font-semibold text-[#024F5F] underline hover:text-[#00303A]"
+                      >
+                        Sign in
+                      </Link>
+                    </div>
+                  )}
                 </div>
+
+                {/* Login is required to place an order */}
+                {!authLoading && !isLoggedIn && (
+                  <div className="rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-4 text-sm text-[#00303A] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <p className="font-medium">Please sign in or create an account to place your order.</p>
+                    <div className="flex gap-2 shrink-0">
+                      <Link href="/account?mode=signin" className="bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors">
+                        Sign In
+                      </Link>
+                      <Link href="/account?mode=register" className="border border-[#CFAC64] text-[#00303A] px-4 py-2 rounded-lg text-xs font-bold hover:bg-white transition-colors">
+                        Create Account
+                      </Link>
+                    </div>
+                  </div>
+                )}
 
                 {/* Saved addresses picker (signed-in customers with addresses on file) */}
                 {savedAddresses.length > 0 && (
@@ -637,7 +660,7 @@ export default function CheckoutPage() {
                 <div className="pt-3">
                   <button
                     type="submit"
-                    disabled={isPlacingOrder || cart.length === 0}
+                    disabled={isPlacingOrder || cart.length === 0 || authLoading || !isLoggedIn}
                     className="w-full bg-[#CFAC64] hover:bg-[#B08F4F] text-white py-3.5 sm:py-4 px-6 rounded-xl font-heading text-base sm:text-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-between cursor-pointer disabled:opacity-50"
                   >
                     {isPlacingOrder ? (

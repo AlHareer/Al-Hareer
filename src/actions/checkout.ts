@@ -85,9 +85,9 @@ export type PlaceOrderInput = {
   couponCode?: string;
   total: number;
   paymentMethod?: 'online' | 'cod';
-  // Set when the customer is signed in, so the order/address are attached to
-  // their real account (order history) instead of being guest-only.
-  userId?: string;
+  // Supabase access token of the signed-in customer. Orders require login, and
+  // the user is resolved from this token server-side (never trusted from the client).
+  accessToken?: string;
 };
 
 export type PlaceOrderResult =
@@ -96,6 +96,15 @@ export type PlaceOrderResult =
 
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   const supabase = createAdminClient();
+
+  // Login is mandatory: resolve the customer from their session token.
+  const { data: authData, error: authErr } = input.accessToken
+    ? await supabase.auth.getUser(input.accessToken)
+    : { data: { user: null }, error: null };
+  if (authErr || !authData.user) {
+    throw new Error('Please sign in to place your order.');
+  }
+  const userId = authData.user.id;
 
   // Server-side guard: a disabled payment method can't be forced via a tampered request.
   const { codEnabled, razorpayEnabled } = await getPaymentSettings();
@@ -111,11 +120,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   // A signed-in customer re-ordering to an address already on file reuses it
   // instead of piling up a duplicate saved address on every order.
   let existingAddressId: string | null = null;
-  if (input.userId) {
+  {
     const { data: existing } = await supabase
       .from('addresses')
       .select('id')
-      .eq('user_id', input.userId)
+      .eq('user_id', userId)
       .eq('postal_code', input.pinCode)
       .eq('city', input.city)
       .eq('address_line_1', input.address)
@@ -129,7 +138,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     : await supabase
     .from('addresses')
     .insert({
-      user_id: input.userId ?? null,
+      user_id: userId,
       full_name: input.fullName,
       phone: input.phone,
       address_line_1: input.address,
@@ -145,7 +154,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     .from('orders')
     .insert({
       order_number: orderNumber,
-      user_id: input.userId ?? null,
+      user_id: userId,
       guest_email: input.email,
       guest_phone: input.phone,
       address_id: address.id,
