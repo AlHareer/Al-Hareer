@@ -17,7 +17,7 @@ import { getFooterSettings, getSocialLinks, type ContentSettings } from '@/lib/s
 const FALLBACK_CONTACT: ContentSettings = {
   home_contact_phone: '+91 73966 90308',
   home_contact_email: 'support@alhareer.com',
-  home_contact_address: 'Jabalpur, Madhya Pradesh, India',
+  home_contact_address: '',
 };
 const FALLBACK_SOCIAL: ContentSettings = {
   instagram_url: 'https://instagram.com',
@@ -274,20 +274,6 @@ export default function Footer() {
                 </div>
               </div>
 
-              {/* Address */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-sm">
-                  <MapPin className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <span className="text-xs sm:text-[13px] font-semibold text-white block">
-                    {contact.home_contact_address}
-                  </span>
-                  <span className="text-[10.5px] text-white/75 block">
-                    Our Studio &amp; Head Office
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
 

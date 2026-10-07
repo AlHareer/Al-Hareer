@@ -1437,7 +1437,7 @@ function AuthAndDashboardContent() {
                                     <p className="text-[11px] sm:text-xs text-[#024F5F] flex items-center gap-1 pt-0.5">
                                       <MapPin className="w-3 h-3 text-[#024F5F] shrink-0" />
                                       <span className="truncate">
-                                        Deliver to {order.shippingAddress?.fullName || displayName} • {order.shippingAddress?.city || 'Mumbai'}
+                                        Deliver to {order.shippingAddress?.fullName || displayName} • {order.shippingAddress?.city}
                                       </span>
                                     </p>
 

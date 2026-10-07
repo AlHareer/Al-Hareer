@@ -60,6 +60,7 @@ export default function Navbar() {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileShopOpen, setMobileShopOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<string[]>([]);
 
@@ -351,9 +352,6 @@ export default function Navbar() {
                             <h4 className="font-heading text-sm font-bold text-[#00303A] truncate">
                               {user.name}
                             </h4>
-                            <span className="text-[9.5px] font-bold text-[#024F5F] bg-[#024F5F]/10 px-1.5 py-0.5 rounded shrink-0">
-                              VIP
-                            </span>
                           </div>
                           <p className="text-[11px] text-[#024F5F] truncate mt-0.5">
                             {user.email}
@@ -464,7 +462,9 @@ export default function Navbar() {
           />
 
           {/* Drawer Panel */}
-          <div className="fixed inset-y-0 left-0 w-[85vw] max-w-[340px] sm:max-w-[380px] bg-[#F6F1EC] shadow-2xl z-50 p-5 sm:p-6 flex flex-col justify-between overflow-y-auto no-scrollbar animate-in slide-in-from-left duration-300">
+          <div className="fixed inset-y-0 left-0 w-[85vw] max-w-[340px] sm:max-w-[380px] bg-[#F6F1EC] shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-left duration-300">
+            {/* Scrollable menu content */}
+            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-5 sm:p-6 flex flex-col justify-between">
             <div>
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-4 border-b border-[#CFAC64]">
@@ -490,104 +490,104 @@ export default function Navbar() {
                   const isActive = isLinkActive(link.href, link.name);
                   return (
                     <React.Fragment key={link.name}>
-                      <Link
-                        href={link.href}
-                        onClick={() => {
-                          handleNavClick(link.name, link.href);
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`flex items-center justify-between py-3 px-3.5 rounded-lg text-sm font-medium transition-all ${
-                          isActive
-                            ? 'bg-[#F6F1EC] text-[#024F5F] font-semibold border-l-4 border-[#024F5F]'
-                            : 'text-[#00303A] hover:bg-[#F6F1EC]'
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#024F5F]" />}
-                          <span>{link.name}</span>
-                        </span>
-                      </Link>
-                      {link.name === 'Shop' && navMenu && navMenu.groups.length > 0 && (
-                        <div className="ml-4 pl-3 border-l border-[#CFAC64]/60 flex flex-col">
-                          {navMenu.groups.map((c) => (
+                      {(() => {
+                        const hasShopGroups = link.name === 'Shop' && !!navMenu && navMenu.groups.length > 0;
+                        return (
+                          <div className="flex items-stretch gap-1.5">
                             <Link
-                              key={c.href}
-                              href={c.href}
+                              href={link.href}
                               onClick={() => {
-                                handleShopMenuNavigate(c.href);
+                                handleNavClick(link.name, link.href);
                                 setMobileMenuOpen(false);
                               }}
-                              className="flex items-center py-2 px-2.5 rounded-md text-[13px] text-[#024F5F] hover:bg-[#F6F1EC]"
+                              className={`flex-1 flex items-center justify-between py-3 px-3.5 rounded-lg text-sm font-medium transition-all ${
+                                isActive
+                                  ? 'bg-white text-[#024F5F] font-semibold border-l-4 border-[#CFAC64] shadow-2xs'
+                                  : 'text-[#00303A] hover:bg-white/70'
+                              }`}
                             >
-                              {c.label}
+                              <span className="flex items-center gap-2">
+                                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#CFAC64]" />}
+                                <span>{link.name}</span>
+                              </span>
                             </Link>
-                          ))}
+                            {hasShopGroups && (
+                              <button
+                                type="button"
+                                onClick={() => setMobileShopOpen((o) => !o)}
+                                aria-expanded={mobileShopOpen}
+                                aria-label="Toggle shop categories"
+                                className={`w-11 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
+                                  mobileShopOpen
+                                    ? 'bg-[#024F5F] border-[#024F5F] text-white'
+                                    : 'bg-white border-[#CFAC64]/70 text-[#024F5F]'
+                                }`}
+                              >
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${mobileShopOpen ? 'rotate-180' : ''}`} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
+                      {link.name === 'Shop' && navMenu && navMenu.groups.length > 0 && (
+                        <div
+                          className={`grid transition-all duration-300 ease-out ${
+                            mobileShopOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                          }`}
+                        >
+                          <div className="overflow-hidden">
+                            <div className="grid grid-cols-2 gap-2.5 pt-1.5 pb-2 px-0.5">
+                              {navMenu.groups.map((c) => (
+                                <Link
+                                  key={c.href}
+                                  href={c.href}
+                                  onClick={() => {
+                                    handleShopMenuNavigate(c.href);
+                                    setMobileMenuOpen(false);
+                                  }}
+                                  className="group relative block aspect-[4/5] rounded-2xl overflow-hidden border border-[#CFAC64]/60 bg-white shadow-2xs active:scale-[0.97] transition-transform"
+                                >
+                                  {c.image ? (
+                                    <Image
+                                      src={c.image}
+                                      alt={c.label}
+                                      fill
+                                      sizes="160px"
+                                      className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                  ) : (
+                                    <span className="absolute inset-0 flex items-center justify-center bg-[#F6F1EC] text-[#CFAC64]">
+                                      <Sparkles className="w-7 h-7" />
+                                    </span>
+                                  )}
+                                  <span className="absolute inset-0 bg-gradient-to-t from-[#00303A]/85 via-[#00303A]/15 to-transparent" />
+                                  <span className="absolute inset-x-0 bottom-0 p-2.5 flex items-end justify-between gap-1">
+                                    <span className="font-heading text-[13px] font-bold text-white leading-tight drop-shadow">
+                                      {c.label}
+                                    </span>
+                                    <span className="w-5 h-5 rounded-full bg-[#CFAC64] text-white flex items-center justify-center text-[11px] shrink-0">
+                                      ›
+                                    </span>
+                                  </span>
+                                </Link>
+                              ))}
+                            </div>
+                            <Link
+                              href="/shop"
+                              onClick={() => {
+                                handleShopMenuNavigate('/shop');
+                                setMobileMenuOpen(false);
+                              }}
+                              className="block text-center text-xs font-semibold text-[#024F5F] underline underline-offset-4 pb-2"
+                            >
+                              View all products
+                            </Link>
+                          </div>
                         </div>
                       )}
                     </React.Fragment>
                   );
                 })}
-              </div>
-
-              {/* Mobile User Profile Section */}
-              <div className="p-3.5 bg-white rounded-xl border border-[#CFAC64] shadow-2xs my-3">
-                {isLoggedIn && user ? (
-                  <div className="space-y-2.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#CFAC64] text-white font-heading font-bold text-sm flex items-center justify-center shrink-0">
-                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A] truncate">
-                            {user.name}
-                          </h4>
-                          <span className="text-[9px] font-bold text-[#024F5F] bg-[#024F5F]/10 px-1.5 py-0.2 rounded">
-                            VIP
-                          </span>
-                        </div>
-                        <p className="text-[10.5px] text-[#024F5F] truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 pt-2 border-t border-[#F6F1EC]">
-                      <Link
-                        href="/account"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex-1 py-2 px-2 bg-[#F6F1EC] text-center text-xs font-semibold text-[#024F5F] rounded-lg border border-[#CFAC64]"
-                      >
-                        Dashboard
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          logout();
-                          setMobileMenuOpen(false);
-                          showToast('👋 Signed out successfully!', 'info');
-                        }}
-                        className="py-2 px-3 bg-[#024F5F]/10 text-xs font-bold text-[#024F5F] rounded-lg flex items-center gap-1"
-                      >
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-[#00303A]">VIP Membership</p>
-                      <p className="text-[10.5px] text-[#024F5F]">Sign in for orders &amp; wishlist</p>
-                    </div>
-                    <Link
-                      href="/account?mode=signin"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="px-3.5 py-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-lg shadow-2xs"
-                    >
-                      Sign In
-                    </Link>
-                  </div>
-                )}
               </div>
 
               {/* Mobile Quick Action Buttons */}
@@ -641,6 +641,67 @@ export default function Navbar() {
                   <YoutubeIcon className="w-4 h-4 hover:text-[#024F5F]" />
                 </a>
               </div>
+            </div>
+            {/* Mobile User Profile Section — pinned to the bottom of the drawer */}
+            </div>
+
+            <div className="shrink-0 px-5 sm:px-6 pt-3 pb-5 sm:pb-6 bg-[#F6F1EC] border-t border-[#CFAC64]/60 shadow-[0_-6px_12px_-8px_rgba(0,48,58,0.25)]">
+  <div className="p-3.5 bg-white rounded-xl border border-[#CFAC64] shadow-2xs">
+    {isLoggedIn && user ? (
+      <div className="space-y-2.5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#CFAC64] text-white font-heading font-bold text-sm flex items-center justify-center shrink-0">
+            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A] truncate">
+                {user.name}
+              </h4>
+            </div>
+            <p className="text-[10.5px] text-[#024F5F] truncate">
+              {user.email}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2 pt-2 border-t border-[#F6F1EC]">
+          <Link
+            href="/account"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex-1 py-2 px-2 bg-[#F6F1EC] text-center text-xs font-semibold text-[#024F5F] rounded-lg border border-[#CFAC64]"
+          >
+            Dashboard
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              setMobileMenuOpen(false);
+              showToast('👋 Signed out successfully!', 'info');
+            }}
+            className="py-2 px-3 bg-[#024F5F]/10 text-xs font-bold text-[#024F5F] rounded-lg flex items-center gap-1"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+    ) : (
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold text-[#00303A]">Welcome to Al Hareer</p>
+          <p className="text-[10.5px] text-[#024F5F]">Sign in for orders &amp; wishlist</p>
+        </div>
+        <Link
+          href="/account?mode=signin"
+          onClick={() => setMobileMenuOpen(false)}
+          className="px-3.5 py-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-lg shadow-2xs"
+        >
+          Sign In
+        </Link>
+      </div>
+    )}
+  </div>
             </div>
           </div>
         </div>

@@ -947,7 +947,7 @@ export default function CheckoutPage() {
                 Thank You For Your Order!
               </h3>
               <p className="text-xs text-[#024F5F] mt-1">
-                Your royal parcel is being handcrafted and pressed with care at our Jabalpur atelier.
+                Your order is being prepared with care and will be on its way soon.
               </p>
             </div>
 

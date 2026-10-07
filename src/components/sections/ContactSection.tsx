@@ -102,20 +102,6 @@ export default function ContactSection({ settings }: { settings: ContentSettings
 
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-full bg-cream-100 border border-cream-300 flex items-center justify-center text-brand-500 flex-shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-heading text-sm font-bold text-brand-700 uppercase tracking-wide">
-                    Design Studio
-                  </h4>
-                  <p className="text-sm text-muted">
-                    {settings.home_contact_address}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-cream-100 border border-cream-300 flex items-center justify-center text-brand-500 flex-shrink-0">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>

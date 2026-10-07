@@ -29,7 +29,7 @@ import { getFooterSettings, type ContentSettings } from '@/lib/siteSettings';
 const FALLBACK_CONTACT: ContentSettings = {
   home_contact_phone: '+91 73966 90308',
   home_contact_email: 'support@alhareer.com',
-  home_contact_address: 'Civil Lines, Jabalpur, Madhya Pradesh 482001, India',
+  home_contact_address: '',
   home_contact_hours: 'Mon – Sat: 10:30 AM – 8:30 PM · Sun: 11:00 AM – 6:00 PM',
   home_contact_calligraphy_line1: 'Tradition',
   home_contact_calligraphy_line2: 'In Style',
@@ -168,7 +168,7 @@ export default function ContactPage() {
       {/* 2. THREE KEY CONTACT CARDS */}
       <section className="py-8 sm:py-12 bg-[#F6F1EC]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
             
             {/* Card 1: Phone & WhatsApp */}
             <div className="bg-white p-6 sm:p-7 rounded-2xl border border-[#CFAC64] shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
@@ -243,41 +243,6 @@ export default function ContactPage() {
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>Send an Email</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Card 3: Flagship Atelier */}
-            <div className="bg-white p-6 sm:p-7 rounded-2xl border border-[#CFAC64] shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#F6F1EC] text-[#024F5F] flex items-center justify-center mb-5 group-hover:bg-[#B08F4F] group-hover:text-white transition-colors">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#024F5F]">
-                  Our Store
-                </span>
-                <h3 className="font-heading text-xl font-bold text-[#00303A] mt-1 mb-2">
-                  Visit Us in Jabalpur
-                </h3>
-
-                <div className="space-y-1 text-xs">
-                  <p className="font-semibold text-sm text-[#00303A]">
-                    {contact.home_contact_address}
-                  </p>
-                  <p className="text-[#024F5F] flex items-center gap-1.5 text-[11px]">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Free parking &amp; fitting room</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-5 mt-5 border-t border-[#F6F1EC]">
-                <a
-                  href="#map-section"
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-[#F6F1EC] hover:bg-[#B08F4F] text-[#024F5F] hover:text-white text-xs font-semibold transition-colors border border-[#CFAC64]"
-                >
-                  <Navigation className="w-3.5 h-3.5" />
-                  <span>View Map &amp; Directions</span>
                 </a>
               </div>
             </div>
@@ -450,96 +415,13 @@ export default function ContactPage() {
               )}
             </div>
 
-            {/* RIGHT: Studio Highlights & Experience (5 cols) */}
+            {/* RIGHT: Quick contact (5 cols) */}
             <div className="lg:col-span-5 space-y-6">
               
-              {/* Luxury Studio Visual Card */}
-              <div className="relative rounded-2xl overflow-hidden border border-[#CFAC64] bg-[#F6F1EC] shadow-xs min-h-[220px]">
-                <div className="relative w-full h-48 sm:h-56">
-                  <Image
-                    src="/images/footer-arch.jpg"
-                    alt="Al Hareer Store"
-                    fill
-                    className="object-cover object-center"
-                    sizes="400px"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#00303A]/85 via-[#00303A]/35 to-transparent" />
-                  <div className="absolute top-4 left-4">
-                    <span className="text-[10px] font-bold tracking-[0.2em] uppercase bg-white/95 backdrop-blur-xs text-[#00303A] px-2.5 py-1 rounded shadow-xs">
-                      VISIT US
-                    </span>
-                  </div>
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <p className="font-heading text-xl font-bold leading-tight mb-1">
-                      Our Jabalpur Store
-                    </p>
-                    <p className="text-xs text-white/80 font-light">
-                      Come see our fabrics and get help finding the right fit.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4 Feature Pillars */}
-              <div className="bg-white p-6 sm:p-7 rounded-2xl border border-[#CFAC64] shadow-xs space-y-5">
-                <h4 className="font-heading text-lg font-bold text-[#00303A] pb-3 border-b border-[#F6F1EC]">
-                  Why Visit Us
-                </h4>
-
-                <div className="space-y-4 text-xs">
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] shrink-0 mt-0.5">
-                      <Scissors className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#00303A] text-sm">Free Alterations</p>
-                      <p className="text-[#024F5F] text-xs leading-relaxed mt-0.5">
-                        We'll adjust the collar, shoulders, and length so it fits you properly, at no extra cost.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] shrink-0 mt-0.5">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#00303A] text-sm">See the Fabric in Person</p>
-                      <p className="text-[#024F5F] text-xs leading-relaxed mt-0.5">
-                        Check out our Chanderi silk, cotton, and other fabrics before you buy.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] shrink-0 mt-0.5">
-                      <Calendar className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#00303A] text-sm">Video Call Option</p>
-                      <p className="text-[#024F5F] text-xs leading-relaxed mt-0.5">
-                        Can't make it to Jabalpur? Book a WhatsApp video call and we'll show you the fabrics and colors.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] shrink-0 mt-0.5">
-                      <Gift className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#00303A] text-sm">Gift Packaging</p>
-                      <p className="text-[#024F5F] text-xs leading-relaxed mt-0.5">
-                        Every order is neatly pressed and packed, ready to gift.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Instant WhatsApp Quick Box */}
-                <div className="pt-3 border-t border-[#F6F1EC]">
+              {/* WhatsApp quick contact */}
+              <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#CFAC64] shadow-xs">
                   <a
-                    href={`https://wa.me/91${digits}?text=Hi,%20I'd%20like%20to%20book%20a%20visit.`}
+                    href={`https://wa.me/91${digits}?text=Hi,%20I%20have%20a%20question.`}
                     target="_blank"
                     rel="noreferrer"
                     className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#024F5F]/10 border border-[#024F5F]/30 hover:bg-[#024F5F]/20 transition-colors group"
@@ -554,7 +436,6 @@ export default function ContactPage() {
                       </div>
                     </div>
                   </a>
-                </div>
               </div>
 
             </div>
@@ -562,97 +443,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-
-      {/* 4. INTERACTIVE MODERN GOOGLE MAP SECTION */}
-      <section id="map-section" className="py-10 sm:py-16 bg-[#F6F1EC] border-t border-b border-[#CFAC64] scroll-mt-24">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
-          
-          {/* Section Heading */}
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <div className="inline-flex items-center gap-2 mb-2">
-              <span className="w-6 h-[1.5px] bg-[#024F5F]" />
-              <span className="text-[10.5px] font-bold uppercase tracking-[0.24em] text-[#024F5F]">
-                LOCATION &amp; DIRECTIONS
-              </span>
-              <span className="w-6 h-[1.5px] bg-[#024F5F]" />
-            </div>
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#00303A]">
-              Visit Our Jabalpur Store
-            </h2>
-            <p className="text-xs sm:text-sm text-[#024F5F] mt-2">
-              Located in Civil Lines, Jabalpur — 10 minutes from the railway station, 25 minutes from the airport.
-            </p>
-          </div>
-
-          {/* Map & Studio Info Box Container */}
-          <div className="relative rounded-2xl overflow-hidden border border-[#CFAC64] shadow-lg bg-white">
-            
-            {/* Responsive Google Maps Embed */}
-            <div className="relative w-full h-[380px] sm:h-[460px] md:h-[500px] bg-[#F6F1EC]">
-              <iframe
-                title="Al Hareer Store Location in Jabalpur"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117362.7788484931!2d79.87059714341999!3d23.175787680190138!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3981ae1a0fb6ce7f%3A0x436ee49e6f6f1524!2sJabalpur%2C%20Madhya%20Pradesh!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="w-full h-full filter contrast-[1.02] opacity-95"
-              />
-            </div>
-
-            {/* Floating Luxury Location Card (Overlay on desktop, block on mobile) */}
-            <div className="lg:absolute lg:bottom-6 lg:left-6 lg:max-w-sm w-full bg-white/95 backdrop-blur-md p-5 sm:p-6 lg:rounded-xl border-t lg:border border-[#CFAC64] shadow-md">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-[#024F5F] animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#024F5F]">
-                  Open Today
-                </span>
-              </div>
-
-              <h4 className="font-heading text-lg font-bold text-[#00303A]">
-                Al Hareer Store
-              </h4>
-              <p className="text-xs text-[#024F5F] mt-1 leading-relaxed">
-                {contact.home_contact_address}
-              </p>
-
-              <div className="my-3.5 py-3 border-y border-[#F6F1EC] space-y-1.5 text-xs text-[#024F5F]">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[#024F5F]">Hours:</span>
-                  <span className="font-semibold text-[#00303A] text-right">{contact.home_contact_hours}</span>
-                </div>
-                <div className="flex items-center justify-between pt-1 text-[11px] text-[#024F5F]">
-                  <span>Parking:</span>
-                  <span className="font-semibold">Free</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <a
-                  href="https://maps.google.com/?q=Civil+Lines+Jabalpur+Madhya+Pradesh"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold shadow-xs transition-colors"
-                >
-                  <Navigation className="w-3.5 h-3.5" />
-                  <span>Get Directions</span>
-                </a>
-                <a
-                  href={`tel:+91${digits}`}
-                  className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#00303A] text-xs font-semibold border border-[#CFAC64] transition-colors"
-                >
-                  <Phone className="w-3.5 h-3.5 text-[#024F5F]" />
-                  <span>Call</span>
-                </a>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
 
       <Footer />
     </div>
