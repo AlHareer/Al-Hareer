@@ -43,7 +43,7 @@ export async function getOrdersForUser(): Promise<Order[]> {
   const { data, error } = await supabase
     .from('orders')
     .select(
-      `id, order_number, total_amount, order_status, payment_method, created_at, updated_at, tracking_number, tracking_url, courier_name,
+      `id, order_number, total_amount, order_status, payment_method, payment_status, razorpay_payment_id, created_at, updated_at, tracking_number, tracking_url, courier_name,
        addresses ( id, full_name, phone, address_line_1, city, state, postal_code, is_default ),
        order_items ( product_name, variant_name, color, image_url, price_at_purchase, quantity )`
     )
@@ -76,6 +76,8 @@ export async function getOrdersForUser(): Promise<Order[]> {
         ? mapAddress(address)
         : { fullName: '', phone: '', address: '', city: '', state: '', pinCode: '' },
       paymentMethod: PAYMENT_METHOD_LABELS[row.payment_method] ?? row.payment_method,
+      paymentStatus: row.payment_status ?? undefined,
+      paymentId: row.razorpay_payment_id ?? undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       courierName: row.courier_name ?? undefined,

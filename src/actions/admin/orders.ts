@@ -105,6 +105,7 @@ export type OrderDetail = {
   total_amount: number;
   payment_method: string;
   payment_status: string;
+  razorpay_payment_id: string | null;
   order_status: string;
   tracking_number: string | null;
   tracking_url: string | null;
@@ -145,7 +146,7 @@ export async function getOrderById(id: string): Promise<OrderDetail | null> {
     .select(
       `
       id, order_number, subtotal, shipping_cost, discount_amount, coupon_discount, quantity_discount, coupon_code, total_amount,
-      payment_method, payment_status, order_status, tracking_number, tracking_url, courier_name, created_at,
+      payment_method, payment_status, razorpay_payment_id, order_status, tracking_number, tracking_url, courier_name, created_at,
       guest_email, guest_phone, user_id,
       profiles ( full_name, email, phone ),
       addresses ( full_name, phone, address_line_1, address_line_2, city, state, postal_code, country ),

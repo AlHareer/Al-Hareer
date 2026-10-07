@@ -77,6 +77,8 @@ export interface Order {
   items?: OrderItem[];
   shippingAddress: OrderShippingAddress;
   paymentMethod: string;
+  paymentStatus?: string;
+  paymentId?: string;
   createdAt?: string;
   updatedAt?: string;
   // Shipment details the admin enters on the order (all optional).
@@ -2018,6 +2020,11 @@ function AuthAndDashboardContent() {
               </div>
               <p className="text-[11px] sm:text-xs text-[#024F5F] mt-1">
                 Placed on {selectedOrder.date} • {selectedOrder.paymentMethod || 'Online Payment'}
+                {selectedOrder.paymentId && (
+                  <span className="block mt-0.5">
+                    Payment ID: <span className="font-mono font-semibold text-[#00303A] select-all">{selectedOrder.paymentId}</span>
+                  </span>
+                )}
               </p>
             </div>
 

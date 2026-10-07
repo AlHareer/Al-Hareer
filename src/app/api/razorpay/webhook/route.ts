@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         if (internalOrderId) {
           const { error } = await supabase
             .from('orders')
-            .update({ payment_status: 'paid' })
+            .update({ payment_status: 'paid', razorpay_payment_id: payment.id })
             .eq('id', internalOrderId)
           if (error) console.error('[Razorpay Webhook]: DB update failed:', error.message)
           else console.log(`[Razorpay Webhook]: Order ${internalOrderId} marked paid (payment.captured)`)
@@ -76,7 +76,10 @@ export async function POST(req: Request) {
         if (internalOrderId) {
           const { error } = await supabase
             .from('orders')
-            .update({ payment_status: 'paid' })
+            .update({
+              payment_status: 'paid',
+              ...(payload?.payment?.entity?.id ? { razorpay_payment_id: payload.payment.entity.id } : {}),
+            })
             .eq('id', internalOrderId)
           if (error) console.error('[Razorpay Webhook]: DB update failed:', error.message)
           else console.log(`[Razorpay Webhook]: Order ${internalOrderId} marked paid (order.paid)`)

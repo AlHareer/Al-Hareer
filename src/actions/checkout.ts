@@ -274,7 +274,7 @@ export async function verifyRazorpayPayment(
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('orders')
-    .update({ payment_status: 'paid' })
+    .update({ payment_status: 'paid', razorpay_payment_id })
     .eq('id', internal_order_id)
 
   if (error) return { success: false, error: 'Failed to update order status' }

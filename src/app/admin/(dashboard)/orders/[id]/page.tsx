@@ -438,6 +438,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <p className="text-xs text-brand-700 font-medium">
                 {isCOD ? 'Cash on Delivery (COD)' : order.payment_method || 'Online Payment'}
               </p>
+              {order.razorpay_payment_id && (
+                <p className="text-[11px] text-muted">
+                  Payment ID:{' '}
+                  <span className="font-mono font-bold text-brand-700 select-all">{order.razorpay_payment_id}</span>
+                </p>
+              )}
               {isCOD && (
                 <p className="text-[11px] text-muted leading-relaxed">
                   Collection instruction: Delivery partner must collect{' '}

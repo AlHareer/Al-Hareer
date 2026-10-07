@@ -156,6 +156,9 @@ create index if not exists idx_orders_user_id on orders(user_id);
 -- every Razorpay (online) order, since placeOrder() inserts 'Online Payment'
 -- for those. payment_method is free text now, same as COD/online elsewhere.
 alter table orders drop constraint if exists orders_payment_method_check;
+-- Razorpay payment id (pay_...) of a successful online payment, shown to the
+-- customer and admin as the payment reference.
+alter table orders add column if not exists razorpay_payment_id text;
 
 create table if not exists order_items (
   id uuid primary key default gen_random_uuid(),

@@ -145,6 +145,7 @@ export default function CheckoutPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState('');
+  const [confirmedPaymentId, setConfirmedPaymentId] = useState('');
 
   const handleUpdateQty = (productId: string, color: string, size: string, newQty: number) => {
     updateQuantity(productId, color, size, newQty);
@@ -265,6 +266,7 @@ export default function CheckoutPage() {
               );
               if (verifyRes.success) {
                 setConfirmedOrderId(result.orderNumber);
+                setConfirmedPaymentId(response.razorpay_payment_id || '');
                 setOrderConfirmed(true);
                 clearCart();
                 showToast('🎉 Order Placed Successfully! Your royal package is being prepared.', 'success');
@@ -964,6 +966,12 @@ export default function CheckoutPage() {
                 <span className="text-[#024F5F]">Payment Method:</span>
                 <span className="font-semibold text-[#00303A] uppercase">{paymentMethod}</span>
               </div>
+              {confirmedPaymentId && (
+                <div className="flex justify-between gap-3">
+                  <span className="text-[#024F5F] shrink-0">Payment ID:</span>
+                  <span className="font-bold text-[#024F5F] font-mono break-all text-right select-all">{confirmedPaymentId}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-[#CFAC64] pt-1.5">
                 <span className="text-[#024F5F]">Total Paid:</span>
                 <span className="font-bold text-sm text-[#024F5F]">₹{finalTotal.toLocaleString('en-IN')}</span>
