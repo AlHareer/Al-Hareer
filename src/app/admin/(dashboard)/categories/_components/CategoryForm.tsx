@@ -69,7 +69,7 @@ export default function CategoryForm({ category, parentOptions = [] }: { categor
 
         {/* Error notification */}
         {state?.error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
+          <div className="rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3 text-xs font-semibold text-[#024F5F]">
             {state.error}
           </div>
         )}
@@ -77,7 +77,7 @@ export default function CategoryForm({ category, parentOptions = [] }: { categor
         {/* Category Name */}
         <div>
           <label className={labelClass}>
-            Category Name <span className="text-red-500">*</span>
+            Category Name <span className="text-[#024F5F]">*</span>
           </label>
           <input
             required
@@ -158,7 +158,7 @@ export default function CategoryForm({ category, parentOptions = [] }: { categor
                 <div className="flex items-center gap-1.5">
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
-                      isActive ? 'bg-emerald-600 animate-pulse' : 'bg-stone-400'
+                      isActive ? 'bg-[#024F5F] animate-pulse' : 'bg-[#F6F1EC]'
                     }`}
                   />
                   <span className="text-xs font-semibold text-brand-700">
@@ -176,7 +176,7 @@ export default function CategoryForm({ category, parentOptions = [] }: { categor
                 aria-checked={isActive}
                 onClick={() => setIsActive((v) => !v)}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-                  isActive ? 'bg-emerald-600' : 'bg-stone-300'
+                  isActive ? 'bg-[#024F5F]' : 'bg-[#F6F1EC]'
                 }`}
               >
                 <span
@@ -194,7 +194,7 @@ export default function CategoryForm({ category, parentOptions = [] }: { categor
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 px-6 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all"
           >
             {pending && <Loader2 className="h-4 w-4 animate-spin" />}
             <span>{pending ? 'Saving...' : isEditing ? 'Update Category' : 'Save Category'}</span>

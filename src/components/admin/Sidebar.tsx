@@ -98,7 +98,7 @@ export default function AdminSidebar({ adminName = 'Admin' }: { adminName?: stri
   return (
     <>
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setMobileOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-[#00303A]/60 backdrop-blur-sm lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
       <aside
@@ -142,7 +142,7 @@ export default function AdminSidebar({ adminName = 'Admin' }: { adminName?: stri
                       <span className="flex-1">{item.label}</span>
                       {!!badgeCount && (
                         <span
-                          className={`flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[10px] font-bold ${active ? 'bg-brand-500/20 text-brand-700' : 'bg-red-100 text-red-600 group-hover:bg-red-200'
+                          className={`flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[10px] font-bold ${active ? 'bg-brand-500/20 text-brand-700' : 'bg-[#F6F1EC] text-[#024F5F] group-hover:bg-[#F6F1EC]'
                             }`}
                         >
                           {badgeCount > 99 ? '99+' : badgeCount}
@@ -158,7 +158,7 @@ export default function AdminSidebar({ adminName = 'Admin' }: { adminName?: stri
 
         <div className="shrink-0 border-t border-cream-300 bg-cream-50 p-3">
           <div className="flex items-center gap-3 rounded-xl border border-cream-300 bg-white p-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#CFAC64] text-sm font-bold text-white">
               {initial}
             </div>
             <div className="min-w-0 flex-1">
@@ -169,7 +169,7 @@ export default function AdminSidebar({ adminName = 'Admin' }: { adminName?: stri
               <button
                 type="submit"
                 title="Log out"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-all hover:bg-red-100"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#CFAC64] bg-[#F6F1EC] text-[#024F5F] transition-all hover:bg-[#F6F1EC]"
               >
                 <LogOut className="h-4 w-4" />
               </button>

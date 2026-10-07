@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -11,17 +11,17 @@ export default function HomeFaqSection({ faqs }: { faqs: Faq[] }) {
   if (faqs.length === 0) return null;
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-[#FAF6F0] border-t border-cream-200">
+    <section className="py-12 sm:py-16 md:py-20 bg-[#F6F1EC] border-t border-cream-200">
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10">
           <div className="flex items-center justify-center gap-3 mb-2.5">
-            <span className="w-6 h-[1.5px] bg-[#655B53]" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#655B53]">
+            <span className="w-6 h-[1.5px] bg-[#024F5F]" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#024F5F]">
               FREQUENTLY ASKED
             </span>
-            <span className="w-6 h-[1.5px] bg-[#655B53]" />
+            <span className="w-6 h-[1.5px] bg-[#024F5F]" />
           </div>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-brand-700 tracking-tight">
             Got Questions?
@@ -74,7 +74,7 @@ export default function HomeFaqSection({ faqs }: { faqs: Faq[] }) {
           <div className="mt-8 text-center">
             <Link
               href="/faq"
-              className="inline-flex items-center gap-2 bg-brand-700 hover:bg-brand-800 text-white px-6 py-3 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+              className="inline-flex items-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-6 py-3 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200"
             >
               <HelpCircle className="w-4 h-4" />
               View All FAQs

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import Image from "next/image";
@@ -13,7 +13,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
   return (
     <section
       id="about"
-      className="relative py-10 sm:py-16 md:py-14 bg-[#FAF6F0] overflow-hidden"
+      className="relative py-10 sm:py-16 md:py-14 bg-[#F6F1EC] overflow-hidden"
     >
       {/* Background Jali / Trellis Watermark on Right */}
       <div className="pointer-events-none absolute top-0 right-0 w-[320px] sm:w-[440px] lg:w-[540px] h-full overflow-hidden opacity-25 select-none -z-0">
@@ -28,7 +28,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
               <path
                 d="M35 0 L70 35 L35 70 L0 35 Z"
                 fill="none"
-                stroke="#C6B09B"
+                stroke="#CFAC64"
                 strokeWidth="1"
                 strokeOpacity="0.6"
               />
@@ -37,7 +37,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
                 cy="35"
                 r="14"
                 fill="none"
-                stroke="#C6B09B"
+                stroke="#CFAC64"
                 strokeWidth="0.9"
                 strokeOpacity="0.5"
               />
@@ -46,7 +46,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
                 cy="0"
                 r="10"
                 fill="none"
-                stroke="#C6B09B"
+                stroke="#CFAC64"
                 strokeWidth="0.8"
                 strokeOpacity="0.3"
               />
@@ -55,7 +55,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
                 cy="0"
                 r="10"
                 fill="none"
-                stroke="#C6B09B"
+                stroke="#CFAC64"
                 strokeWidth="0.8"
                 strokeOpacity="0.3"
               />
@@ -64,7 +64,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
                 cy="70"
                 r="10"
                 fill="none"
-                stroke="#C6B09B"
+                stroke="#CFAC64"
                 strokeWidth="0.8"
                 strokeOpacity="0.3"
               />
@@ -73,13 +73,13 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
                 cy="70"
                 r="10"
                 fill="none"
-                stroke="#C6B09B"
+                stroke="#CFAC64"
                 strokeWidth="0.8"
                 strokeOpacity="0.3"
               />
               <path
                 d="M0 0 L35 35 M70 0 L35 35 M70 70 L35 35 M0 70 L35 35"
-                stroke="#C6B09B"
+                stroke="#CFAC64"
                 strokeWidth="0.8"
                 strokeOpacity="0.4"
               />
@@ -93,7 +93,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 xl:gap-16 items-center">
           {/* LEFT: Showcase Image with Overlays */}
           <div className="lg:col-span-6 relative">
-            <div className="relative w-full h-[340px] sm:h-[400px] lg:h-[580px] rounded-2xl sm:rounded-3xl lg:rounded-l-2xl lg:rounded-tr-[110px] lg:rounded-br-[110px] overflow-hidden shadow-2xl border-4 border-[#E2D7C7]/100">
+            <div className="relative w-full h-[340px] sm:h-[400px] lg:h-[580px] rounded-2xl sm:rounded-3xl lg:rounded-l-2xl lg:rounded-tr-[110px] lg:rounded-br-[110px] overflow-hidden shadow-2xl border-4 border-[#CFAC64]/100">
               <Image
                 src={aboutImage}
                 alt="About Al Hareer Craftsmanship"
@@ -104,7 +104,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
               />
 
               {/* Subtle top & bottom dark vignettes for crisp overlay text */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#00303A]/40 via-transparent to-[#00303A]/50 pointer-events-none" />
 
               {/* Top Left: Brand Stamp */}
               <div className="absolute top-5 left-5 sm:top-7 sm:left-7 z-10 select-none text-center">
@@ -117,12 +117,12 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
               </div>
 
               {/* Bottom Left: Heritage Experience Pill */}
-              <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-[#342418]/95 backdrop-blur-md text-white px-4 py-3 sm:px-5 sm:py-4 rounded-tr-[28px] sm:rounded-tr-[32px] rounded-tl-md rounded-b-md shadow-2xl border border-white/10 z-10 max-w-[175px] sm:max-w-[190px]">
-                <div className="w-6 h-[2px] bg-[#9C8271] mb-2" />
-                <span className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#EADCCB] block leading-none mb-1">
+              <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-[#00303A]/95 backdrop-blur-md text-white px-4 py-3 sm:px-5 sm:py-4 rounded-tr-[28px] sm:rounded-tr-[32px] rounded-tl-md rounded-b-md shadow-2xl border border-white/10 z-10 max-w-[175px] sm:max-w-[190px]">
+                <div className="w-6 h-[2px] bg-[#024F5F] mb-2" />
+                <span className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#F6F1EC] block leading-none mb-1">
                   10+
                 </span>
-                <span className="text-[9px] sm:text-[10px] tracking-[0.18em] font-medium text-[#CBB9AB] block leading-[1.50]">
+                <span className="text-[9px] sm:text-[10px] tracking-[0.18em] font-medium text-[#CFAC64] block leading-[1.50]">
                   YEARS OF
                   <br />
                   TEXTILE &<br />
@@ -135,10 +135,10 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
 
             {/* Circular Stamp Badge overlapping the right border */}
             <div className="absolute -bottom-5 right-5 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:-right-10 lg:-right-14 z-20">
-              <div className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-30 lg:h-30 rounded-full bg-[#FAF6F0] p-1 shadow-[0_10px_30px_rgba(43,35,29,0.16)] border border-[#E2D7C7] flex items-center justify-center transition-transform duration-500 hover:scale-105 select-none">
+              <div className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-30 lg:h-30 rounded-full bg-[#F6F1EC] p-1 shadow-[0_10px_30px_rgba(0,48,58,0.16)] border border-[#CFAC64] flex items-center justify-center transition-transform duration-500 hover:scale-105 select-none">
                 {/* Outer delicate dashed border */}
-                <div className="absolute inset-1.5 rounded-full border border-dashed border-[#C6B09B]/80 pointer-events-none" />
-                <div className="absolute inset-2 rounded-full border border-[#DFCFC0]/60 pointer-events-none" />
+                <div className="absolute inset-1.5 rounded-full border border-dashed border-[#CFAC64]/80 pointer-events-none" />
+                <div className="absolute inset-2 rounded-full border border-[#F6F1EC]/60 pointer-events-none" />
 
                 {/* Rotating Circular Text */}
                 <svg
@@ -151,7 +151,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
                       d="M 100, 100 m -70, 0 a 70,70 0 1,1 140,0 a 70,70 0 1,1 -140,0"
                     />
                   </defs>
-                  <text className="text-[13.5px] font-semibold tracking-[0.27em] fill-[#4A3525] uppercase">
+                  <text className="text-[13.5px] font-semibold tracking-[0.27em] fill-[#024F5F] uppercase">
                     <textPath href="#stampCirclePath" startOffset="0%">
                       • PREMIUM FABRICS • TIMELESS STYLE
                     </textPath>
@@ -159,7 +159,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
                 </svg>
 
                 {/* Center Botanical Leaves Motif */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-[#4A3525]">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-[#024F5F]">
                   <svg
                     viewBox="0 0 40 40"
                     className="w-8 h-8 sm:w-9 sm:h-9"
@@ -208,21 +208,21 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
             <div className="flex items-start justify-between">
               {/* Tag / Category */}
               <div className="flex items-center gap-3">
-                <span className="w-7 h-[1.5px] bg-[#655B53]" />
-                <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#655B53]">
+                <span className="w-7 h-[1.5px] bg-[#024F5F]" />
+                <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#024F5F]">
                   ABOUT Al Hareer
                 </span>
               </div>
 
               {/* Pillars Block */}
-              <div className="hidden sm:block border-l border-[#D6C7B2] pl-5 space-y-1 select-none">
-                <p className="text-[11px] font-semibold tracking-[0.22em] text-[#4A3525] uppercase">
+              <div className="hidden sm:block border-l border-[#CFAC64] pl-5 space-y-1 select-none">
+                <p className="text-[11px] font-semibold tracking-[0.22em] text-[#024F5F] uppercase">
                   HERITAGE
                 </p>
-                <p className="text-[11px] font-semibold tracking-[0.22em] text-[#4A3525] uppercase">
+                <p className="text-[11px] font-semibold tracking-[0.22em] text-[#024F5F] uppercase">
                   CRAFTSMANSHIP
                 </p>
-                <p className="text-[11px] font-semibold tracking-[0.22em] text-[#4A3525] uppercase">
+                <p className="text-[11px] font-semibold tracking-[0.22em] text-[#024F5F] uppercase">
                   MODERN LIVING
                 </p>
                 <div className="w-7 h-[2px] bg-gold mt-2" />
@@ -230,19 +230,19 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
             </div>
 
             {/* Main Headline */}
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-[44px] xl:text-[50px] font-medium text-[#2B231D] leading-[1.15] tracking-tight">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-[44px] xl:text-[50px] font-medium text-[#00303A] leading-[1.15] tracking-tight">
               {headingLine1}
               {headingLine2 && (
                 <>
                   {' '}
                   <br />
-                  <span className="font-serif italic font-normal text-[#3E2D20]">{headingLine2}</span>
+                  <span className="font-serif italic font-normal text-[#00303A]">{headingLine2}</span>
                 </>
               )}
             </h2>
 
             {/* Description Text */}
-            <div className="space-y-4 text-sm sm:text-[15px] text-[#655B53] font-body leading-relaxed max-w-xl">
+            <div className="space-y-4 text-sm sm:text-[15px] text-[#024F5F] font-body leading-relaxed max-w-xl">
               <p>{settings.home_aboutteaser_paragraph}</p>
               <p>{settings.home_aboutteaser_paragraph2}</p>
             </div>
@@ -251,8 +251,8 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6 pt-2 pb-2">
               {/* 1. Handloom */}
               <div className="space-y-2.5">
-                <Leaf className="w-6 h-6 text-[#4A3525]" strokeWidth={1.5} />
-                <p className="text-xs sm:text-[13px] font-medium text-[#2B231D] leading-snug">
+                <Leaf className="w-6 h-6 text-[#024F5F]" strokeWidth={1.5} />
+                <p className="text-xs sm:text-[13px] font-medium text-[#00303A] leading-snug">
                   Premium Quality
                   <br />
                   Handloom &amp; Slub
@@ -263,8 +263,8 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
 
               {/* 2. Breathable */}
               <div className="space-y-2.5">
-                <Wind className="w-6 h-6 text-[#4A3525]" strokeWidth={1.5} />
-                <p className="text-xs sm:text-[13px] font-medium text-[#2B231D] leading-snug">
+                <Wind className="w-6 h-6 text-[#024F5F]" strokeWidth={1.5} />
+                <p className="text-xs sm:text-[13px] font-medium text-[#00303A] leading-snug">
                   Comfortable
                   <br />
                   All-Day
@@ -276,10 +276,10 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
               {/* 3. Tailored */}
               <div className="space-y-2.5">
                 <Scissors
-                  className="w-6 h-6 text-[#4A3525]"
+                  className="w-6 h-6 text-[#024F5F]"
                   strokeWidth={1.5}
                 />
-                <p className="text-xs sm:text-[13px] font-medium text-[#2B231D] leading-snug">
+                <p className="text-xs sm:text-[13px] font-medium text-[#00303A] leading-snug">
                   Modern Traditional
                   <br />
                   Tailored Designs
@@ -288,8 +288,8 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
 
               {/* 4. Artisanal */}
               <div className="space-y-2.5">
-                <Users className="w-6 h-6 text-[#4A3525]" strokeWidth={1.5} />
-                <p className="text-xs sm:text-[13px] font-medium text-[#2B231D] leading-snug">
+                <Users className="w-6 h-6 text-[#024F5F]" strokeWidth={1.5} />
+                <p className="text-xs sm:text-[13px] font-medium text-[#00303A] leading-snug">
                   Customer First
                   <br />
                   Artisanal Approach
@@ -302,7 +302,7 @@ export default function AboutSection({ settings }: { settings: ContentSettings }
               {/* Discover Our Story CTA */}
               <Link
                 href="/story"
-                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-[4px] bg-[#3E2D20] text-white font-medium text-sm transition-all duration-300 hover:bg-[#2A1D14] hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-[4px] bg-[#CFAC64] text-white font-medium text-sm transition-all duration-300 hover:bg-[#B08F4F] hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
               >
                 <span>Discover Our Story</span>
               </Link>

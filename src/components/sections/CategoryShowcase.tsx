@@ -73,7 +73,7 @@ function ShowcaseBlock({
         sizes="(max-width: 1024px) 100vw, 33vw"
         className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#00303A]/60 via-[#00303A]/5 to-transparent" />
       <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5">
         <span className="block text-base sm:text-lg md:text-xl font-heading font-bold uppercase tracking-wide text-white drop-shadow-sm">
           {item.label ?? item.productType}

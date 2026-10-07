@@ -22,7 +22,7 @@ import {
 import { getOrderById } from '@/actions/admin/orders';
 import { getBrandSettings } from '@/actions/admin/siteBrandSettings';
 import OrderStatusManager from './_components/OrderStatusManager';
-import { CopyButton, PrintButton } from './_components/OrderActions';
+import { CopyButton, PrintButton, DeleteOrderButton } from './_components/OrderActions';
 
 export const metadata = { title: 'Order Details — Al Hareer Admin' };
 
@@ -34,25 +34,25 @@ const STATUS_CONFIG: Record<
 > = {
   processing: {
     label: 'Processing',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
+    badgeClass: 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]/80',
     step: 2,
     icon: Clock,
   },
   shipped: {
     label: 'Shipped',
-    badgeClass: 'bg-blue-50 text-blue-800 border-blue-200/80',
+    badgeClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/80',
     step: 3,
     icon: Truck,
   },
   delivered: {
     label: 'Delivered',
-    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+    badgeClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/80',
     step: 4,
     icon: CheckCircle2,
   },
   cancelled: {
     label: 'Cancelled',
-    badgeClass: 'bg-rose-50 text-rose-800 border-rose-200/80',
+    badgeClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/80',
     step: 0,
     icon: XCircle,
   },
@@ -161,6 +161,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             </div>
 
             <PrintButton />
+            <DeleteOrderButton orderId={order.id} />
           </div>
         </div>
 
@@ -172,7 +173,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <div className="flex flex-col items-center">
                 <div
                   className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                    currentStep >= 1 ? 'bg-emerald-500 text-white shadow-xs' : 'bg-cream-200 text-muted'
+                    currentStep >= 1 ? 'bg-[#024F5F] text-white shadow-xs' : 'bg-cream-200 text-muted'
                   }`}
                 >
                   <CheckCircle2 className="h-4 w-4" />
@@ -186,7 +187,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <div
                   className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs font-bold transition-all ${
                     currentStep >= 2
-                      ? 'bg-amber-500 text-white shadow-xs'
+                      ? 'bg-[#CFAC64] text-white shadow-xs'
                       : 'bg-cream-100 text-muted border border-cream-300'
                   }`}
                 >
@@ -201,7 +202,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <div
                   className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs font-bold transition-all ${
                     currentStep >= 3
-                      ? 'bg-blue-500 text-white shadow-xs'
+                      ? 'bg-[#024F5F] text-white shadow-xs'
                       : 'bg-cream-100 text-muted border border-cream-300'
                   }`}
                 >
@@ -218,7 +219,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <div
                   className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs font-bold transition-all ${
                     currentStep >= 4
-                      ? 'bg-emerald-600 text-white shadow-xs'
+                      ? 'bg-[#024F5F] text-white shadow-xs'
                       : 'bg-cream-100 text-muted border border-cream-300'
                   }`}
                 >
@@ -230,8 +231,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-xs font-semibold text-rose-800 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+          <div className="rounded-2xl border border-[#CFAC64] bg-[#F6F1EC]/70 p-4 text-xs font-semibold text-[#024F5F] flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-[#024F5F] shrink-0" />
             <span>This order has been cancelled. Inventory was restored.</span>
           </div>
         )}
@@ -332,14 +333,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 </div>
 
                 {Number(order.quantity_discount) > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-semibold">
+                  <div className="flex justify-between text-[#024F5F] font-semibold">
                     <span>Bulk / Quantity Discount</span>
                     <span>-{formatCurrency(order.quantity_discount)}</span>
                   </div>
                 )}
 
                 {Number(order.coupon_discount) > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-semibold">
+                  <div className="flex justify-between text-[#024F5F] font-semibold">
                     <span>Coupon Discount {order.coupon_code ? `(${order.coupon_code})` : ''}</span>
                     <span>-{formatCurrency(order.coupon_discount)}</span>
                   </div>
@@ -394,9 +395,9 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                       href={`https://wa.me/${whatsappNumber}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 hover:border-emerald-300 transition-colors shadow-2xs"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] px-3.5 py-2 text-xs font-semibold text-[#024F5F] hover:bg-[#F6F1EC] hover:border-[#CFAC64] transition-colors shadow-2xs"
                     >
-                      <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+                      <MessageCircle className="h-3.5 w-3.5 text-[#024F5F]" />
                       <span>Chat on WhatsApp</span>
                     </a>
                   )}
@@ -426,8 +427,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                     order.payment_status === 'paid'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-amber-100 text-amber-800'
+                      ? 'bg-[#F6F1EC] text-[#024F5F]'
+                      : 'bg-[#F6F1EC] text-[#B08F4F]'
                   }`}
                 >
                   {order.payment_status?.toUpperCase() || 'PENDING'}
@@ -463,14 +464,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
               {/* Tracking Link quick view if available */}
               {order.tracking_url && (
-                <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-xs">
-                  <p className="font-semibold text-blue-900">Tracking Active</p>
-                  {order.courier_name && <p className="text-[11px] text-blue-700 mt-0.5">Carrier: {order.courier_name}</p>}
+                <div className="rounded-xl border border-[#CFAC64] bg-[#F6F1EC]/70 p-3 text-xs">
+                  <p className="font-semibold text-[#024F5F]">Tracking Active</p>
+                  {order.courier_name && <p className="text-[11px] text-[#024F5F] mt-0.5">Carrier: {order.courier_name}</p>}
                   <a
                     href={order.tracking_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 underline mt-1.5 font-semibold"
+                    className="inline-flex items-center gap-1 text-[#024F5F] hover:text-[#024F5F] underline mt-1.5 font-semibold"
                   >
                     <span>Open Tracking Page</span>
                     <ExternalLink className="h-3.5 w-3.5" />
@@ -515,19 +516,19 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       {/* ========================================================================= */}
       {/* 2. DEDICATED CLEAN PACKING SLIP & INVOICE (Visible ONLY during Print)       */}
       {/* ========================================================================= */}
-      <div className="hidden print:block font-sans text-neutral-900 bg-white p-6 max-w-3xl mx-auto">
+      <div className="hidden print:block font-sans text-[#024F5F] bg-white p-6 max-w-3xl mx-auto">
         {/* Invoice Header */}
-        <div className="border-b-2 border-black pb-4 mb-6 flex justify-between items-start">
+        <div className="border-b-2 border-[#00303A] pb-4 mb-6 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold tracking-wider uppercase font-heading text-black">AL HAREER</h1>
-            <p className="text-xs text-neutral-600 tracking-wide uppercase mt-0.5">Luxury Handcrafted Ethnic Menswear</p>
-            <p className="text-[11px] text-neutral-600 mt-1">{contactEmail} · www.alhareer.com</p>
+            <h1 className="text-2xl font-bold tracking-wider uppercase font-heading text-[#00303A]">AL HAREER</h1>
+            <p className="text-xs text-[#024F5F] tracking-wide uppercase mt-0.5">Luxury Handcrafted Ethnic Menswear</p>
+            <p className="text-[11px] text-[#024F5F] mt-1">{contactEmail} · www.alhareer.com</p>
           </div>
           <div className="text-right">
-            <h2 className="text-base font-bold uppercase tracking-wider text-black">PACKING SLIP &amp; INVOICE</h2>
+            <h2 className="text-base font-bold uppercase tracking-wider text-[#00303A]">PACKING SLIP &amp; INVOICE</h2>
             <p className="text-sm font-bold font-mono mt-0.5">Order #{order.order_number}</p>
-            <p className="text-xs text-neutral-600 mt-0.5">Date: {orderDateFormatted}</p>
-            <div className="mt-2 inline-block px-2.5 py-0.5 text-xs font-bold border border-black uppercase">
+            <p className="text-xs text-[#024F5F] mt-0.5">Date: {orderDateFormatted}</p>
+            <div className="mt-2 inline-block px-2.5 py-0.5 text-xs font-bold border border-[#00303A] uppercase">
               {isCOD ? 'CASH ON DELIVERY (COD)' : 'PREPAID ONLINE'}
             </div>
           </div>
@@ -535,62 +536,62 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
         {/* Addresses Row */}
         <div className="grid grid-cols-2 gap-6 mb-6 text-xs">
-          <div className="border border-neutral-300 p-3 rounded">
-            <p className="font-bold uppercase tracking-wider text-neutral-600 mb-1 border-b border-neutral-200 pb-1">
+          <div className="border border-[#CFAC64] p-3 rounded">
+            <p className="font-bold uppercase tracking-wider text-[#024F5F] mb-1 border-b border-[#CFAC64] pb-1">
               Customer Details
             </p>
-            <p className="font-bold text-sm text-black">{customerName}</p>
-            {customerEmail && <p className="text-neutral-700 mt-0.5">{customerEmail}</p>}
-            {customerPhone && <p className="text-neutral-700 mt-0.5">Phone: {customerPhone}</p>}
+            <p className="font-bold text-sm text-[#00303A]">{customerName}</p>
+            {customerEmail && <p className="text-[#024F5F] mt-0.5">{customerEmail}</p>}
+            {customerPhone && <p className="text-[#024F5F] mt-0.5">Phone: {customerPhone}</p>}
           </div>
 
-          <div className="border border-neutral-300 p-3 rounded">
-            <p className="font-bold uppercase tracking-wider text-neutral-600 mb-1 border-b border-neutral-200 pb-1">
+          <div className="border border-[#CFAC64] p-3 rounded">
+            <p className="font-bold uppercase tracking-wider text-[#024F5F] mb-1 border-b border-[#CFAC64] pb-1">
               Ship To (Delivery Address)
             </p>
             {address ? (
-              <div className="text-neutral-800 leading-snug">
-                <p className="font-bold text-sm text-black">{address.full_name}</p>
+              <div className="text-[#024F5F] leading-snug">
+                <p className="font-bold text-sm text-[#00303A]">{address.full_name}</p>
                 <p className="mt-0.5">{address.address_line_1}</p>
                 {address.address_line_2 && <p>{address.address_line_2}</p>}
-                <p className="font-semibold text-black mt-0.5">
+                <p className="font-semibold text-[#00303A] mt-0.5">
                   {address.city}, {address.state} — {address.postal_code}
                 </p>
                 <p className="mt-0.5">Phone: {address.phone}</p>
               </div>
             ) : (
-              <p className="text-neutral-500">No delivery address provided</p>
+              <p className="text-[#024F5F]">No delivery address provided</p>
             )}
           </div>
         </div>
 
         {/* Purchased Items Table */}
-        <table className="w-full text-left text-xs border border-black mb-6">
-          <thead className="bg-neutral-100 border-b border-black text-black">
+        <table className="w-full text-left text-xs border border-[#00303A] mb-6">
+          <thead className="bg-[#F6F1EC] border-b border-[#00303A] text-[#00303A]">
             <tr>
-              <th className="py-2 px-3 border-r border-black w-8 text-center">#</th>
-              <th className="py-2 px-3 border-r border-black">Item Description</th>
-              <th className="py-2 px-3 border-r border-black text-center w-28">Size / Color</th>
-              <th className="py-2 px-3 border-r border-black text-center w-16">Qty</th>
-              <th className="py-2 px-3 border-r border-black text-right w-24">Price (₹)</th>
+              <th className="py-2 px-3 border-r border-[#00303A] w-8 text-center">#</th>
+              <th className="py-2 px-3 border-r border-[#00303A]">Item Description</th>
+              <th className="py-2 px-3 border-r border-[#00303A] text-center w-28">Size / Color</th>
+              <th className="py-2 px-3 border-r border-[#00303A] text-center w-16">Qty</th>
+              <th className="py-2 px-3 border-r border-[#00303A] text-right w-24">Price (₹)</th>
               <th className="py-2 px-3 text-right w-28">Total (₹)</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-300 text-neutral-800">
+          <tbody className="divide-y divide-[#CFAC64] text-[#024F5F]">
             {(order.order_items || []).map((item, idx) => (
               <tr key={item.id}>
-                <td className="py-2.5 px-3 border-r border-neutral-300 text-center font-medium">{idx + 1}</td>
-                <td className="py-2.5 px-3 border-r border-neutral-300 font-bold text-black">{item.product_name}</td>
-                <td className="py-2.5 px-3 border-r border-neutral-300 text-center">
+                <td className="py-2.5 px-3 border-r border-[#CFAC64] text-center font-medium">{idx + 1}</td>
+                <td className="py-2.5 px-3 border-r border-[#CFAC64] font-bold text-[#00303A]">{item.product_name}</td>
+                <td className="py-2.5 px-3 border-r border-[#CFAC64] text-center">
                   {item.variant_name || 'Free Size'} {item.color ? `· ${item.color}` : ''}
                 </td>
-                <td className="py-2.5 px-3 border-r border-neutral-300 text-center font-bold text-black">
+                <td className="py-2.5 px-3 border-r border-[#CFAC64] text-center font-bold text-[#00303A]">
                   {item.quantity}
                 </td>
-                <td className="py-2.5 px-3 border-r border-neutral-300 text-right">
+                <td className="py-2.5 px-3 border-r border-[#CFAC64] text-right">
                   {formatCurrency(item.price_at_purchase)}
                 </td>
-                <td className="py-2.5 px-3 text-right font-bold text-black">{formatCurrency(item.line_total)}</td>
+                <td className="py-2.5 px-3 text-right font-bold text-[#00303A]">{formatCurrency(item.line_total)}</td>
               </tr>
             ))}
           </tbody>
@@ -601,52 +602,52 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           {/* Left: Payment Box */}
           <div className="w-1/2 pr-6">
             {isCOD ? (
-              <div className="border-2 border-black p-3 bg-neutral-50 rounded">
-                <p className="font-bold text-xs uppercase tracking-wider text-black">CASH ON DELIVERY (COD)</p>
-                <p className="text-xs text-neutral-800 mt-1">
+              <div className="border-2 border-[#00303A] p-3 bg-[#F6F1EC] rounded">
+                <p className="font-bold text-xs uppercase tracking-wider text-[#00303A]">CASH ON DELIVERY (COD)</p>
+                <p className="text-xs text-[#024F5F] mt-1">
                   Courier partner must collect{' '}
-                  <strong className="text-sm font-bold text-black">{formatCurrency(order.total_amount)}</strong> before
+                  <strong className="text-sm font-bold text-[#00303A]">{formatCurrency(order.total_amount)}</strong> before
                   handing over parcel.
                 </p>
               </div>
             ) : (
-              <div className="border border-neutral-300 p-3 rounded">
-                <p className="font-bold text-xs uppercase tracking-wider text-black">
+              <div className="border border-[#CFAC64] p-3 rounded">
+                <p className="font-bold text-xs uppercase tracking-wider text-[#00303A]">
                   ONLINE PAYMENT: {order.payment_method || 'Prepaid'}
                 </p>
-                <p className="text-xs text-emerald-800 font-bold mt-1">
+                <p className="text-xs text-[#024F5F] font-bold mt-1">
                   PAYMENT STATUS: {order.payment_status.toUpperCase()}
                 </p>
-                <p className="text-[11px] text-neutral-600 mt-0.5">No cash collection required at doorstep.</p>
+                <p className="text-[11px] text-[#024F5F] mt-0.5">No cash collection required at doorstep.</p>
               </div>
             )}
           </div>
 
           {/* Right: Calculations */}
           <div className="w-1/2 space-y-1 text-xs">
-            <div className="flex justify-between py-1 border-b border-neutral-200">
-              <span className="text-neutral-600">Items Subtotal:</span>
-              <span className="font-semibold text-black">{formatCurrency(order.subtotal)}</span>
+            <div className="flex justify-between py-1 border-b border-[#CFAC64]">
+              <span className="text-[#024F5F]">Items Subtotal:</span>
+              <span className="font-semibold text-[#00303A]">{formatCurrency(order.subtotal)}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-neutral-200">
-              <span className="text-neutral-600">Shipping:</span>
-              <span className="font-semibold text-black">
+            <div className="flex justify-between py-1 border-b border-[#CFAC64]">
+              <span className="text-[#024F5F]">Shipping:</span>
+              <span className="font-semibold text-[#00303A]">
                 {Number(order.shipping_cost) === 0 ? 'FREE' : formatCurrency(order.shipping_cost)}
               </span>
             </div>
             {Number(order.quantity_discount) > 0 && (
-              <div className="flex justify-between py-1 border-b border-neutral-200 text-emerald-700">
+              <div className="flex justify-between py-1 border-b border-[#CFAC64] text-[#024F5F]">
                 <span>Quantity Discount:</span>
                 <span>-{formatCurrency(order.quantity_discount)}</span>
               </div>
             )}
             {Number(order.coupon_discount) > 0 && (
-              <div className="flex justify-between py-1 border-b border-neutral-200 text-emerald-700">
+              <div className="flex justify-between py-1 border-b border-[#CFAC64] text-[#024F5F]">
                 <span>Coupon Discount {order.coupon_code ? `(${order.coupon_code})` : ''}:</span>
                 <span>-{formatCurrency(order.coupon_discount)}</span>
               </div>
             )}
-            <div className="flex justify-between py-2 border-t-2 border-black text-sm font-bold text-black">
+            <div className="flex justify-between py-2 border-t-2 border-[#00303A] text-sm font-bold text-[#00303A]">
               <span>Grand Total:</span>
               <span>{formatCurrency(order.total_amount)}</span>
             </div>
@@ -654,16 +655,16 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-400 pt-4 flex justify-between items-end text-xs text-neutral-600">
+        <div className="border-t border-[#CFAC64] pt-4 flex justify-between items-end text-xs text-[#024F5F]">
           <div>
-            <p className="font-bold text-black">Thank you for shopping with Al Hareer!</p>
+            <p className="font-bold text-[#00303A]">Thank you for shopping with Al Hareer!</p>
             <p className="text-[11px] mt-0.5">
               For support, order updates, or size exchanges: {contactEmail}
             </p>
           </div>
           <div className="text-right">
-            <div className="w-36 border-b border-black mb-1"></div>
-            <p className="text-[10px] uppercase font-bold text-neutral-700">Authorized Signature</p>
+            <div className="w-36 border-b border-[#00303A] mb-1"></div>
+            <p className="text-[10px] uppercase font-bold text-[#024F5F]">Authorized Signature</p>
           </div>
         </div>
       </div>

@@ -104,7 +104,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
         </p>
         <Link
           href="/admin/settings/coupons/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#CFAC64] hover:bg-[#B08F4F] shadow-sm transition-all"
         >
           <Plus className="h-4 w-4" />
           <span>Create First Coupon</span>
@@ -159,7 +159,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                 onClick={() => setStatusFilter('active')}
                 className={`px-2.5 py-1.5 rounded-lg font-medium transition-all ${
                   statusFilter === 'active'
-                    ? 'bg-white text-emerald-700 font-semibold shadow-xs'
+                    ? 'bg-white text-[#024F5F] font-semibold shadow-xs'
                     : 'text-muted hover:text-brand-700'
                 }`}
               >
@@ -170,7 +170,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                 onClick={() => setStatusFilter('inactive')}
                 className={`px-2.5 py-1.5 rounded-lg font-medium transition-all ${
                   statusFilter === 'inactive'
-                    ? 'bg-white text-amber-700 font-semibold shadow-xs'
+                    ? 'bg-white text-[#B08F4F] font-semibold shadow-xs'
                     : 'text-muted hover:text-brand-700'
                 }`}
               >
@@ -181,7 +181,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                 onClick={() => setStatusFilter('expired')}
                 className={`px-2.5 py-1.5 rounded-lg font-medium transition-all ${
                   statusFilter === 'expired'
-                    ? 'bg-white text-rose-700 font-semibold shadow-xs'
+                    ? 'bg-white text-[#024F5F] font-semibold shadow-xs'
                     : 'text-muted hover:text-brand-700'
                 }`}
               >
@@ -294,7 +294,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                             title="Copy Code to Clipboard"
                           >
                             {isCopied ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
+                              <Check className="h-3.5 w-3.5 text-[#024F5F]" />
                             ) : (
                               <Copy className="h-3.5 w-3.5" />
                             )}
@@ -331,7 +331,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                       <td className="py-3.5 px-4 text-xs">
                         {coupon.expires_at ? (
                           <div className="flex items-center gap-1.5">
-                            <span className={isExpired ? 'text-rose-600 font-semibold' : 'text-brand-700'}>
+                            <span className={isExpired ? 'text-[#024F5F] font-semibold' : 'text-brand-700'}>
                               {new Date(coupon.expires_at).toLocaleDateString('en-IN', {
                                 day: 'numeric',
                                 month: 'short',
@@ -339,13 +339,13 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                               })}
                             </span>
                             {isExpired && (
-                              <span className="text-[10px] font-bold uppercase text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                              <span className="text-[10px] font-bold uppercase text-[#024F5F] bg-[#F6F1EC] px-1.5 py-0.5 rounded border border-[#CFAC64]">
                                 Expired
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span className="text-emerald-700 text-xs font-medium">Never Expires</span>
+                          <span className="text-[#024F5F] text-xs font-medium">Never Expires</span>
                         )}
                       </td>
 
@@ -357,13 +357,13 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                           disabled={pending}
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
                             coupon.is_active && !isExpired
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70 hover:bg-emerald-100/60'
+                              ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/70 hover:bg-[#F6F1EC]/60'
                               : 'bg-cream-100 text-muted border-cream-300/70 hover:bg-cream-200/50'
                           }`}
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              coupon.is_active && !isExpired ? 'bg-emerald-500' : 'bg-cream-400'
+                              coupon.is_active && !isExpired ? 'bg-[#024F5F]' : 'bg-cream-400'
                             }`}
                           />
                           <span>{coupon.is_active && !isExpired ? 'Active' : 'Paused'}</span>
@@ -386,8 +386,8 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                             disabled={pending}
                             className={`p-1.5 rounded-xl text-xs font-semibold transition-all ${
                               isDeleting
-                                ? 'bg-red-500 text-white px-2.5'
-                                : 'text-muted hover:text-red-600 hover:bg-red-50'
+                                ? 'bg-[#024F5F] text-white px-2.5'
+                                : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
                             }`}
                             title={isDeleting ? 'Click to confirm delete' : 'Delete Coupon'}
                           >
@@ -432,7 +432,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                         title="Copy"
                       >
                         {isCopied ? (
-                          <Check className="h-4 w-4 text-emerald-600" />
+                          <Check className="h-4 w-4 text-[#024F5F]" />
                         ) : (
                           <Copy className="h-4 w-4" />
                         )}
@@ -459,7 +459,7 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                       <span className="text-[10px] uppercase font-semibold block text-muted-light">
                         Expiry
                       </span>
-                      <span className={`font-semibold ${isExpired ? 'text-rose-600' : 'text-brand-700'}`}>
+                      <span className={`font-semibold ${isExpired ? 'text-[#024F5F]' : 'text-brand-700'}`}>
                         {coupon.expires_at
                           ? new Date(coupon.expires_at).toLocaleDateString('en-IN', {
                               day: 'numeric',
@@ -478,13 +478,13 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                       disabled={pending}
                       className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${
                         coupon.is_active && !isExpired
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
                           : 'bg-cream-100 text-muted border-cream-300'
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          coupon.is_active && !isExpired ? 'bg-emerald-500' : 'bg-cream-400'
+                          coupon.is_active && !isExpired ? 'bg-[#024F5F]' : 'bg-cream-400'
                         }`}
                       />
                       <span>{coupon.is_active && !isExpired ? 'Active' : 'Paused'}</span>
@@ -504,8 +504,8 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
                         disabled={pending}
                         className={`p-1.5 rounded-lg text-xs font-semibold transition-all ${
                           isDeleting
-                            ? 'bg-red-500 text-white px-2.5'
-                            : 'text-muted hover:text-red-600 bg-cream-50 border border-cream-200'
+                            ? 'bg-[#024F5F] text-white px-2.5'
+                            : 'text-muted hover:text-[#024F5F] bg-cream-50 border border-cream-200'
                         }`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

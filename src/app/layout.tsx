@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Montserrat } from 'next/font/google';
+import { Montserrat, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
@@ -22,7 +22,7 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 
-const montserratHeading = Montserrat({
+const playfairHeading = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-heading',
@@ -40,6 +40,11 @@ export const metadata: Metadata = {
   title: 'AL HAREER - Tradition in Style | Premium Ethnic Wear',
   description: 'Premium Kurta Pajama Sets for Every Occasion. Where timeless style meets modern comfort.',
   keywords: 'Kurta Pajama, Ethnic Wear, Indian Traditional Wear, Festive Kurta, Wedding Kurta, AL HAREER',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
@@ -48,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${montserratHeading.variable} ${montserratScript.variable} scroll-smooth`}>
+    <html lang="en" className={`${montserrat.variable} ${playfairHeading.variable} ${montserratScript.variable} scroll-smooth`}>
       <head />
       <body className="min-h-screen bg-cream-100 text-brand-700 antialiased selection:bg-brand-500 selection:text-white">
         <AuthProvider>

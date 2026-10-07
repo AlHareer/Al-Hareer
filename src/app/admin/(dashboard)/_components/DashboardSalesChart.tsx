@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { IndianRupee, ShoppingCart, TrendingUp } from 'lucide-react';
@@ -147,14 +147,14 @@ export default function DashboardSalesChart({ salesTrend }: DashboardSalesChartP
         >
           <defs>
             <linearGradient id="salesGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.32" />
-              <stop offset="60%" stopColor="#8B6B52" stopOpacity="0.10" />
-              <stop offset="100%" stopColor="#8B6B52" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#CFAC64" stopOpacity="0.32" />
+              <stop offset="60%" stopColor="#024F5F" stopOpacity="0.10" />
+              <stop offset="100%" stopColor="#024F5F" stopOpacity="0.0" />
             </linearGradient>
 
             <linearGradient id="orderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#4A3525" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#4A3525" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#024F5F" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#024F5F" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -169,7 +169,7 @@ export default function DashboardSalesChart({ salesTrend }: DashboardSalesChartP
                   y1={y}
                   x2={svgWidth - paddingX}
                   y2={y}
-                  stroke="#E2D7C7"
+                  stroke="#CFAC64"
                   strokeDasharray="4 4"
                   strokeWidth="1"
                 />
@@ -178,7 +178,7 @@ export default function DashboardSalesChart({ salesTrend }: DashboardSalesChartP
                   y={y + 3}
                   textAnchor="end"
                   fontSize="11"
-                  fill="#8C8178"
+                  fill="#024F5F"
                   fontWeight="600"
                 >
                   {metric === 'revenue' ? `₹${val > 999 ? (val / 1000).toFixed(0) + 'k' : val}` : val}
@@ -197,7 +197,7 @@ export default function DashboardSalesChart({ salesTrend }: DashboardSalesChartP
           <path
             d={linePath}
             fill="none"
-            stroke={metric === 'revenue' ? '#D4AF37' : '#4A3525'}
+            stroke={metric === 'revenue' ? '#CFAC64' : '#024F5F'}
             strokeWidth="3"
             strokeLinecap="round"
           />
@@ -211,7 +211,7 @@ export default function DashboardSalesChart({ salesTrend }: DashboardSalesChartP
                   y1={paddingY}
                   x2={p.x}
                   y2={svgHeight - paddingY}
-                  stroke="#D4AF37"
+                  stroke="#CFAC64"
                   strokeWidth="1.5"
                   strokeDasharray="3 3"
                 />
@@ -221,8 +221,8 @@ export default function DashboardSalesChart({ salesTrend }: DashboardSalesChartP
                 cx={p.x}
                 cy={p.y}
                 r={hoveredIndex === i ? 6 : 4}
-                fill={hoveredIndex === i ? '#2B231D' : '#FFFFFF'}
-                stroke={metric === 'revenue' ? '#D4AF37' : '#4A3525'}
+                fill={hoveredIndex === i ? '#00303A' : '#FFFFFF'}
+                stroke={metric === 'revenue' ? '#CFAC64' : '#024F5F'}
                 strokeWidth="2.5"
                 className="transition-all duration-150"
               />
@@ -232,7 +232,7 @@ export default function DashboardSalesChart({ salesTrend }: DashboardSalesChartP
                 y={svgHeight - 8}
                 textAnchor="middle"
                 fontSize="11"
-                fill={hoveredIndex === i ? '#2B231D' : '#655B53'}
+                fill={hoveredIndex === i ? '#00303A' : '#024F5F'}
                 fontWeight={hoveredIndex === i ? '700' : '500'}
               >
                 {p.data.label}

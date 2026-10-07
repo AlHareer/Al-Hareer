@@ -87,7 +87,7 @@ export default function TestimonialsList({ testimonials }: { testimonials: Testi
         </p>
         <Link
           href="/admin/testimonials/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#CFAC64] hover:bg-[#B08F4F] shadow-sm transition-all"
         >
           <Plus className="h-4 w-4" />
           <span>Add First Testimonial</span>
@@ -144,7 +144,7 @@ export default function TestimonialsList({ testimonials }: { testimonials: Testi
                 onClick={() => setStatusFilter('live')}
                 className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
                   statusFilter === 'live'
-                    ? 'bg-white text-emerald-700 font-semibold shadow-xs'
+                    ? 'bg-white text-[#024F5F] font-semibold shadow-xs'
                     : 'text-muted hover:text-brand-700'
                 }`}
               >
@@ -155,7 +155,7 @@ export default function TestimonialsList({ testimonials }: { testimonials: Testi
                 onClick={() => setStatusFilter('draft')}
                 className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
                   statusFilter === 'draft'
-                    ? 'bg-white text-amber-700 font-semibold shadow-xs'
+                    ? 'bg-white text-[#B08F4F] font-semibold shadow-xs'
                     : 'text-muted hover:text-brand-700'
                 }`}
               >
@@ -181,11 +181,11 @@ export default function TestimonialsList({ testimonials }: { testimonials: Testi
                 onClick={() => setRatingFilter('5')}
                 className={`px-2.5 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
                   ratingFilter === '5'
-                    ? 'bg-white text-amber-700 font-semibold shadow-xs'
+                    ? 'bg-white text-[#B08F4F] font-semibold shadow-xs'
                     : 'text-muted hover:text-brand-700'
                 }`}
               >
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <Star className="h-3 w-3 fill-[#CFAC64] text-[#CFAC64]" />
                 <span>5★</span>
               </button>
               <button
@@ -193,11 +193,11 @@ export default function TestimonialsList({ testimonials }: { testimonials: Testi
                 onClick={() => setRatingFilter('4')}
                 className={`px-2.5 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
                   ratingFilter === '4'
-                    ? 'bg-white text-amber-700 font-semibold shadow-xs'
+                    ? 'bg-white text-[#B08F4F] font-semibold shadow-xs'
                     : 'text-muted hover:text-brand-700'
                 }`}
               >
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <Star className="h-3 w-3 fill-[#CFAC64] text-[#CFAC64]" />
                 <span>4★</span>
               </button>
             </div>

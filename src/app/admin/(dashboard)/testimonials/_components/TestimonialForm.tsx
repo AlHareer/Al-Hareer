@@ -68,8 +68,8 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
       <input type="hidden" name="is_active" value={isActive ? 'on' : 'off'} />
 
       {state?.error && (
-        <div className="flex items-center gap-2.5 rounded-2xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-800 shadow-xs">
-          <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-2xl border border-[#CFAC64] bg-[#F6F1EC]/90 p-4 text-sm text-[#024F5F] shadow-xs">
+          <span className="h-2 w-2 rounded-full bg-[#024F5F] shrink-0" />
           <span>{state.error}</span>
         </div>
       )}
@@ -106,7 +106,7 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
               <div className="flex-1 w-full space-y-3.5">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-brand-700">
-                    Customer Name <span className="text-red-500">*</span>
+                    Customer Name <span className="text-[#024F5F]">*</span>
                   </label>
                   <input
                     required
@@ -154,7 +154,7 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
                 <label className="text-xs font-semibold text-brand-700">
                   Star Rating
                 </label>
-                <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
+                <span className="text-xs font-bold text-[#B08F4F] bg-[#F6F1EC] px-2 py-0.5 rounded-md border border-[#CFAC64]/50">
                   {ratingDescriptions[rating] || `${rating}.0 Stars`}
                 </span>
               </div>
@@ -170,8 +170,8 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
                     <Star
                       className={`h-6 w-6 transition-colors ${
                         star <= rating
-                          ? 'fill-amber-400 text-amber-400 drop-shadow-xs'
-                          : 'text-cream-300 hover:text-amber-300'
+                          ? 'fill-[#CFAC64] text-[#CFAC64] drop-shadow-xs'
+                          : 'text-cream-300 hover:text-[#B08F4F]'
                       }`}
                     />
                   </button>
@@ -183,7 +183,7 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-brand-700">
-                  Review Quote <span className="text-red-500">*</span>
+                  Review Quote <span className="text-[#024F5F]">*</span>
                 </label>
                 <span className="text-[11px] text-muted">
                   {reviewText.length} characters
@@ -209,7 +209,7 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                      isActive ? 'bg-emerald-100/80 text-emerald-700' : 'bg-cream-200/70 text-muted'
+                      isActive ? 'bg-[#F6F1EC]/80 text-[#024F5F]' : 'bg-cream-200/70 text-muted'
                     }`}
                   >
                     {isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -222,13 +222,13 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
                           isActive
-                            ? 'bg-emerald-100/80 text-emerald-800'
-                            : 'bg-stone-200/70 text-stone-600'
+                            ? 'bg-[#F6F1EC]/80 text-[#024F5F]'
+                            : 'bg-[#F6F1EC]/70 text-[#024F5F]'
                         }`}
                       >
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
-                            isActive ? 'bg-emerald-600 animate-pulse' : 'bg-stone-400'
+                            isActive ? 'bg-[#024F5F] animate-pulse' : 'bg-[#F6F1EC]'
                           }`}
                         />
                         {isActive ? 'Live in Marquee' : 'Hidden from Store'}
@@ -248,7 +248,7 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
                   aria-checked={isActive}
                   onClick={() => setIsActive((v) => !v)}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-                    isActive ? 'bg-emerald-600' : 'bg-stone-300'
+                    isActive ? 'bg-[#024F5F]' : 'bg-[#F6F1EC]'
                   }`}
                 >
                   <span
@@ -301,21 +301,21 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
           </div>
 
           {/* Preview Container mirroring storefront design */}
-          <div className="bg-[#FAF6F1] p-5 sm:p-6 rounded-2xl border border-cream-300 shadow-xs space-y-4">
+          <div className="bg-[#F6F1EC] p-5 sm:p-6 rounded-2xl border border-cream-300 shadow-xs space-y-4">
             <p className="text-[11px] text-muted text-center font-medium">
               This is how your review appears inside the infinite marquee:
             </p>
 
             {/* Testimonial Card Replica */}
-            <div className="w-full p-5 sm:p-6 rounded-[6px] bg-white border border-cream-300/90 shadow-[0_4px_20px_rgba(43,35,29,0.06)] flex flex-col justify-between transition-all">
+            <div className="w-full p-5 sm:p-6 rounded-[6px] bg-white border border-cream-300/90 shadow-[0_4px_20px_rgba(0,48,58,0.06)] flex flex-col justify-between transition-all">
               {/* Card Top: Rating Stars & Verified Pill */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3.5">
-                  <div className="flex text-amber-400 gap-1">
+                  <div className="flex text-[#CFAC64] gap-1">
                     {[...Array(rating)].map((_, i) => (
                       <Star
                         key={i}
-                        className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
+                        className="w-3.5 h-3.5 fill-[#CFAC64] text-[#CFAC64]"
                       />
                     ))}
                   </div>
@@ -365,12 +365,12 @@ export default function TestimonialForm({ testimonial }: { testimonial?: Testimo
             <div className="flex items-center justify-center gap-2 pt-2 text-xs">
               <span
                 className={`inline-block w-2 h-2 rounded-full ${
-                  isActive ? 'bg-emerald-500 animate-pulse' : 'bg-cream-400'
+                  isActive ? 'bg-[#024F5F] animate-pulse' : 'bg-cream-400'
                 }`}
               />
               <span className="text-muted text-[11px]">
                 Status:{' '}
-                <strong className={isActive ? 'text-emerald-700' : 'text-muted-dark'}>
+                <strong className={isActive ? 'text-[#024F5F]' : 'text-muted-dark'}>
                   {isActive ? 'Active on Storefront' : 'Hidden in Admin Drafts'}
                 </strong>
               </span>

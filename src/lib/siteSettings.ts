@@ -4,6 +4,9 @@ import {
   HOME_SETTINGS_DEFAULTS,
   ABOUT_SETTINGS_DEFAULTS,
   STORY_SETTINGS_DEFAULTS,
+  SHOP_SETTINGS_DEFAULTS,
+  FAQ_SETTINGS_DEFAULTS,
+  WISHLIST_SETTINGS_DEFAULTS,
   type SiteSettingsDefaults,
 } from '@/lib/siteSettingsSchema';
 
@@ -158,13 +161,37 @@ export async function getStoryContentSettings(): Promise<ContentSettings> {
   return getSettingsByKeys(Object.keys(STORY_SETTINGS_DEFAULTS), STORY_SETTINGS_DEFAULTS);
 }
 
+export async function getShopContentSettings(): Promise<ContentSettings> {
+  return getSettingsByKeys(Object.keys(SHOP_SETTINGS_DEFAULTS), SHOP_SETTINGS_DEFAULTS);
+}
+
+export async function getFaqContentSettings(): Promise<ContentSettings> {
+  return getSettingsByKeys(Object.keys(FAQ_SETTINGS_DEFAULTS), FAQ_SETTINGS_DEFAULTS);
+}
+
+export async function getWishlistContentSettings(): Promise<ContentSettings> {
+  return getSettingsByKeys(Object.keys(WISHLIST_SETTINGS_DEFAULTS), WISHLIST_SETTINGS_DEFAULTS);
+}
+
 // Footer/FloatingWhatsApp read this directly (client-side, self-fetched — see
 // Navbar's announcements for the same pattern) rather than via props, since
 // Footer/FloatingWhatsApp are rendered from ~10 different pages and prop
 // drilling through all of them isn't worth it for rarely-changing content.
 export async function getFooterSettings(): Promise<ContentSettings> {
   return getSettingsByKeys(
-    ['home_contact_phone', 'home_contact_email', 'home_contact_address', 'footer_arch_image'],
+    [
+      'home_contact_phone',
+      'home_contact_email',
+      'home_contact_address',
+      'home_contact_hours',
+      'home_contact_calligraphy_line1',
+      'home_contact_calligraphy_line2',
+      'policy_shipping',
+      'policy_returns',
+      'policy_privacy',
+      'policy_terms',
+      'footer_arch_image',
+    ],
     HOME_SETTINGS_DEFAULTS
   );
 }

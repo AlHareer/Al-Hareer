@@ -25,13 +25,13 @@ export default async function AdminNewsletterPage() {
       label: 'Joined This Month',
       value: monthCount.toString(),
       icon: UserCheck,
-      bgClass: 'bg-emerald-50 text-emerald-700',
+      bgClass: 'bg-[#F6F1EC] text-[#024F5F]',
     },
     {
       label: 'Joined Today',
       value: todayCount.toString(),
       icon: CalendarClock,
-      bgClass: 'bg-blue-50 text-blue-700',
+      bgClass: 'bg-[#F6F1EC] text-[#024F5F]',
     },
   ];
 

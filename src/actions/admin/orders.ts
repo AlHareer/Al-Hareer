@@ -49,6 +49,23 @@ export async function getAllOrdersAdmin(): Promise<OrderListItem[]> {
   }));
 }
 
+export type DeleteOrderResult = { success: boolean; error?: string };
+
+// Permanently removes an order (order_items cascade-deletes with it — see
+// db/schema.sql). Does not restore any stock that was decremented when the
+// order was placed; that's a deliberate admin call, not automatic.
+export async function deleteOrder(orderId: string): Promise<DeleteOrderResult> {
+  const supabase = createAdminClient();
+  if (!orderId) return { success: false, error: 'Invalid order id.' };
+
+  const { error } = await supabase.from('orders').delete().eq('id', orderId);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/admin/orders');
+  revalidatePath('/admin');
+  return { success: true };
+}
+
 export async function quickUpdateOrderStatus(
   orderId: string,
   orderStatus: (typeof ORDER_STATUSES)[number]

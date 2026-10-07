@@ -124,7 +124,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                 : 'border border-cream-300 bg-white text-brand-700 hover:bg-cream-50'
             }`}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[#CFAC64]" />
             <span>New ({unresolvedCount})</span>
           </button>
 
@@ -136,7 +136,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                 : 'border border-cream-300 bg-white text-brand-700 hover:bg-cream-50'
             }`}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[#024F5F]" />
             <span>Resolved ({resolvedCount})</span>
           </button>
         </div>
@@ -172,7 +172,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                 className={`rounded-2xl border transition-all p-4 sm:p-5 shadow-2xs space-y-3 ${
                   inq.is_resolved
                     ? 'border-cream-200/70 bg-white/70'
-                    : 'border-amber-200/80 bg-white hover:border-amber-300'
+                    : 'border-[#CFAC64]/80 bg-white hover:border-[#CFAC64]'
                 }`}
               >
                 {/* Header: Sender, Status Badge & Quick Actions */}
@@ -187,8 +187,8 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                         <span
                           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${
                             inq.is_resolved
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'bg-amber-50 text-amber-800 border-amber-200'
+                              ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
+                              : 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
                           }`}
                         >
                           {inq.is_resolved ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
@@ -218,7 +218,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                       className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold border transition-all cursor-pointer ${
                         inq.is_resolved
                           ? 'border-cream-300 bg-white text-muted hover:text-brand-700 hover:bg-cream-50'
-                          : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                          : 'border-[#CFAC64] bg-[#F6F1EC] text-[#024F5F] hover:bg-[#F6F1EC]'
                       }`}
                     >
                       <Check className="h-3.5 w-3.5" />
@@ -229,7 +229,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                       type="button"
                       onClick={() => handleDelete(inq.id, inq.name)}
                       disabled={pending}
-                      className="p-1.5 text-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC] rounded-lg transition-colors cursor-pointer"
                       title="Delete inquiry"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -261,9 +261,9 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                           href={`https://wa.me/${whatsappNumber}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
+                          className="inline-flex items-center gap-1 rounded-md bg-[#F6F1EC] border border-[#CFAC64] px-2 py-0.5 text-[11px] font-semibold text-[#024F5F] hover:bg-[#F6F1EC] transition-colors"
                         >
-                          <MessageCircle className="h-3 w-3 text-emerald-600" />
+                          <MessageCircle className="h-3 w-3 text-[#024F5F]" />
                           <span>WhatsApp</span>
                         </a>
                       )}
@@ -284,7 +284,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
       {/* View Modal Dialog (100% Mobile Responsive) */}
       {viewing && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#00303A]/50 backdrop-blur-xs"
           onClick={() => setViewing(null)}
         >
           <div
@@ -305,8 +305,8 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                     <span
                       className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${
                         viewing.is_resolved
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                          : 'bg-amber-50 text-amber-800 border-amber-200'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
+                          : 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
                       }`}
                     >
                       {viewing.is_resolved ? 'Resolved' : 'New'}
@@ -358,9 +358,9 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                     href={`https://wa.me/${viewing.phone.replace(/[^0-9]/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] px-3 py-1.5 font-semibold text-[#024F5F] hover:bg-[#F6F1EC] transition-colors"
                   >
-                    <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+                    <MessageCircle className="h-3.5 w-3.5 text-[#024F5F]" />
                     <span>WhatsApp</span>
                   </a>
                 )}
@@ -383,7 +383,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                   handleDelete(viewing.id, viewing.name);
                   setViewing(null);
                 }}
-                className="inline-flex items-center justify-center gap-1 py-1.5 text-xs text-red-600 hover:text-red-700 font-semibold cursor-pointer"
+                className="inline-flex items-center justify-center gap-1 py-1.5 text-xs text-[#024F5F] hover:text-[#024F5F] font-semibold cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>Delete Message</span>
@@ -399,7 +399,7 @@ export default function InquiriesList({ inquiries }: { inquiries: Inquiry[] }) {
                   className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold border transition-all cursor-pointer ${
                     viewing.is_resolved
                       ? 'border-cream-300 bg-white text-brand-700 hover:bg-cream-100'
-                      : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                      : 'border-[#CFAC64] bg-[#F6F1EC] text-[#024F5F] hover:bg-[#F6F1EC]'
                   }`}
                 >
                   <Check className="h-3.5 w-3.5" />

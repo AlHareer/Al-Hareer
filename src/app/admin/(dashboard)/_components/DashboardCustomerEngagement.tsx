@@ -61,10 +61,10 @@ export default function DashboardCustomerEngagement({
                 : 'text-muted hover:text-brand-700'
             }`}
           >
-            <MessageSquare className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+            <MessageSquare className="h-3.5 w-3.5 text-[#024F5F] shrink-0" />
             <span>Inquiries</span>
             <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-              activeTab === 'inquiries' ? 'bg-blue-100 text-blue-700' : 'bg-cream-200 text-muted'
+              activeTab === 'inquiries' ? 'bg-[#F6F1EC] text-[#024F5F]' : 'bg-cream-200 text-muted'
             }`}>
               {unresolvedInquiryCount}
             </span>
@@ -80,7 +80,7 @@ export default function DashboardCustomerEngagement({
           <div className="flex flex-col h-full">
             {pendingReviews.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-7 text-center flex-1">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F1EC] text-[#024F5F] mb-2.5">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <p className="text-xs font-bold text-brand-700">No reviews waiting</p>
@@ -139,7 +139,7 @@ export default function DashboardCustomerEngagement({
           <div className="flex flex-col h-full">
             {recentInquiries.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-7 text-center flex-1">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F1EC] text-[#024F5F] mb-2.5">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <p className="text-xs font-bold text-brand-700">No new inquiries</p>
@@ -153,8 +153,8 @@ export default function DashboardCustomerEngagement({
                       <span className="text-xs font-bold text-brand-700 truncate">{inq.name}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border shrink-0 ${
                         inq.is_resolved
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
+                          : 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
                       }`}>
                         {inq.is_resolved ? 'Resolved' : 'Pending'}
                       </span>
@@ -164,7 +164,7 @@ export default function DashboardCustomerEngagement({
                       <span className="truncate max-w-[180px]">{inq.email}</span>
                       <Link
                         href="/admin/inquiries"
-                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 shrink-0"
+                        className="text-xs font-semibold text-[#024F5F] hover:text-[#024F5F] flex items-center gap-1 shrink-0"
                       >
                         Reply <ArrowRight className="h-3 w-3" />
                       </Link>
@@ -177,7 +177,7 @@ export default function DashboardCustomerEngagement({
             <div className="mt-auto pt-3 border-t border-cream-200 text-right">
               <Link
                 href="/admin/inquiries"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#024F5F] hover:text-[#024F5F]"
               >
                 View All Inquiries <ArrowRight className="h-3.5 w-3.5" />
               </Link>

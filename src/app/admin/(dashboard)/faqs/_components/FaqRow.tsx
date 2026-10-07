@@ -77,7 +77,7 @@ export default function FaqRow({
   return (
     <div
       className={`rounded-2xl border bg-white transition-all duration-200 shadow-2xs hover:border-brand-300 ${
-        faq.is_active ? 'border-cream-300/80' : 'border-amber-200/80 bg-amber-50/10'
+        faq.is_active ? 'border-cream-300/80' : 'border-[#CFAC64]/80 bg-[#F6F1EC]/10'
       }`}
     >
       {/* Main Row Header */}
@@ -113,12 +113,12 @@ export default function FaqRow({
               </span>
 
               {!faq.is_active && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 text-[10px] font-bold">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F1EC] text-[#B08F4F] border border-[#CFAC64] px-2 py-0.5 text-[10px] font-bold">
                   <EyeOff className="h-3 w-3" /> Hidden from Storefront
                 </span>
               )}
               {faq.show_on_home && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 text-[10px] font-bold">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] px-2 py-0.5 text-[10px] font-bold">
                   <Home className="h-3 w-3" /> Homepage
                 </span>
               )}
@@ -152,14 +152,14 @@ export default function FaqRow({
             disabled={pending}
             className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               faq.is_active
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
                 : 'bg-cream-100 text-muted border-cream-300'
             }`}
             title={faq.is_active ? 'Visible on /faq page' : 'Hidden from customers'}
           >
             <span
               className={`relative flex h-4 w-7 shrink-0 rounded-full p-0.5 transition-colors ${
-                faq.is_active ? 'bg-emerald-600' : 'bg-cream-400'
+                faq.is_active ? 'bg-[#024F5F]' : 'bg-cream-400'
               }`}
             >
               <span
@@ -178,7 +178,7 @@ export default function FaqRow({
             disabled={pending}
             className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               faq.show_on_home
-                ? 'bg-blue-50 text-blue-800 border-blue-200'
+                ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
                 : 'bg-cream-100 text-muted border-cream-300'
             }`}
             title={faq.show_on_home ? 'Shown on homepage' : 'Not on homepage'}
@@ -203,8 +203,8 @@ export default function FaqRow({
             disabled={pending}
             className={`inline-flex items-center justify-center rounded-xl transition-all cursor-pointer shadow-2xs ${
               confirmDelete
-                ? 'bg-red-600 text-white px-3 py-1.5 text-xs font-bold'
-                : 'h-8 w-8 border border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
+                ? 'bg-[#024F5F] text-white px-3 py-1.5 text-xs font-bold'
+                : 'h-8 w-8 border border-[#CFAC64] bg-[#F6F1EC] text-[#024F5F] hover:bg-[#F6F1EC]'
             }`}
             title={confirmDelete ? 'Click again to permanently delete' : 'Delete FAQ'}
           >

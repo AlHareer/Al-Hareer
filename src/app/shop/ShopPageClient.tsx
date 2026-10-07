@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
@@ -31,13 +31,25 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Product } from '@/types';
 import type { CategoryItem } from '@/lib/products';
+import type { ContentSettings } from '@/lib/siteSettings';
+import { getColorStartPrice } from '@/lib/products';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useUI } from '@/context/UIContext';
 import { subscribeNewsletter } from '@/actions/customerContact';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 
-export default function ShopPageClient({ products, categories }: { products: Product[]; categories: CategoryItem[] }) {
+export default function ShopPageClient({
+  products,
+  categories,
+  heroSettings,
+  hasReturnsPolicy,
+}: {
+  products: Product[];
+  categories: CategoryItem[];
+  heroSettings: ContentSettings;
+  hasReturnsPolicy: boolean;
+}) {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { openQuickView, showToast } = useUI();
@@ -171,23 +183,63 @@ export default function ShopPageClient({ products, categories }: { products: Pro
     }
   }, [selectedCategory, categoriesList]);
 
-  // Available Sizes
-  const sizeOptions = ['S', 'M', 'L', 'XL', 'XXL'];
+  // Filter options come straight from the products in the catalog — a size,
+  // color, occasion or fabric only appears here if some product actually has it.
+  const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Free Size', 'Standard'];
+  const splitList = (value?: string | null) =>
+    (value ?? '').split(/,|\//).map((v) => v.trim()).filter(Boolean);
+  const isLightHex = (hex: string) => {
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+    if (!m) return false;
+    const [r, g, b] = [m[1], m[2], m[3]].map((h) => parseInt(h, 16));
+    return 0.299 * r + 0.587 * g + 0.114 * b > 225;
+  };
 
-  // Available Filter Colors matching screenshot
-  const colorOptions = [
-    { name: 'White', hex: '#FFFFFF', border: true },
-    { name: 'Beige', hex: '#D2B48C' },
-    { name: 'Green', hex: '#1E4620' },
-    { name: 'Navy', hex: '#182945' },
-    { name: 'Black', hex: '#111111' },
-    { name: 'Maroon', hex: '#7A1C24' },
-    { name: 'Blue', hex: '#3B6E96' },
-  ];
+  const sizeOptions = useMemo(() => {
+    const sizes = Array.from(new Set(products.flatMap((p) => p.sizes)));
+    return sizes.sort((x, y) => {
+      const ix = SIZE_ORDER.indexOf(x);
+      const iy = SIZE_ORDER.indexOf(y);
+      if (ix === -1 && iy === -1) return x.localeCompare(y, undefined, { numeric: true });
+      if (ix === -1) return 1;
+      if (iy === -1) return -1;
+      return ix - iy;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products]);
 
-  // Occasions & Fabrics
-  const occasionOptions = ['Festive', 'Wedding', 'Casual', 'Formal'];
-  const fabricOptions = ['Cotton', 'Silk', 'Linen', 'Blended'];
+  const colorOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of products) {
+      for (const c of p.colors) {
+        const key = c.name.trim();
+        if (key && !map.has(key.toLowerCase())) map.set(key.toLowerCase(), c.hex);
+      }
+    }
+    const names = new Map<string, string>();
+    for (const p of products) for (const c of p.colors) names.set(c.name.trim().toLowerCase(), c.name.trim());
+    return Array.from(map.entries())
+      .map(([key, hex]) => ({ name: names.get(key) ?? key, hex, border: isLightHex(hex) }))
+      .sort((x, y) => x.name.localeCompare(y.name));
+  }, [products]);
+
+  const occasionOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const p of products) {
+      for (const o of splitList(p.details?.occasion)) if (!seen.has(o.toLowerCase())) seen.set(o.toLowerCase(), o);
+    }
+    return Array.from(seen.values()).sort((x, y) => x.localeCompare(y));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products]);
+
+  const fabricOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const p of products) {
+      const f = (p.details?.material || p.fabric || '').trim();
+      if (f && !seen.has(f.toLowerCase())) seen.set(f.toLowerCase(), f);
+    }
+    return Array.from(seen.values()).sort((x, y) => x.localeCompare(y));
+  }, [products]);
 
   // Handle Quick Add to Cart
   const handleQuickAdd = (product: Product, e: React.MouseEvent) => {
@@ -326,27 +378,23 @@ export default function ShopPageClient({ products, categories }: { products: Pro
 
       // Color filter
       if (selectedColor) {
-        const hasColor = product.colors.some((c) =>
-          c.name.toLowerCase().includes(selectedColor.toLowerCase())
+        const hasColor = product.colors.some(
+          (c) => c.name.trim().toLowerCase() === selectedColor.trim().toLowerCase()
         );
         if (!hasColor) return false;
       }
 
       // Occasion filter
       if (selectedOccasions.length > 0) {
-        const productOcc = (product.details?.occasion || product.category || '').toLowerCase();
-        const matchesOcc = selectedOccasions.some((occ) =>
-          productOcc.includes(occ.toLowerCase())
-        );
+        const productOcc = splitList(product.details?.occasion).map((o) => o.toLowerCase());
+        const matchesOcc = selectedOccasions.some((occ) => productOcc.includes(occ.toLowerCase()));
         if (!matchesOcc) return false;
       }
 
       // Fabric filter
       if (selectedFabrics.length > 0) {
-        const productFabric = (product.fabric || product.details?.material || '').toLowerCase();
-        const matchesFabric = selectedFabrics.some((fab) =>
-          productFabric.includes(fab.toLowerCase())
-        );
+        const productFabric = (product.details?.material || product.fabric || '').trim().toLowerCase();
+        const matchesFabric = selectedFabrics.some((fab) => productFabric === fab.trim().toLowerCase());
         if (!matchesFabric) return false;
       }
 
@@ -449,12 +497,12 @@ export default function ShopPageClient({ products, categories }: { products: Pro
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF6F0] text-[#2B231D] selection:bg-[#4A3525] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#F6F1EC] text-[#00303A] selection:bg-[#024F5F] selection:text-white">
       {/* Header / Navbar */}
       <Navbar />
 
       {/* 1. TOP HERO BANNER (Luxury Minimalist with Arch & Olive Branch) */}
-      <section className="relative overflow-hidden bg-[#FAF6F0] border-b border-[#E8DFD5]">
+      <section className="relative overflow-hidden bg-[#F6F1EC] border-b border-[#CFAC64]">
         {/* Decorative Background Graphic: Arch Alcove & Botanical Olive Leaves */}
         <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[55%] md:w-[48%] lg:w-[42%] pointer-events-none select-none overflow-hidden">
           <div className="relative w-full h-full">
@@ -467,24 +515,24 @@ export default function ShopPageClient({ products, categories }: { products: Pro
               sizes="(max-width: 768px) 100vw, 50vw"
             />
             {/* Smooth gradient blend for background transition */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FAF6F0] via-[#FAF6F0]/70 to-transparent sm:via-[#FAF6F0]/25" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FAF6F0]/60 to-transparent sm:hidden" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#F6F1EC] via-[#F6F1EC]/70 to-transparent sm:via-[#F6F1EC]/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#F6F1EC]/60 to-transparent sm:hidden" />
           </div>
         </div>
 
         {/* Content Container */}
         <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-12 pt-3 sm:pt-4 lg:pt-4 pb-3.5 sm:pb-5 lg:pb-5 relative z-10">
           {/* Breadcrumb Navigation */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-[#7A6F66] mb-2.5 sm:mb-3.5 lg:mb-3">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-[#024F5F] mb-2.5 sm:mb-3.5 lg:mb-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-[#7A6F66] hover:text-[#2B231D] transition-colors"
+              className="inline-flex items-center gap-1.5 text-[#024F5F] hover:text-[#00303A] transition-colors"
             >
-              <Home className="w-3.5 h-3.5 text-[#7A6F66]" />
+              <Home className="w-3.5 h-3.5 text-[#024F5F]" />
               <span>Home</span>
             </Link>
-            <span className="text-[#A89C8F] font-light">&gt;</span>
-            <span className="font-semibold text-[#2B231D]">Shop</span>
+            <span className="text-[#CFAC64] font-light">&gt;</span>
+            <span className="font-semibold text-[#00303A]">Shop</span>
           </nav>
 
           {/* Main Banner Content */}
@@ -493,33 +541,33 @@ export default function ShopPageClient({ products, categories }: { products: Pro
             <div className="max-w-[260px] sm:max-w-md md:max-w-lg lg:max-w-xl lg:mx-auto lg:text-center flex flex-col items-start lg:items-center">
               {/* Collection Tagline */}
               <div className="flex items-center gap-2 sm:gap-2.5 mb-1 sm:mb-1.5 justify-start lg:justify-center">
-                <span className="w-5 sm:w-7 lg:w-8 h-[1.5px] bg-[#4A3525]"></span>
-                <span className="text-[9.5px] sm:text-[11px] font-semibold tracking-[0.2em] text-[#4A3525] uppercase">
-                  OUR COLLECTION
+                <span className="w-5 sm:w-7 lg:w-8 h-[1.5px] bg-[#024F5F]"></span>
+                <span className="text-[9.5px] sm:text-[11px] font-semibold tracking-[0.2em] text-[#024F5F] uppercase">
+                  {heroSettings.shop_hero_eyebrow}
                 </span>
-                <span className="hidden lg:inline-block w-8 h-[1.5px] bg-[#4A3525]"></span>
+                <span className="hidden lg:inline-block w-8 h-[1.5px] bg-[#024F5F]"></span>
               </div>
 
               {/* Title */}
-              <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl lg:text-[42px] font-black text-[#1F1813] tracking-tight leading-[1.08] mb-1">
-                Shop
+              <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl lg:text-[42px] font-bold text-[#00303A] tracking-tight leading-[1.08] mb-1">
+                {heroSettings.shop_hero_title}
               </h1>
 
               {/* Subtitle */}
-              <p className="font-body text-[#7A6F66] text-xs sm:text-sm font-normal leading-snug">
-                Tradition Looks Better On You
+              <p className="font-body text-[#024F5F] text-xs sm:text-sm font-normal leading-snug">
+                {heroSettings.shop_hero_subtitle}
               </p>
             </div>
 
-            {/* Right: Elegant Calligraphy "Wear Your Story" with Underline */}
+            {/* Right: Elegant Calligraphy with Underline */}
             <div className="flex flex-col items-center justify-center text-center select-none shrink-0 lg:absolute lg:right-6 xl:right-12 lg:top-1/2 lg:-translate-y-1/2 sm:pr-16 md:pr-24 lg:pr-0">
-              <span className="font-script text-xl sm:text-2xl md:text-3xl lg:text-[32px] text-[#7A6F66] leading-none tracking-wide">
-                Wear
+              <span className="font-script text-xl sm:text-2xl md:text-3xl lg:text-[32px] text-[#024F5F] leading-none tracking-wide">
+                {heroSettings.shop_hero_calligraphy_line1}
               </span>
-              <span className="font-script text-xl sm:text-2xl md:text-3xl lg:text-[32px] text-[#7A6F66] leading-none tracking-wide mt-0.5">
-                Your Story
+              <span className="font-script text-xl sm:text-2xl md:text-3xl lg:text-[32px] text-[#024F5F] leading-none tracking-wide mt-0.5">
+                {heroSettings.shop_hero_calligraphy_line2}
               </span>
-              <div className="w-4 sm:w-5 h-[1.5px] bg-[#9E9185] mx-auto mt-1"></div>
+              <div className="w-4 sm:w-5 h-[1.5px] bg-[#024F5F] mx-auto mt-1"></div>
             </div>
           </div>
         </div>
@@ -530,24 +578,24 @@ export default function ShopPageClient({ products, categories }: { products: Pro
         <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-12">
           
           {/* Toolbar Header (Mobile & Desktop Responsive) */}
-          <div className="pb-5 sm:pb-6 border-b border-[#E8DFD5] space-y-3">
+          <div className="pb-5 sm:pb-6 border-b border-[#CFAC64] space-y-3">
             
             {/* Mobile View: Side-by-Side Modern Bar (< md) */}
             <div className="flex md:hidden items-center gap-2.5 w-full">
               {/* Left Button: Filter Drawer Trigger */}
               <button
                 onClick={() => setIsMobileFilterOpen(true)}
-                className="flex-1 h-10 inline-flex items-center justify-center gap-2 bg-white hover:bg-[#F7F2EB] text-[#2B231D] px-3 rounded-lg text-xs font-semibold border border-[#DACDC0] shadow-xs active:scale-[0.98] transition-all cursor-pointer"
+                className="flex-1 h-10 inline-flex items-center justify-center gap-2 bg-white hover:bg-[#F6F1EC] text-[#00303A] px-3 rounded-lg text-xs font-semibold border border-[#CFAC64] shadow-xs active:scale-[0.98] transition-all cursor-pointer"
                 aria-label="Open Filters"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-[#4A3525]" />
+                <SlidersHorizontal className="w-3.5 h-3.5 text-[#024F5F]" />
                 <span>Filters</span>
                 {activeFiltersCount > 0 ? (
-                  <span className="bg-[#4A3525] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  <span className="bg-[#024F5F] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                     {activeFiltersCount}
                   </span>
                 ) : (
-                  <span className="text-[10px] text-[#8C8178]">({filteredProducts.length})</span>
+                  <span className="text-[10px] text-[#024F5F]">({filteredProducts.length})</span>
                 )}
               </button>
 
@@ -556,7 +604,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full h-10 appearance-none bg-white border border-[#DACDC0] text-[#2B231D] font-medium text-xs rounded-lg pl-3 pr-8 cursor-pointer focus:outline-none focus:border-[#4A3525] shadow-xs transition-colors"
+                  className="w-full h-10 appearance-none bg-white border border-[#CFAC64] text-[#00303A] font-medium text-xs rounded-lg pl-3 pr-8 cursor-pointer focus:outline-none focus:border-[#024F5F] shadow-xs transition-colors"
                 >
                   <option value="Featured">Sort: Featured</option>
                   <option value="Price: Low to High">Sort: Low to High</option>
@@ -564,18 +612,18 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                   <option value="Customer Rating">Sort: Rating</option>
                   <option value="Newest Arrivals">Sort: Newest</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#7A6F66] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#024F5F] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             {/* Mobile Sub-Row: Category & Product Count (< md) */}
-            <div className="flex md:hidden items-center justify-between text-[11px] text-[#7A6F66] px-0.5">
+            <div className="flex md:hidden items-center justify-between text-[11px] text-[#024F5F] px-0.5">
               <span>
-                Category: <strong className="font-semibold text-[#2B231D]">{selectedCategoryLabel}</strong>
+                Category: <strong className="font-semibold text-[#00303A]">{selectedCategoryLabel}</strong>
               </span>
               <span>
                 Showing{' '}
-                <strong className="font-semibold text-[#2B231D]">
+                <strong className="font-semibold text-[#00303A]">
                   {filteredProducts.length === 0
                     ? '0'
                     : `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(
@@ -583,16 +631,16 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         filteredProducts.length
                       )}`}
                 </strong>{' '}
-                of <strong className="font-semibold text-[#2B231D]">{filteredProducts.length}</strong>
+                of <strong className="font-semibold text-[#00303A]">{filteredProducts.length}</strong>
               </span>
             </div>
 
             {/* Desktop View: Full Toolbar (>= md) */}
             <div className="hidden md:flex items-center justify-between gap-4">
               {/* Left: Category Indicator */}
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-[#7A6F66]">
-                <span className="font-medium text-[#2B231D]">{selectedCategoryLabel}</span>
-                <span className="text-[#A89C8F]">•</span>
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-[#024F5F]">
+                <span className="font-medium text-[#00303A]">{selectedCategoryLabel}</span>
+                <span className="text-[#CFAC64]">•</span>
                 <span>{filteredProducts.length} items</span>
               </div>
 
@@ -600,12 +648,12 @@ export default function ShopPageClient({ products, categories }: { products: Pro
               <div className="flex items-center justify-end gap-5">
                 {/* Sort By Dropdown */}
                 <div className="flex items-center gap-2 text-xs sm:text-sm">
-                  <span className="text-[#7A6F66] whitespace-nowrap">Sort by:</span>
+                  <span className="text-[#024F5F] whitespace-nowrap">Sort by:</span>
                   <div className="relative">
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="appearance-none bg-white border border-[#DACDC0] text-[#2B231D] font-medium text-xs sm:text-sm rounded-lg pl-3 pr-8 py-2 cursor-pointer focus:outline-none focus:border-[#4A3525] transition-colors"
+                      className="appearance-none bg-white border border-[#CFAC64] text-[#00303A] font-medium text-xs sm:text-sm rounded-lg pl-3 pr-8 py-2 cursor-pointer focus:outline-none focus:border-[#024F5F] transition-colors"
                     >
                       <option value="Featured">Featured</option>
                       <option value="Price: Low to High">Price: Low to High</option>
@@ -613,19 +661,19 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                       <option value="Customer Rating">Customer Rating</option>
                       <option value="Newest Arrivals">Newest Arrivals</option>
                     </select>
-                    <ChevronDown className="w-3.5 h-3.5 text-[#7A6F66] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <ChevronDown className="w-3.5 h-3.5 text-[#024F5F] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                 </div>
 
                 {/* Grid Column Layout Icons */}
-                <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#DACDC0]">
+                <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#CFAC64]">
                   {/* 4 Column */}
                   <button
                     onClick={() => setViewColumns(4)}
                     className={`p-1.5 rounded transition-colors ${
                       viewColumns === 4
-                        ? 'bg-[#4A3525] text-white shadow-xs'
-                        : 'text-[#7A6F66] hover:text-[#2B231D]'
+                        ? 'bg-[#CFAC64] text-white shadow-xs'
+                        : 'text-[#024F5F] hover:text-[#00303A]'
                     }`}
                     title="4 Columns"
                     aria-label="4 columns view"
@@ -638,8 +686,8 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                     onClick={() => setViewColumns(3)}
                     className={`p-1.5 rounded transition-colors ${
                       viewColumns === 3
-                        ? 'bg-[#4A3525] text-white shadow-xs'
-                        : 'text-[#7A6F66] hover:text-[#2B231D]'
+                        ? 'bg-[#CFAC64] text-white shadow-xs'
+                        : 'text-[#024F5F] hover:text-[#00303A]'
                     }`}
                     title="3 Columns"
                     aria-label="3 columns view"
@@ -652,8 +700,8 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                     onClick={() => setViewColumns(1)}
                     className={`p-1.5 rounded transition-colors ${
                       viewColumns === 1
-                        ? 'bg-[#4A3525] text-white shadow-xs'
-                        : 'text-[#7A6F66] hover:text-[#2B231D]'
+                        ? 'bg-[#CFAC64] text-white shadow-xs'
+                        : 'text-[#024F5F] hover:text-[#00303A]'
                     }`}
                     title="List View"
                     aria-label="List view"
@@ -663,9 +711,9 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                 </div>
 
                 {/* Product Counter */}
-                <span className="text-xs text-[#7A6F66] whitespace-nowrap">
+                <span className="text-xs text-[#024F5F] whitespace-nowrap">
                   Showing{' '}
-                  <span className="font-semibold text-[#2B231D]">
+                  <span className="font-semibold text-[#00303A]">
                     {filteredProducts.length === 0
                       ? '0'
                       : `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(
@@ -674,7 +722,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         )}`}
                   </span>{' '}
                   of{' '}
-                  <span className="font-semibold text-[#2B231D]">
+                  <span className="font-semibold text-[#00303A]">
                     {filteredProducts.length} products
                   </span>
                 </span>
@@ -687,21 +735,21 @@ export default function ShopPageClient({ products, categories }: { products: Pro
           <div className="flex flex-col lg:flex-row gap-8 items-start mt-8">
             
             {/* DESKTOP SIDEBAR FILTERS (Sticky & Responsive) */}
-            <aside className="hidden lg:block w-64 shrink-0 space-y-2 select-none p-4 rounded-[5px] bg-white border border-[#E8DFD5] shadow-xs sticky top-24 lg:h-[calc(100vh-110px)] overflow-y-auto no-scrollbar transition-all">
+            <aside className="hidden lg:block w-64 shrink-0 space-y-2 select-none p-4 rounded-[5px] bg-white border border-[#CFAC64] shadow-xs sticky top-24 lg:h-[calc(100vh-110px)] overflow-y-auto no-scrollbar transition-all">
               
               {/* 1. Categories Accordion */}
-              <div className="border-b border-[#E8DFD5] pb-2">
+              <div className="border-b border-[#CFAC64] pb-2">
                 <button
                   onClick={() => toggleSection('categories')}
                   className="w-full flex items-center justify-between text-left py-1 group cursor-pointer"
                 >
-                  <span className="font-heading text-lg font-bold text-[#2B231D] group-hover:text-[#4A3525] transition-colors">
+                  <span className="font-heading text-lg font-bold text-[#00303A] group-hover:text-[#024F5F] transition-colors">
                     Categories
                   </span>
                   {openSections.categories ? (
-                    <ChevronUp className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronUp className="w-4 h-4 text-[#024F5F]" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronDown className="w-4 h-4 text-[#024F5F]" />
                   )}
                 </button>
 
@@ -716,20 +764,20 @@ export default function ShopPageClient({ products, categories }: { products: Pro
 
                       return (
                         <div key={cat.type}>
-                          <div className={`flex items-center rounded-md transition-all ${isSelected ? 'bg-[#EAE2D7]' : 'hover:bg-[#F2ECE3]'}`}>
+                          <div className={`flex items-center rounded-md transition-all ${isSelected ? 'bg-[#F6F1EC]' : 'hover:bg-[#F6F1EC]'}`}>
                             {/* Label — selects the category */}
                             <button
                               onClick={() => { setSelectedCategory(catKey); setCurrentPage(1); if (hasChildren && !isExpanded) toggleParent(cat.type); }}
-                              className={`flex-1 flex items-center justify-between text-xs sm:text-sm py-2 pl-3 pr-1 cursor-pointer ${isSelected ? 'text-[#2B231D] font-bold' : 'text-[#5C5147]'}`}
+                              className={`flex-1 flex items-center justify-between text-xs sm:text-sm py-2 pl-3 pr-1 cursor-pointer ${isSelected ? 'text-[#00303A] font-bold' : 'text-[#024F5F]'}`}
                             >
                               <span>{cat.label}</span>
-                              <span className={`text-xs ${isSelected ? 'text-[#4A3525] font-bold' : 'text-[#8C8074]'}`}>({count})</span>
+                              <span className={`text-xs ${isSelected ? 'text-[#024F5F] font-bold' : 'text-[#024F5F]'}`}>({count})</span>
                             </button>
                             {/* Chevron — only expands/collapses, doesn't change selection */}
                             {hasChildren && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); toggleParent(cat.type); }}
-                                className="px-2 py-2 cursor-pointer text-[#7A6F66] hover:text-[#4A3525]"
+                                className="px-2 py-2 cursor-pointer text-[#024F5F] hover:text-[#024F5F]"
                               >
                                 {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                               </button>
@@ -747,15 +795,15 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                                     onClick={() => { setSelectedCategory(child.type); setCurrentPage(1); }}
                                     className={`w-full flex items-center justify-between text-xs sm:text-sm py-1.5 pl-6 pr-3 rounded-md transition-all cursor-pointer ${
                                       childSelected
-                                        ? 'bg-[#EAE2D7] text-[#2B231D] font-bold shadow-xs'
-                                        : 'text-[#5C5147] hover:bg-[#F2ECE3] hover:text-[#2B231D]'
+                                        ? 'bg-[#F6F1EC] text-[#00303A] font-bold shadow-xs'
+                                        : 'text-[#024F5F] hover:bg-[#F6F1EC] hover:text-[#00303A]'
                                     }`}
                                   >
                                     <span className="flex items-center gap-1.5">
-                                      <span className="text-[#A89C8F]">↳</span>
+                                      <span className="text-[#CFAC64]">↳</span>
                                       {child.label}
                                     </span>
-                                    <span className={`text-xs ${childSelected ? 'text-[#4A3525] font-bold' : 'text-[#8C8074]'}`}>({childCount})</span>
+                                    <span className={`text-xs ${childSelected ? 'text-[#024F5F] font-bold' : 'text-[#024F5F]'}`}>({childCount})</span>
                                   </button>
                                 );
                               })}
@@ -769,18 +817,18 @@ export default function ShopPageClient({ products, categories }: { products: Pro
               </div>
 
               {/* 2. Price Range Accordion */}
-              <div className="border-b border-[#E8DFD5] pb-2">
+              <div className="border-b border-[#CFAC64] pb-2">
                 <button
                   onClick={() => toggleSection('price')}
                   className="w-full flex items-center justify-between text-left py-1 group cursor-pointer"
                 >
-                  <span className="font-heading text-lg font-bold text-[#2B231D] group-hover:text-[#4A3525] transition-colors">
+                  <span className="font-heading text-lg font-bold text-[#00303A] group-hover:text-[#024F5F] transition-colors">
                     Price Range
                   </span>
                   {openSections.price ? (
-                    <ChevronUp className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronUp className="w-4 h-4 text-[#024F5F]" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronDown className="w-4 h-4 text-[#024F5F]" />
                   )}
                 </button>
 
@@ -789,27 +837,27 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                     {/* Inputs Row */}
                     <div className="flex items-center gap-2">
                       <div className="flex-1 relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#7A6F66]">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#024F5F]">
                           ₹
                         </span>
                         <input
                           type="number"
                           value={tempMinPrice}
                           onChange={(e) => setTempMinPrice(e.target.value)}
-                          className="w-full bg-white border border-[#DACDC0] rounded-md pl-6 pr-2 py-1.5 text-xs text-[#2B231D] font-medium focus:outline-none focus:border-[#4A3525]"
+                          className="w-full bg-white border border-[#CFAC64] rounded-md pl-6 pr-2 py-1.5 text-xs text-[#00303A] font-medium focus:outline-none focus:border-[#024F5F]"
                           placeholder="0"
                         />
                       </div>
-                      <span className="text-[#7A6F66] text-xs font-bold">-</span>
+                      <span className="text-[#024F5F] text-xs font-bold">-</span>
                       <div className="flex-1 relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#7A6F66]">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#024F5F]">
                           ₹
                         </span>
                         <input
                           type="number"
                           value={tempMaxPrice}
                           onChange={(e) => setTempMaxPrice(e.target.value)}
-                          className="w-full bg-white border border-[#DACDC0] rounded-md pl-6 pr-2 py-1.5 text-xs text-[#2B231D] font-medium focus:outline-none focus:border-[#4A3525]"
+                          className="w-full bg-white border border-[#CFAC64] rounded-md pl-6 pr-2 py-1.5 text-xs text-[#00303A] font-medium focus:outline-none focus:border-[#024F5F]"
                           placeholder="5000"
                         />
                       </div>
@@ -824,14 +872,14 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         step="100"
                         value={tempMaxPrice}
                         onChange={(e) => setTempMaxPrice(e.target.value)}
-                        className="w-full accent-[#4A3525] cursor-pointer"
+                        className="w-full accent-[#024F5F] cursor-pointer"
                       />
                     </div>
 
                     {/* Apply Button */}
                     <button
                       onClick={applyPriceFilter}
-                      className="w-full bg-[#4A3525] hover:bg-[#36261A] text-white py-2 rounded-md text-xs font-semibold tracking-wide transition-all shadow-xs active:scale-98 cursor-pointer"
+                      className="w-full bg-[#CFAC64] hover:bg-[#B08F4F] text-white py-2 rounded-md text-xs font-semibold tracking-wide transition-all shadow-xs active:scale-98 cursor-pointer"
                     >
                       Apply
                     </button>
@@ -840,18 +888,19 @@ export default function ShopPageClient({ products, categories }: { products: Pro
               </div>
 
               {/* 3. Size Accordion */}
-              <div className="border-b border-[#E8DFD5] pb-2">
+              {sizeOptions.length > 0 && (
+              <div className="border-b border-[#CFAC64] pb-2">
                 <button
                   onClick={() => toggleSection('size')}
                   className="w-full flex items-center justify-between text-left py-1 group cursor-pointer"
                 >
-                  <span className="font-heading text-lg font-bold text-[#2B231D] group-hover:text-[#4A3525] transition-colors">
+                  <span className="font-heading text-lg font-bold text-[#00303A] group-hover:text-[#024F5F] transition-colors">
                     Size
                   </span>
                   {openSections.size ? (
-                    <ChevronUp className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronUp className="w-4 h-4 text-[#024F5F]" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronDown className="w-4 h-4 text-[#024F5F]" />
                   )}
                 </button>
 
@@ -865,8 +914,8 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                           onClick={() => toggleSize(size)}
                           className={`min-w-[38px] h-9 px-2 text-xs font-semibold rounded-md border transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-[#4A3525] text-white border-[#4A3525] shadow-xs'
-                              : 'bg-white text-[#2B231D] border-[#DACDC0] hover:border-[#4A3525]'
+                              ? 'bg-[#024F5F] text-white border-[#024F5F] shadow-xs'
+                              : 'bg-white text-[#00303A] border-[#CFAC64] hover:border-[#024F5F]'
                           }`}
                         >
                           {size}
@@ -876,20 +925,22 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                   </div>
                 )}
               </div>
+              )}
 
               {/* 4. Color Swatches Section */}
-              <div className="border-b border-[#E8DFD5] pb-2">
+              {colorOptions.length > 0 && (
+              <div className="border-b border-[#CFAC64] pb-2">
                 <button
                   onClick={() => toggleSection('color')}
                   className="w-full flex items-center justify-between text-left py-1 group cursor-pointer"
                 >
-                  <span className="font-heading text-lg font-bold text-[#2B231D] group-hover:text-[#4A3525] transition-colors">
+                  <span className="font-heading text-lg font-bold text-[#00303A] group-hover:text-[#024F5F] transition-colors">
                     Color
                   </span>
                   {openSections.color ? (
-                    <ChevronUp className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronUp className="w-4 h-4 text-[#024F5F]" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronDown className="w-4 h-4 text-[#024F5F]" />
                   )}
                 </button>
 
@@ -906,12 +957,12 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                           }}
                           className={`w-7 h-7 rounded-full transition-all relative flex items-center justify-center cursor-pointer ${
                             isSelected
-                              ? 'ring-2 ring-offset-2 ring-[#4A3525] scale-110'
+                              ? 'ring-2 ring-offset-2 ring-[#024F5F] scale-110'
                               : 'hover:scale-105'
                           }`}
                           style={{
                             backgroundColor: col.hex,
-                            border: col.border ? '1px solid #D5C8B8' : 'none',
+                            border: col.border ? '1px solid #CFAC64' : 'none',
                           }}
                           title={col.name}
                           aria-label={`Filter by ${col.name}`}
@@ -919,7 +970,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                           {isSelected && (
                             <Check
                               className={`w-3.5 h-3.5 ${
-                                col.name === 'White' ? 'text-black' : 'text-white'
+                                col.border ? 'text-[#00303A]' : 'text-white'
                               }`}
                             />
                           )}
@@ -929,20 +980,22 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                   </div>
                 )}
               </div>
+              )}
 
               {/* 5. Occasion Checkboxes */}
-              <div className="border-b border-[#E8DFD5] pb-2">
+              {occasionOptions.length > 0 && (
+              <div className="border-b border-[#CFAC64] pb-2">
                 <button
                   onClick={() => toggleSection('occasion')}
                   className="w-full flex items-center justify-between text-left py-1 group cursor-pointer"
                 >
-                  <span className="font-heading text-lg font-bold text-[#2B231D] group-hover:text-[#4A3525] transition-colors">
+                  <span className="font-heading text-lg font-bold text-[#00303A] group-hover:text-[#024F5F] transition-colors">
                     Occasion
                   </span>
                   {openSections.occasion ? (
-                    <ChevronUp className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronUp className="w-4 h-4 text-[#024F5F]" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronDown className="w-4 h-4 text-[#024F5F]" />
                   )}
                 </button>
 
@@ -953,35 +1006,37 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                       return (
                         <label
                           key={occ}
-                          className="flex items-center gap-2.5 text-xs sm:text-sm text-[#4A3525] cursor-pointer group"
+                          className="flex items-center gap-2.5 text-xs sm:text-sm text-[#024F5F] cursor-pointer group"
                         >
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleOccasion(occ)}
-                            className="w-4 h-4 rounded border-[#DACDC0] text-[#4A3525] focus:ring-0 focus:ring-offset-0 accent-[#4A3525] cursor-pointer"
+                            className="w-4 h-4 rounded border-[#CFAC64] text-[#024F5F] focus:ring-0 focus:ring-offset-0 accent-[#024F5F] cursor-pointer"
                           />
-                          <span className="group-hover:text-[#2B231D] font-normal">{occ}</span>
+                          <span className="group-hover:text-[#00303A] font-normal">{occ}</span>
                         </label>
                       );
                     })}
                   </div>
                 )}
               </div>
+              )}
 
               {/* 6. Fabric Checkboxes */}
-              <div className="border-b border-[#E8DFD5] pb-2">
+              {fabricOptions.length > 0 && (
+              <div className="border-b border-[#CFAC64] pb-2">
                 <button
                   onClick={() => toggleSection('fabric')}
                   className="w-full flex items-center justify-between text-left py-1 group cursor-pointer"
                 >
-                  <span className="font-heading text-lg font-bold text-[#2B231D] group-hover:text-[#4A3525] transition-colors">
+                  <span className="font-heading text-lg font-bold text-[#00303A] group-hover:text-[#024F5F] transition-colors">
                     Fabric
                   </span>
                   {openSections.fabric ? (
-                    <ChevronUp className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronUp className="w-4 h-4 text-[#024F5F]" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#7A6F66]" />
+                    <ChevronDown className="w-4 h-4 text-[#024F5F]" />
                   )}
                 </button>
 
@@ -992,26 +1047,27 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                       return (
                         <label
                           key={fab}
-                          className="flex items-center gap-2.5 text-xs sm:text-sm text-[#4A3525] cursor-pointer group"
+                          className="flex items-center gap-2.5 text-xs sm:text-sm text-[#024F5F] cursor-pointer group"
                         >
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleFabric(fab)}
-                            className="w-4 h-4 rounded border-[#DACDC0] text-[#4A3525] focus:ring-0 focus:ring-offset-0 accent-[#4A3525] cursor-pointer"
+                            className="w-4 h-4 rounded border-[#CFAC64] text-[#024F5F] focus:ring-0 focus:ring-offset-0 accent-[#024F5F] cursor-pointer"
                           />
-                          <span className="group-hover:text-[#2B231D] font-normal">{fab}</span>
+                          <span className="group-hover:text-[#00303A] font-normal">{fab}</span>
                         </label>
                       );
                     })}
                   </div>
                 )}
               </div>
+              )}
 
               {/* Clear Filters Button */}
               <button
                 onClick={clearAllFilters}
-                className="w-full flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold text-[#7A6F66] hover:text-[#4A3525] hover:bg-[#EFE8E0] rounded-md transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold text-[#024F5F] hover:text-[#024F5F] hover:bg-[#F6F1EC] rounded-md transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Clear Filters</span>
@@ -1023,20 +1079,20 @@ export default function ShopPageClient({ products, categories }: { products: Pro
             <main className="flex-1 w-full">
               {filteredProducts.length === 0 ? (
                 /* Empty state when no products match */
-                <div className="bg-white rounded-xl border border-[#E8DFD5] p-12 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-[#FAF6F0] flex items-center justify-center mx-auto text-[#7A6F66]">
+                <div className="bg-white rounded-xl border border-[#CFAC64] p-12 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-[#F6F1EC] flex items-center justify-center mx-auto text-[#024F5F]">
                     <Search className="w-8 h-8" />
                   </div>
-                  <h3 className="font-heading text-xl font-bold text-[#2B231D]">
+                  <h3 className="font-heading text-xl font-bold text-[#00303A]">
                     No Products Found
                   </h3>
-                  <p className="text-sm text-[#7A6F66] max-w-md mx-auto">
+                  <p className="text-sm text-[#024F5F] max-w-md mx-auto">
                     We couldn&apos;t find any items matching your selected criteria. Try adjusting
                     or resetting your filters.
                   </p>
                   <button
                     onClick={clearAllFilters}
-                    className="inline-flex items-center gap-2 bg-[#4A3525] text-white px-5 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#36261A] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 bg-[#CFAC64] text-white px-5 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#B08F4F] transition-colors cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset All Filters</span>
@@ -1058,16 +1114,17 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                     const currentImage =
                       cardSelectedColors[product.id]?.image || product.image;
                     const isWishlisted = isInWishlist(product.id);
+                    const cardPrice = getColorStartPrice(product, currentSelectedColor);
 
                     // List view layout
                     if (viewColumns === 1) {
                       return (
                         <div
                           key={product.id}
-                          className="group bg-white rounded-xl border border-[#E8DFD5] overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row items-center p-4 sm:p-5 gap-5"
+                          className="group bg-white rounded-xl border border-[#CFAC64] overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row items-center p-4 sm:p-5 gap-5"
                         >
-                          <div className="relative w-full sm:w-52 aspect-[3/3.8] rounded-[5px] overflow-hidden bg-[#FAF6F0] shrink-0">
-                            <Link href={`/product/${product.id}`} className="block w-full h-full">
+                          <div className="relative w-full sm:w-52 aspect-[3/3.8] rounded-[5px] overflow-hidden bg-[#F6F1EC] shrink-0">
+                            <Link href={currentSelectedColor ? `/product/${product.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${product.id}`} className="block w-full h-full">
                               <Image
                                 src={currentImage}
                                 alt={product.name}
@@ -1081,10 +1138,10 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                               <span
                                 className={`absolute top-2.5 left-2.5 text-white text-[9.5px] font-bold px-2 py-0.5 rounded-[4px] shadow-xs uppercase tracking-wider ${
                                   product.tag === '20% OFF'
-                                    ? 'bg-[#8B2D2D]'
+                                    ? 'bg-[#024F5F]'
                                     : product.tag === 'NEW'
-                                    ? 'bg-[#2E5A44]'
-                                    : 'bg-[#2B231D]'
+                                    ? 'bg-[#024F5F]'
+                                    : 'bg-[#00303A]'
                                 }`}
                               >
                                 {product.tag}
@@ -1099,14 +1156,14 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                               }}
                               className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md z-10 cursor-pointer ${
                                 isWishlisted
-                                  ? 'bg-white text-[#8B2D2D]'
-                                  : 'bg-white/95 text-[#2B231D] hover:text-[#8B2D2D] hover:bg-white'
+                                  ? 'bg-white text-[#024F5F]'
+                                  : 'bg-white/95 text-[#00303A] hover:text-[#024F5F] hover:bg-white'
                               }`}
                               aria-label="Toggle Wishlist"
                             >
                               <Heart
                                 className={`w-3.5 h-3.5 ${
-                                  isWishlisted ? 'fill-[#8B2D2D] text-[#8B2D2D]' : 'stroke-[1.8]'
+                                  isWishlisted ? 'fill-[#024F5F] text-[#024F5F]' : 'stroke-[1.8]'
                                 }`}
                               />
                             </button>
@@ -1115,39 +1172,39 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                           <div className="flex-1 w-full flex flex-col justify-between space-y-3">
                             <div>
                               {product.reviewCount > 0 && (
-                              <div className="flex items-center gap-1.5 text-amber-500 text-xs mb-1">
+                              <div className="flex items-center gap-1.5 text-[#B08F4F] text-xs mb-1">
                                 <div className="flex">
                                   {[...Array(5)].map((_, i) => (
                                     <Star
                                       key={i}
                                       className={`w-3 h-3 ${
                                         i < Math.floor(product.rating)
-                                          ? 'fill-amber-400 text-amber-400'
-                                          : 'text-amber-300'
+                                          ? 'fill-[#CFAC64] text-[#CFAC64]'
+                                          : 'text-[#B08F4F]'
                                       }`}
                                     />
                                   ))}
                                 </div>
-                                <span className="text-[11px] text-[#7A6F66]">
+                                <span className="text-[11px] text-[#024F5F]">
                                   ({product.reviewCount})
                                 </span>
                               </div>
                               )}
 
                               <Link
-                                href={`/product/${product.id}`}
-                                className="font-heading text-lg sm:text-xl font-bold text-[#2B231D] hover:text-[#4A3525] transition-colors"
+                                href={currentSelectedColor ? `/product/${product.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${product.id}`}
+                                className="font-heading text-lg sm:text-xl font-bold text-[#00303A] hover:text-[#024F5F] transition-colors"
                               >
                                 {product.name}
                               </Link>
-                              <p className="text-xs text-[#7A6F66] mt-0.5">{product.fabric}</p>
-                              <p className="text-xs text-[#5C5147] mt-2 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-[#024F5F] mt-0.5">{product.fabric}</p>
+                              <p className="text-xs text-[#024F5F] mt-2 line-clamp-2 leading-relaxed">
                                 {product.description}
                               </p>
 
                               {/* Interactive Color Options in List View */}
                               <div className="mt-3 flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-semibold text-[#4A3525]">Colors:</span>
+                                <span className="text-xs font-semibold text-[#024F5F]">Colors:</span>
                                 <div className="flex items-center gap-1.5">
                                   {product.colors.map((c) => (
                                     <button
@@ -1162,32 +1219,32 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                                       }
                                       className={`w-4 h-4 rounded-full border transition-all cursor-pointer ${
                                         currentSelectedColor === c.name
-                                          ? 'ring-2 ring-[#4A3525] scale-110'
+                                          ? 'ring-2 ring-[#024F5F] scale-110'
                                           : 'hover:scale-110'
                                       }`}
                                       style={{
                                         backgroundColor: c.hex,
-                                        borderColor: c.hex === '#FFFFFF' ? '#D5C8B8' : 'transparent',
+                                        borderColor: c.hex === '#FFFFFF' ? '#CFAC64' : 'transparent',
                                       }}
                                       title={c.name}
                                       aria-label={`Select ${c.name} color`}
                                     />
                                   ))}
                                 </div>
-                                <span className="text-[11px] text-[#7A6F66] font-medium ml-1">
+                                <span className="text-[11px] text-[#024F5F] font-medium ml-1">
                                   ({currentSelectedColor})
                                 </span>
                               </div>
                             </div>
 
-                            <div className="pt-3 border-t border-[#F2ECE3] flex items-center justify-between gap-3">
+                            <div className="pt-3 border-t border-[#F6F1EC] flex items-center justify-between gap-3">
                               <div className="flex items-baseline gap-2">
-                                <span className="font-heading text-xl font-bold text-[#2B231D]">
-                                  ₹{product.price}
+                                <span className="font-heading text-xl font-bold text-[#00303A]">
+                                  ₹{cardPrice.price}
                                 </span>
-                                {product.originalPrice && (
-                                  <span className="text-xs text-[#8C8074] line-through">
-                                    ₹{product.originalPrice}
+                                {cardPrice.originalPrice && (
+                                  <span className="text-xs text-[#024F5F] line-through">
+                                    ₹{cardPrice.originalPrice}
                                   </span>
                                 )}
                               </div>
@@ -1195,14 +1252,14 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => openQuickView(product)}
-                                  className="px-3.5 py-2 border border-[#DACDC0] hover:bg-[#FAF6F0] text-xs font-semibold rounded-[5px] transition-colors cursor-pointer flex items-center gap-1.5"
+                                  className="px-3.5 py-2 border border-[#CFAC64] hover:bg-[#F6F1EC] text-xs font-semibold rounded-[5px] transition-colors cursor-pointer flex items-center gap-1.5"
                                 >
-                                  <Eye className="w-3.5 h-3.5 text-[#4A3525]" />
+                                  <Eye className="w-3.5 h-3.5 text-[#024F5F]" />
                                   <span>Quick View</span>
                                 </button>
                                 <button
                                   onClick={(e) => handleQuickAdd(product, e)}
-                                  className="bg-[#4A3525] hover:bg-[#36261A] text-white px-4 py-2 text-xs font-semibold rounded-[5px] shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                                  className="bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-4 py-2 text-xs font-semibold rounded-[5px] shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
                                 >
                                   <ShoppingBag className="w-3.5 h-3.5" />
                                   <span>Add to Bag</span>
@@ -1222,7 +1279,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                       >
                         {/* Product Image Frame */}
                         <div className="relative aspect-[4/4.8] lg:aspect-[4/4.1] bg-cream-200 overflow-hidden">
-                          <Link href={`/product/${product.id}`} className="block w-full h-full">
+                          <Link href={currentSelectedColor ? `/product/${product.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${product.id}`} className="block w-full h-full">
                             <Image
                               src={currentImage}
                               alt={product.name}
@@ -1237,9 +1294,9 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                             <span
                               className={`absolute top-1 left-0.5 sm:top-1 sm:-left-0.5 text-white text-[7.5px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-[3px] shadow uppercase tracking-wider z-10 pointer-events-none ${
                                 product.tag === '20% OFF'
-                                  ? 'bg-[#8B2D2D]'
+                                  ? 'bg-[#024F5F]'
                                   : product.tag === 'NEW'
-                                  ? 'bg-[#2E5A44]'
+                                  ? 'bg-[#024F5F]'
                                   : 'bg-brand-500'
                               }`}
                             >
@@ -1255,14 +1312,14 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                             }}
                             className={`absolute top-2 right-2 sm:top-2.5 sm:right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all shadow-md z-10 cursor-pointer ${
                               isWishlisted
-                                ? 'bg-white text-red-500 fill-red-500'
-                                : 'bg-white/90 text-brand-700 hover:text-red-500 hover:bg-white'
+                                ? 'bg-white text-[#024F5F] fill-[#024F5F]'
+                                : 'bg-white/90 text-brand-700 hover:text-[#024F5F] hover:bg-white'
                             }`}
                             aria-label="Toggle Wishlist"
                           >
                             <Heart
                               className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                                isWishlisted ? 'fill-red-500 text-red-500' : 'stroke-[1.8]'
+                                isWishlisted ? 'fill-[#024F5F] text-[#024F5F]' : 'stroke-[1.8]'
                               }`}
                             />
                           </button>
@@ -1284,7 +1341,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                             {/* Bag Button */}
                             <button
                               onClick={(e) => handleQuickAdd(product, e)}
-                              className="bg-brand-500 hover:bg-brand-600 active:scale-95 text-white p-1.5 sm:p-2 rounded-[4px] shadow-md transition-all flex items-center justify-center cursor-pointer"
+                              className="bg-[#CFAC64] hover:bg-[#B08F4F] active:scale-95 text-white p-1.5 sm:p-2 rounded-[4px] shadow-md transition-all flex items-center justify-center cursor-pointer"
                               title="Add to Cart"
                               aria-label="Add to Cart"
                             >
@@ -1298,15 +1355,15 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                           <div>
                             {/* Star Rating & Review Count */}
                             {product.reviewCount > 0 && (
-                            <div className="flex items-center gap-1 sm:gap-1.5 text-amber-500 text-xs mb-1">
+                            <div className="flex items-center gap-1 sm:gap-1.5 text-[#B08F4F] text-xs mb-1">
                               <div className="flex">
                                 {[...Array(5)].map((_, i) => (
                                   <Star
                                     key={i}
                                     className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
                                       i < Math.floor(product.rating)
-                                        ? 'fill-amber-400 text-amber-400'
-                                        : 'text-amber-300'
+                                        ? 'fill-[#CFAC64] text-[#CFAC64]'
+                                        : 'text-[#B08F4F]'
                                     }`}
                                   />
                                 ))}
@@ -1319,7 +1376,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
 
                             {/* Product Title */}
                             <Link
-                              href={`/product/${product.id}`}
+                              href={currentSelectedColor ? `/product/${product.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${product.id}`}
                               className="font-heading text-sm sm:text-base md:text-lg font-bold text-brand-700 line-clamp-1 hover:text-brand-500 transition-colors block"
                             >
                               {product.name}
@@ -1336,11 +1393,11 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                             {/* Price */}
                             <div className="flex items-baseline gap-1.5 flex-wrap">
                               <span className="font-heading text-base sm:text-lg md:text-xl font-bold text-brand-700">
-                                ₹{product.price}
+                                ₹{cardPrice.price}
                               </span>
-                              {product.originalPrice && (
+                              {cardPrice.originalPrice && (
                                 <span className="text-[10px] sm:text-xs text-muted line-through">
-                                  ₹{product.originalPrice}
+                                  ₹{cardPrice.originalPrice}
                                 </span>
                               )}
                             </div>
@@ -1385,7 +1442,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                   aria-label="Product catalog pagination"
                   className="mt-12 sm:mt-16 flex flex-col items-center justify-center gap-3 select-none"
                 >
-                  <div className="inline-flex items-center justify-center gap-2 sm:gap-4 p-1.5 sm:p-2 bg-white/95 backdrop-blur-md rounded-[5px] border border-[#E2D7C8] shadow-sm">
+                  <div className="inline-flex items-center justify-center gap-2 sm:gap-4 p-1.5 sm:p-2 bg-white/95 backdrop-blur-md rounded-[5px] border border-[#F6F1EC] shadow-sm">
                     {/* Previous Page Arrow */}
                     <button
                       onClick={() => {
@@ -1395,7 +1452,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         }
                       }}
                       disabled={currentPage <= 1}
-                      className="group w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-[#DACDC0] bg-white text-[#2B231D] hover:bg-[#FAF6F0] hover:border-[#4A3525] hover:text-[#4A3525] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-[#DACDC0] disabled:active:scale-100 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-xs shrink-0"
+                      className="group w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-[#CFAC64] bg-white text-[#00303A] hover:bg-[#F6F1EC] hover:border-[#024F5F] hover:text-[#024F5F] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-[#CFAC64] disabled:active:scale-100 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-xs shrink-0"
                       aria-label="Previous page"
                     >
                       <ChevronLeft className="w-4 h-4 stroke-[2.2] transition-transform group-hover:-translate-x-0.5" />
@@ -1407,7 +1464,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         return (
                           <span
                             key={`ellipsis-${index}`}
-                            className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm font-bold text-[#8C8074] tracking-widest select-none shrink-0"
+                            className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm font-bold text-[#024F5F] tracking-widest select-none shrink-0"
                           >
                             ...
                           </span>
@@ -1424,8 +1481,8 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                           }}
                           className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 ${
                             isCurrent
-                              ? 'bg-[#3E2B1E] text-white shadow-sm font-bold scale-105 border border-[#3E2B1E]'
-                              : 'bg-transparent text-[#4A3525] hover:bg-[#F2ECE3] hover:text-[#2B231D] active:scale-95'
+                              ? 'bg-[#00303A] text-white shadow-sm font-bold scale-105 border border-[#00303A]'
+                              : 'bg-transparent text-[#024F5F] hover:bg-[#F6F1EC] hover:text-[#00303A] active:scale-95'
                           }`}
                           aria-current={isCurrent ? 'page' : undefined}
                           aria-label={`Page ${item}`}
@@ -1444,7 +1501,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         }
                       }}
                       disabled={currentPage >= totalPages}
-                      className="group w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-[#DACDC0] bg-white text-[#2B231D] hover:bg-[#FAF6F0] hover:border-[#4A3525] hover:text-[#4A3525] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-[#DACDC0] disabled:active:scale-100 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-xs shrink-0"
+                      className="group w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-[#CFAC64] bg-white text-[#00303A] hover:bg-[#F6F1EC] hover:border-[#024F5F] hover:text-[#024F5F] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-[#CFAC64] disabled:active:scale-100 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-xs shrink-0"
                       aria-label="Next page"
                     >
                       <ChevronRight className="w-4 h-4 stroke-[2.2] transition-transform group-hover:translate-x-0.5" />
@@ -1452,9 +1509,9 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                   </div>
 
                   {/* Micro Page Counter */}
-                  <p className="text-[11px] sm:text-xs text-[#7A6F66] font-medium tracking-wide">
-                    Page <span className="font-bold text-[#2B231D]">{currentPage}</span> of{' '}
-                    <span className="font-bold text-[#2B231D]">{totalPages}</span>
+                  <p className="text-[11px] sm:text-xs text-[#024F5F] font-medium tracking-wide">
+                    Page <span className="font-bold text-[#00303A]">{currentPage}</span> of{' '}
+                    <span className="font-bold text-[#00303A]">{totalPages}</span>
                   </p>
                 </nav>
               )}
@@ -1469,82 +1526,71 @@ export default function ShopPageClient({ products, categories }: { products: Pro
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 space-y-5 sm:space-y-6 md:space-y-8">
           
           {/* A. TRUST & FEATURE BADGES CARD (EXACT USER SCREENSHOT) */}
-          <div className="bg-[#FAF6F1] rounded-2xl sm:rounded-3xl border border-[#E8DFD5] p-6 sm:p-8 md:p-9 shadow-2xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7 md:gap-8 items-center">
+          <div className="bg-[#F6F1EC] rounded-2xl sm:rounded-3xl border border-[#CFAC64] p-6 sm:p-8 md:p-9 shadow-2xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-7 md:gap-8 items-center">
               
-              {/* Feature 1: Free Shipping */}
-              <div className="flex items-center gap-3.5 sm:gap-4">
-                <div className="text-[#3B2B1F] shrink-0">
-                  <Truck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[1.4]" />
+              {/* Free Shipping — threshold is the admin's Shipping Settings value */}
+              {shipping.free_threshold > 0 && (
+                <div className="flex items-center gap-3.5 sm:gap-4">
+                  <div className="text-[#00303A] shrink-0">
+                    <Truck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[1.4]" />
+                  </div>
+                  <div>
+                    <h4 className="font-heading text-sm sm:text-base font-bold text-[#00303A]">
+                      Free Shipping
+                    </h4>
+                    <p className="text-xs text-[#024F5F] mt-0.5 font-medium">
+                      on orders above ₹{shipping.free_threshold.toLocaleString('en-IN')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-heading text-sm sm:text-base font-bold text-[#2B231D]">
-                    Free Shipping
-                  </h4>
-                  <p className="text-xs text-[#7A6F66] mt-0.5 font-medium">
-                    on orders above ₹{shipping.free_threshold.toLocaleString('en-IN')}
-                  </p>
-                </div>
-              </div>
+              )}
 
-              {/* Feature 2: Easy Returns */}
-              <div className="flex items-center gap-3.5 sm:gap-4">
-                <div className="text-[#3B2B1F] shrink-0">
-                  <RotateCcw className="w-8 h-8 sm:w-9 sm:h-9 stroke-[1.4]" />
-                </div>
-                <div>
-                  <h4 className="font-heading text-sm sm:text-base font-bold text-[#2B231D]">
-                    Easy Returns
-                  </h4>
-                  <p className="text-xs text-[#7A6F66] mt-0.5 font-medium">
-                    7-day hassle free
-                  </p>
-                </div>
-              </div>
+              {/* Returns — only when a returns policy page exists */}
+              {hasReturnsPolicy && (
+                <Link href="/policies/returns" className="flex items-center gap-3.5 sm:gap-4 group">
+                  <div className="text-[#00303A] shrink-0">
+                    <RotateCcw className="w-8 h-8 sm:w-9 sm:h-9 stroke-[1.4]" />
+                  </div>
+                  <div>
+                    <h4 className="font-heading text-sm sm:text-base font-bold text-[#00303A]">
+                      Returns &amp; Exchanges
+                    </h4>
+                    <p className="text-xs text-[#024F5F] mt-0.5 font-medium group-hover:underline">
+                      Read our policy
+                    </p>
+                  </div>
+                </Link>
+              )}
 
-              {/* Feature 3: Secure Payments */}
-              <div className="flex items-center gap-3.5 sm:gap-4">
-                <div className="text-[#3B2B1F] shrink-0">
-                  <ShieldCheck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[1.4]" />
-                </div>
-                <div>
-                  <h4 className="font-heading text-sm sm:text-base font-bold text-[#2B231D]">
-                    Secure Payments
-                  </h4>
-                  <p className="text-xs text-[#7A6F66] mt-0.5 font-medium">
-                    100% safe &amp; encrypted
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 4: Customer Support */}
-              <div className="flex items-center gap-3.5 sm:gap-4">
-                <div className="text-[#3B2B1F] shrink-0">
+              {/* Customer Support */}
+              <Link href="/contact" className="flex items-center gap-3.5 sm:gap-4 group">
+                <div className="text-[#00303A] shrink-0">
                   <Headphones className="w-8 h-8 sm:w-9 sm:h-9 stroke-[1.4]" />
                 </div>
                 <div>
-                  <h4 className="font-heading text-sm sm:text-base font-bold text-[#2B231D]">
+                  <h4 className="font-heading text-sm sm:text-base font-bold text-[#00303A]">
                     Customer Support
                   </h4>
-                  <p className="text-xs text-[#7A6F66] mt-0.5 font-medium">
-                    We&apos;re here to help
+                  <p className="text-xs text-[#024F5F] mt-0.5 font-medium group-hover:underline">
+                    Contact us
                   </p>
                 </div>
-              </div>
+              </Link>
 
             </div>
           </div>
 
           {/* B. "JOIN OUR JOURNEY" NEWSLETTER BANNER (EXACT USER SCREENSHOT) */}
-          <div className="bg-[#38281D] rounded-2xl sm:rounded-3xl p-6 sm:p-9 md:p-11 text-white relative overflow-hidden shadow-md">
+          <div className="bg-[#00303A] rounded-2xl sm:rounded-3xl p-6 sm:p-9 md:p-11 text-white relative overflow-hidden shadow-md">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-10">
               
               {/* Left Title & Description */}
               <div className="space-y-1.5 max-w-xl">
-                <h3 className="font-heading text-2xl sm:text-3xl md:text-4xl text-[#FAF6F1] font-normal tracking-wide">
+                <h3 className="font-heading text-2xl sm:text-3xl md:text-4xl text-[#F6F1EC] font-normal tracking-wide">
                   Stay Updated
                 </h3>
-                <p className="text-xs sm:text-sm text-[#D5C7B8] font-light leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#CFAC64] font-light leading-relaxed">
                   Get offers, new arrivals, and updates by email.
                 </p>
               </div>
@@ -1558,12 +1604,12 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     placeholder="Enter your email address"
-                    className="flex-1 bg-transparent px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-[#2B231D] placeholder-[#9E9084] outline-none focus:outline-none ring-0 focus:ring-0"
+                    className="flex-1 bg-transparent px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-[#00303A] placeholder-[#024F5F] outline-none focus:outline-none ring-0 focus:ring-0"
                   />
                   <button
                     type="submit"
                     disabled={newsletterLoading}
-                    className="bg-[#5C4533] hover:bg-[#473426] active:scale-98 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm shrink-0 cursor-pointer disabled:opacity-60"
+                    className="bg-[#00303A] hover:bg-[#00303A] active:scale-98 text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm shrink-0 cursor-pointer disabled:opacity-60"
                   >
                     {newsletterLoading ? 'Subscribing...' : 'Subscribe'}
                   </button>
@@ -1581,28 +1627,28 @@ export default function ShopPageClient({ products, categories }: { products: Pro
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            className="fixed inset-0 bg-[#00303A]/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
             onClick={() => setIsMobileFilterOpen(false)}
           />
 
           {/* Slide-out Sheet (Modern Half-Width Sliding in from Left) */}
-          <div className="fixed inset-y-0 left-0 w-[78vw] sm:w-[330px] max-w-[340px] bg-[#FAF6F0] shadow-2xl z-50 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-left duration-300 rounded-r-2xl border-r border-[#DACDC0]">
+          <div className="fixed inset-y-0 left-0 w-[78vw] sm:w-[330px] max-w-[340px] bg-[#F6F1EC] shadow-2xl z-50 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-left duration-300 rounded-r-2xl border-r border-[#CFAC64]">
             {/* Drawer Header */}
-            <div className="px-4 py-3.5 border-b border-[#E8DFD5] flex items-center justify-between bg-white sticky top-0 z-20 rounded-tr-2xl">
+            <div className="px-4 py-3.5 border-b border-[#CFAC64] flex items-center justify-between bg-white sticky top-0 z-20 rounded-tr-2xl">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#4A3525]" />
-                <h3 className="font-heading text-lg font-bold text-[#2B231D]">
+                <SlidersHorizontal className="w-4 h-4 text-[#024F5F]" />
+                <h3 className="font-heading text-lg font-bold text-[#00303A]">
                   Filters
                 </h3>
                 {activeFiltersCount > 0 && (
-                  <span className="bg-[#4A3525] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                  <span className="bg-[#024F5F] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
                     {activeFiltersCount}
                   </span>
                 )}
               </div>
               <button
                 onClick={() => setIsMobileFilterOpen(false)}
-                className="p-1.5 text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#F2ECE3] rounded-full transition-colors cursor-pointer"
+                className="p-1.5 text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC] rounded-full transition-colors cursor-pointer"
                 aria-label="Close filters"
               >
                 <X className="w-4 h-4" />
@@ -1614,7 +1660,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
               
               {/* Categories */}
               <div>
-                <h4 className="font-heading text-base font-bold text-[#2B231D] mb-2.5">
+                <h4 className="font-heading text-base font-bold text-[#00303A] mb-2.5">
                   Categories
                 </h4>
                 <div className="space-y-0.5">
@@ -1625,7 +1671,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                     const isExpanded = expandedParents.includes(cat.type);
                     return (
                       <div key={cat.type}>
-                        <div className={`flex items-center rounded-md border transition-colors ${isSelected ? 'bg-[#4A3525] text-white border-[#4A3525]' : 'bg-white text-[#2B231D] border-[#DACDC0]'}`}>
+                        <div className={`flex items-center rounded-md border transition-colors ${isSelected ? 'bg-[#024F5F] text-white border-[#024F5F]' : 'bg-white text-[#00303A] border-[#CFAC64]'}`}>
                           <button
                             onClick={() => { setSelectedCategory(catKey); if (hasChildren && !isExpanded) toggleParent(cat.type); }}
                             className="flex-1 flex items-center justify-between text-xs py-2 pl-3 pr-1 font-medium"
@@ -1634,7 +1680,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                             <span className="text-[10px] opacity-75">({categoryCounts[catKey] ?? 0})</span>
                           </button>
                           {hasChildren && (
-                            <button onClick={(e) => { e.stopPropagation(); toggleParent(cat.type); }} className={`px-2 py-2 ${isSelected ? 'text-white/70' : 'text-[#7A6F66]'}`}>
+                            <button onClick={(e) => { e.stopPropagation(); toggleParent(cat.type); }} className={`px-2 py-2 ${isSelected ? 'text-white/70' : 'text-[#024F5F]'}`}>
                               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             </button>
                           )}
@@ -1648,7 +1694,7 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                                   key={child.type}
                                   onClick={() => setSelectedCategory(child.type)}
                                   className={`w-full flex items-center justify-between text-xs py-1.5 pl-5 pr-3 rounded-md font-medium transition-colors ${
-                                    childSelected ? 'bg-[#4A3525] text-white font-bold' : 'bg-cream-50 text-[#5C5147] border border-[#E8DFD5]'
+                                    childSelected ? 'bg-[#CFAC64] text-white font-bold' : 'bg-cream-50 text-[#024F5F] border border-[#CFAC64]'
                                   }`}
                                 >
                                   <span className="flex items-center gap-1"><span className="opacity-50">↳</span>{child.label}</span>
@@ -1665,8 +1711,8 @@ export default function ShopPageClient({ products, categories }: { products: Pro
               </div>
 
               {/* Price Range */}
-              <div className="pt-2 border-t border-[#E8DFD5]">
-                <h4 className="font-heading text-base font-bold text-[#2B231D] mb-2.5">
+              <div className="pt-2 border-t border-[#CFAC64]">
+                <h4 className="font-heading text-base font-bold text-[#00303A] mb-2.5">
                   Price Range
                 </h4>
                 <div className="flex items-center gap-2 mb-3">
@@ -1674,29 +1720,30 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                     type="number"
                     value={tempMinPrice}
                     onChange={(e) => setTempMinPrice(e.target.value)}
-                    className="w-full bg-white border border-[#DACDC0] rounded-md px-2.5 py-1.5 text-xs text-[#2B231D]"
+                    className="w-full bg-white border border-[#CFAC64] rounded-md px-2.5 py-1.5 text-xs text-[#00303A]"
                     placeholder="Min"
                   />
-                  <span className="text-xs font-bold text-[#7A6F66]">-</span>
+                  <span className="text-xs font-bold text-[#024F5F]">-</span>
                   <input
                     type="number"
                     value={tempMaxPrice}
                     onChange={(e) => setTempMaxPrice(e.target.value)}
-                    className="w-full bg-white border border-[#DACDC0] rounded-md px-2.5 py-1.5 text-xs text-[#2B231D]"
+                    className="w-full bg-white border border-[#CFAC64] rounded-md px-2.5 py-1.5 text-xs text-[#00303A]"
                     placeholder="Max"
                   />
                 </div>
                 <button
                   onClick={applyPriceFilter}
-                  className="w-full bg-[#4A3525] text-white py-2 rounded-md text-xs font-semibold"
+                  className="w-full bg-[#CFAC64] text-white py-2 rounded-md text-xs font-semibold"
                 >
                   Apply Price
                 </button>
               </div>
 
               {/* Size */}
-              <div className="pt-2 border-t border-[#E8DFD5]">
-                <h4 className="font-heading text-base font-bold text-[#2B231D] mb-2.5">Size</h4>
+              {sizeOptions.length > 0 && (
+              <div className="pt-2 border-t border-[#CFAC64]">
+                <h4 className="font-heading text-base font-bold text-[#00303A] mb-2.5">Size</h4>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {sizeOptions.map((size) => {
                     const isSelected = selectedSizes.includes(size);
@@ -1706,8 +1753,8 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         onClick={() => toggleSize(size)}
                         className={`min-w-[36px] h-8 px-2 text-xs font-bold rounded-md border ${
                           isSelected
-                            ? 'bg-[#4A3525] text-white border-[#4A3525]'
-                            : 'bg-white text-[#2B231D] border-[#DACDC0]'
+                            ? 'bg-[#024F5F] text-white border-[#024F5F]'
+                            : 'bg-white text-[#00303A] border-[#CFAC64]'
                         }`}
                       >
                         {size}
@@ -1716,10 +1763,12 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                   })}
                 </div>
               </div>
+              )}
 
               {/* Color */}
-              <div className="pt-2 border-t border-[#E8DFD5]">
-                <h4 className="font-heading text-base font-bold text-[#2B231D] mb-2.5">Color</h4>
+              {colorOptions.length > 0 && (
+              <div className="pt-2 border-t border-[#CFAC64]">
+                <h4 className="font-heading text-base font-bold text-[#00303A] mb-2.5">Color</h4>
                 <div className="flex items-center gap-3 flex-wrap">
                   {colorOptions.map((col) => {
                     const isSelected = selectedColor === col.name;
@@ -1728,17 +1777,17 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                         key={col.name}
                         onClick={() => setSelectedColor(isSelected ? '' : col.name)}
                         className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                          isSelected ? 'ring-2 ring-[#4A3525] scale-110' : ''
+                          isSelected ? 'ring-2 ring-[#024F5F] scale-110' : ''
                         }`}
                         style={{
                           backgroundColor: col.hex,
-                          border: col.border ? '1px solid #D5C8B8' : 'none',
+                          border: col.border ? '1px solid #CFAC64' : 'none',
                         }}
                       >
                         {isSelected && (
                           <Check
                             className={`w-3.5 h-3.5 ${
-                              col.name === 'White' ? 'text-black' : 'text-white'
+                              col.border ? 'text-[#00303A]' : 'text-white'
                             }`}
                           />
                         )}
@@ -1747,62 +1796,68 @@ export default function ShopPageClient({ products, categories }: { products: Pro
                   })}
                 </div>
               </div>
+              )}
 
               {/* Occasion */}
-              <div className="pt-2 border-t border-[#E8DFD5]">
-                <h4 className="font-heading text-base font-bold text-[#2B231D] mb-2.5">Occasion</h4>
+              {occasionOptions.length > 0 && (
+              <div className="pt-2 border-t border-[#CFAC64]">
+                <h4 className="font-heading text-base font-bold text-[#00303A] mb-2.5">Occasion</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {occasionOptions.map((occ) => (
                     <label
                       key={occ}
-                      className="flex items-center gap-2 text-xs text-[#2B231D] cursor-pointer"
+                      className="flex items-center gap-2 text-xs text-[#00303A] cursor-pointer"
                     >
                       <input
                         type="checkbox"
                         checked={selectedOccasions.includes(occ)}
                         onChange={() => toggleOccasion(occ)}
-                        className="accent-[#4A3525]"
+                        className="accent-[#024F5F]"
                       />
                       <span>{occ}</span>
                     </label>
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Fabric */}
-              <div className="pt-2 border-t border-[#E8DFD5]">
-                <h4 className="font-heading text-base font-bold text-[#2B231D] mb-2.5">Fabric</h4>
+              {fabricOptions.length > 0 && (
+              <div className="pt-2 border-t border-[#CFAC64]">
+                <h4 className="font-heading text-base font-bold text-[#00303A] mb-2.5">Fabric</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {fabricOptions.map((fab) => (
                     <label
                       key={fab}
-                      className="flex items-center gap-2 text-xs text-[#2B231D] cursor-pointer"
+                      className="flex items-center gap-2 text-xs text-[#00303A] cursor-pointer"
                     >
                       <input
                         type="checkbox"
                         checked={selectedFabrics.includes(fab)}
                         onChange={() => toggleFabric(fab)}
-                        className="accent-[#4A3525]"
+                        className="accent-[#024F5F]"
                       />
                       <span>{fab}</span>
                     </label>
                   ))}
                 </div>
               </div>
+              )}
+
 
             </div>
 
             {/* Bottom Actions */}
-            <div className="p-3.5 border-t border-[#E8DFD5] bg-white space-y-2 sticky bottom-0 z-20 rounded-br-2xl">
+            <div className="p-3.5 border-t border-[#CFAC64] bg-white space-y-2 sticky bottom-0 z-20 rounded-br-2xl">
               <button
                 onClick={() => setIsMobileFilterOpen(false)}
-                className="w-full bg-[#4A3525] text-white py-3 rounded-lg text-sm font-semibold shadow-md active:scale-98"
+                className="w-full bg-[#CFAC64] text-white py-3 rounded-lg text-sm font-semibold shadow-md active:scale-98"
               >
                 View Results ({filteredProducts.length})
               </button>
               <button
                 onClick={clearAllFilters}
-                className="w-full bg-[#F2ECE3] text-[#7A6F66] hover:text-[#2B231D] py-2 rounded-lg text-xs font-semibold"
+                className="w-full bg-[#F6F1EC] text-[#024F5F] hover:text-[#00303A] py-2 rounded-lg text-xs font-semibold"
               >
                 Reset All Filters
               </button>

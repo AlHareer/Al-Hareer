@@ -120,7 +120,7 @@ export default function HomeSettingsForm({ settings }: { settings: SiteSettingsD
         </p>
         <div className="flex shrink-0 items-center gap-3">
           {saved && (
-            <span className={`flex items-center gap-1.5 text-xs font-semibold ${saved.success ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`flex items-center gap-1.5 text-xs font-semibold ${saved.success ? 'text-[#024F5F]' : 'text-[#024F5F]'}`}>
               {saved.success ? (
                 <><Check className="h-3.5 w-3.5" /> Saved</>
               ) : (
@@ -500,7 +500,7 @@ export default function HomeSettingsForm({ settings }: { settings: SiteSettingsD
                 <button
                   type="button"
                   onClick={() => removeKurtaStyle(idx)}
-                  className="text-[11px] text-red-500 hover:text-red-700 font-semibold transition-colors"
+                  className="text-[11px] text-[#024F5F] hover:text-[#024F5F] font-semibold transition-colors"
                 >
                   Remove
                 </button>
@@ -589,7 +589,7 @@ export default function HomeSettingsForm({ settings }: { settings: SiteSettingsD
                 <button
                   type="button"
                   onClick={() => removeOccasionCard(idx)}
-                  className="text-[11px] text-red-500 hover:text-red-700 font-semibold transition-colors"
+                  className="text-[11px] text-[#024F5F] hover:text-[#024F5F] font-semibold transition-colors"
                 >
                   Remove
                 </button>
@@ -667,6 +667,48 @@ export default function HomeSettingsForm({ settings }: { settings: SiteSettingsD
           ))}
         </div>
         <p className="text-xs text-muted pt-1">Social media links (Instagram, Facebook, YouTube, WhatsApp) are managed in <strong>Settings → Brand &amp; Contact</strong>.</p>
+      </div>
+
+      {/* Product Page */}
+      <div className={sectionClass}>
+        <h3 className={sectionHeadingClass}>Product Page — Shipping &amp; Returns</h3>
+        <div>
+          <label className={labelClass}>Shipping &amp; Returns tab (one point per line)</label>
+          <textarea
+            value={values.product_shipping_returns ?? ''}
+            onChange={(e) => handleChange('product_shipping_returns', e.target.value)}
+            rows={5}
+            className={inputClass}
+          />
+          <p className="text-xs text-muted pt-1">Shown on every product's page. Leave empty to hide the tab.</p>
+        </div>
+      </div>
+
+      {/* Policy Pages */}
+      <div className={sectionClass}>
+        <h3 className={sectionHeadingClass}>Policy Pages (footer links)</h3>
+        <p className="text-xs text-muted -mt-1">
+          Use <code>## Heading</code> for a heading and a blank line between paragraphs. A page with no text is hidden
+          and its footer link disappears. Please review the starter text and adjust it to your real policies.
+        </p>
+        <div className="space-y-5">
+          {[
+            { key: 'policy_shipping', label: 'Shipping & Handling' },
+            { key: 'policy_returns', label: 'Returns & Exchanges' },
+            { key: 'policy_privacy', label: 'Privacy Policy' },
+            { key: 'policy_terms', label: 'Terms of Service' },
+          ].map((f) => (
+            <div key={f.key}>
+              <label className={labelClass}>{f.label}</label>
+              <textarea
+                value={values[f.key] ?? ''}
+                onChange={(e) => handleChange(f.key, e.target.value)}
+                rows={9}
+                className={inputClass}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Newsletter */}

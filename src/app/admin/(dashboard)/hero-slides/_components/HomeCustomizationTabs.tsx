@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { GalleryHorizontal, Type, BookOpen, Feather } from 'lucide-react';
+import { GalleryHorizontal, Type } from 'lucide-react';
 
 const TABS = [
-  { id: 'hero',    label: 'Hero Slides',  icon: GalleryHorizontal },
-  { id: 'home',    label: 'Home Text',    icon: Type              },
-  { id: 'about',   label: 'About Us',     icon: BookOpen          },
-  { id: 'story',   label: 'Our Story',    icon: Feather           },
+  { id: 'hero', label: 'Hero Slides', icon: GalleryHorizontal },
+  { id: 'home', label: 'Home Text',   icon: Type              },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -15,13 +13,9 @@ type TabId = (typeof TABS)[number]['id'];
 export default function HomeCustomizationTabs({
   heroSlidesTab,
   settingsTab,
-  aboutTab,
-  storyTab,
 }: {
   heroSlidesTab: ReactNode;
   settingsTab:   ReactNode;
-  aboutTab:      ReactNode;
-  storyTab:      ReactNode;
 }) {
   const [active, setActive] = useState<TabId>('hero');
 
@@ -46,10 +40,8 @@ export default function HomeCustomizationTabs({
         ))}
       </div>
 
-      {active === 'hero'  && heroSlidesTab}
-      {active === 'home'  && settingsTab}
-      {active === 'about' && aboutTab}
-      {active === 'story' && storyTab}
+      {active === 'hero' && heroSlidesTab}
+      {active === 'home' && settingsTab}
     </div>
   );
 }

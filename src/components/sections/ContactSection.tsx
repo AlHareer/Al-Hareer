@@ -41,14 +41,14 @@ export default function ContactSection({ settings }: { settings: ContentSettings
   };
 
   return (
-    <section id="contact" className="py-10 sm:py-16 md:py-14 bg-cream-100 border-t border-cream-300">
+    <section id="contact" className="py-10 sm:py-16 md:py-14 bg-[#024F5F]">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="tag-pill">— GET IN TOUCH</span>
-          <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-brand-700">
+          <span className="inline-block text-[11px] uppercase tracking-[2.5px] font-semibold text-[#CFAC64] mb-2">— GET IN TOUCH</span>
+          <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-white">
             {settings.home_contact_heading}
           </h2>
-          <p className="text-sm sm:text-base text-muted mt-2">
+          <p className="text-sm sm:text-base text-white/85 mt-2">
             {settings.home_contact_subtitle}
           </p>
         </div>
@@ -140,7 +140,7 @@ export default function ContactSection({ settings }: { settings: ContentSettings
                     href={settings.instagram_url || 'https://instagram.com'}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-[#B08F4F] hover:text-white transition-all shadow-sm"
                     aria-label="Instagram"
                   >
                     <InstagramIcon className="w-4 h-4" />
@@ -151,7 +151,7 @@ export default function ContactSection({ settings }: { settings: ContentSettings
                     href={settings.facebook_url || 'https://facebook.com'}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-[#B08F4F] hover:text-white transition-all shadow-sm"
                     aria-label="Facebook"
                   >
                     <FacebookIcon className="w-4 h-4" />
@@ -162,7 +162,7 @@ export default function ContactSection({ settings }: { settings: ContentSettings
                     href={settings.youtube_url || 'https://youtube.com'}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                    className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-[#B08F4F] hover:text-white transition-all shadow-sm"
                     aria-label="YouTube"
                   >
                     <YoutubeIcon className="w-4 h-4" />
@@ -172,7 +172,7 @@ export default function ContactSection({ settings }: { settings: ContentSettings
                   href={`https://wa.me/${settings.whatsapp_number || `91${settings.home_contact_phone?.replace(/\D/g, '').slice(-10)}`}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                  className="w-9 h-9 rounded-full bg-white border border-cream-300 flex items-center justify-center text-brand-700 hover:bg-[#B08F4F] hover:text-white transition-all shadow-sm"
                   aria-label="WhatsApp"
                 >
                   <WhatsAppIcon className="w-4 h-4" />

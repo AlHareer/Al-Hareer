@@ -1,4 +1,4 @@
-import Image from 'next/image';
+﻿import Image from 'next/image';
 
 const LOGO_FILE = '/logo.png'; // drop logo.png into /public/ to activate image mode
 const USE_IMAGE = true;        // logo.png is in /public/
@@ -35,12 +35,12 @@ export default function BrandLogo({ size = 'md', className = '' }: Props) {
   return (
     <div className={`flex flex-col select-none tracking-widest ${className}`}>
       <span
-        className={`font-heading ${textSizes.heading} font-bold tracking-[0.22em] text-[#2B231D] group-hover:text-[#4A3525] transition-colors leading-tight`}
+        className={`font-heading ${textSizes.heading} font-bold tracking-[0.22em] text-[#00303A] group-hover:text-[#024F5F] transition-colors leading-tight`}
       >
         AL HAREER
       </span>
       <span
-        className={`${textSizes.sub} uppercase tracking-[0.38em] text-[#7A6F66] font-medium ${textSizes.gap}`}
+        className={`${textSizes.sub} uppercase tracking-[0.38em] text-[#024F5F] font-medium ${textSizes.gap}`}
       >
         TRADITION IN STYLE
       </span>

@@ -42,12 +42,14 @@ export default function ImageUploader({
     setError(null);
     setUploading(true);
     try {
-      const authRes = await fetch('/api/imagekit/auth');
-      if (!authRes.ok) throw new Error('Not authorized to upload');
-      const auth = await authRes.json();
-
       const uploaded: string[] = [];
       for (const file of Array.from(files)) {
+        // ImageKit rejects a token that was already used, so every file needs
+        // its own fresh signed credentials (not one fetch shared by the batch).
+        const authRes = await fetch('/api/imagekit/auth', { cache: 'no-store' });
+        if (!authRes.ok) throw new Error('Not authorized to upload');
+        const auth = await authRes.json();
+
         const result = await upload({
           file,
           fileName: file.name,
@@ -100,7 +102,7 @@ export default function ImageUploader({
             <button
               type="button"
               onClick={() => removeAt(idx)}
-              className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"
+              className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#00303A]/60 text-white"
             >
               <X className="h-3 w-3" />
             </button>
@@ -111,7 +113,7 @@ export default function ImageUploader({
                 disabled={idx === 0}
                 title={idx === 0 ? 'Cover image' : 'Set as cover image'}
                 className={`absolute bottom-1 left-1 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm ${
-                  idx === 0 ? 'bg-gold text-brand-900' : 'bg-black/60 text-white/80 hover:text-gold'
+                  idx === 0 ? 'bg-gold text-brand-900' : 'bg-[#00303A]/60 text-white/80 hover:text-gold'
                 }`}
               >
                 <Star className={`h-2.5 w-2.5 ${idx === 0 ? 'fill-brand-900' : ''}`} />
@@ -141,7 +143,7 @@ export default function ImageUploader({
           onChange={(e) => handleFiles(e.target.files)}
         />
       </div>
-      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-[#024F5F]">{error}</p>}
     </div>
   );
 }

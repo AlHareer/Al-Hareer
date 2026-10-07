@@ -34,8 +34,8 @@ export default function HeroSlideForm({ slide }: { slide?: HeroSlide }) {
       <input type="hidden" name="is_active" value={isActive ? 'on' : 'off'} />
 
       {state?.error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
-          <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
+        <div className="flex items-center gap-2 rounded-lg border border-[#CFAC64] bg-[#F6F1EC] p-3.5 text-sm text-[#024F5F]">
+          <span className="h-2 w-2 rounded-full bg-[#024F5F] shrink-0" />
           {state.error}
         </div>
       )}
@@ -90,13 +90,13 @@ export default function HeroSlideForm({ slide }: { slide?: HeroSlide }) {
               <span
                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
                   isActive
-                    ? 'bg-emerald-100/80 text-emerald-800'
-                    : 'bg-stone-200/70 text-stone-600'
+                    ? 'bg-[#F6F1EC]/80 text-[#024F5F]'
+                    : 'bg-[#F6F1EC]/70 text-[#024F5F]'
                 }`}
               >
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    isActive ? 'bg-emerald-600 animate-pulse' : 'bg-stone-400'
+                    isActive ? 'bg-[#024F5F] animate-pulse' : 'bg-[#F6F1EC]'
                   }`}
                 />
                 {isActive ? 'Live on Storefront' : 'Draft'}
@@ -115,7 +115,7 @@ export default function HeroSlideForm({ slide }: { slide?: HeroSlide }) {
             aria-checked={isActive}
             onClick={() => setIsActive((v) => !v)}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-              isActive ? 'bg-emerald-600' : 'bg-stone-300'
+              isActive ? 'bg-[#024F5F]' : 'bg-[#F6F1EC]'
             }`}
           >
             <span

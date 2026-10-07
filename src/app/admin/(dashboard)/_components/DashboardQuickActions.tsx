@@ -36,9 +36,9 @@ export default function DashboardQuickActions({
       desc: 'View & update orders',
       href: '/admin/orders',
       icon: ShoppingCart,
-      color: 'bg-blue-50 text-blue-700 border border-blue-200',
+      color: 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]',
       badge: processingOrders > 0 ? `${processingOrders}` : null,
-      badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
+      badgeColor: 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]',
     },
     {
       title: 'Reviews',
@@ -56,14 +56,14 @@ export default function DashboardQuickActions({
       icon: MessageSquare,
       color: 'bg-cream-100 text-brand-700 border border-cream-300',
       badge: unresolvedInquiries > 0 ? `${unresolvedInquiries}` : null,
-      badgeColor: 'bg-red-100 text-red-700 border-red-200',
+      badgeColor: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]',
     },
     {
       title: 'Coupons',
       desc: 'Discount codes',
       href: '/admin/settings/coupons',
       icon: Tag,
-      color: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      color: 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]',
       badge: null,
     },
     {
@@ -71,7 +71,7 @@ export default function DashboardQuickActions({
       desc: 'Delivery & COD rates',
       href: '/admin/settings/shipping',
       icon: Truck,
-      color: 'bg-purple-50 text-purple-700 border border-purple-200',
+      color: 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]',
       badge: null,
     },
     {

@@ -34,13 +34,13 @@ export default function AdminHeader({ adminName }: { adminName?: string }) {
         <div className="h-8 w-px bg-cream-300 hidden sm:block" />
 
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#CFAC64] text-sm font-semibold text-white">
             {initial}
           </div>
           <form action={adminLogout}>
             <button
               type="submit"
-              className="flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 transition-all hover:bg-red-100"
+              className="flex items-center gap-1.5 rounded-full border border-[#CFAC64] bg-[#F6F1EC] px-4 py-1.5 text-xs font-semibold text-[#024F5F] transition-all hover:bg-[#F6F1EC]"
             >
               <LogOut className="h-3.5 w-3.5" /> Log Out
             </button>

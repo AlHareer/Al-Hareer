@@ -192,9 +192,9 @@ export default function ProductList({ products }: ProductListProps) {
                     : formatPrice(p.minPrice);
 
               const stockBadgeClass = p.outOfStock
-                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
                 : p.lowStock
-                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  ? 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
                   : 'bg-cream-100 text-brand-700 border-cream-300';
 
               return (
@@ -224,7 +224,7 @@ export default function ProductList({ products }: ProductListProps) {
                       onClick={() => handleToggleStatus(p.id, p.is_active)}
                       disabled={togglingId === p.id}
                       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border shrink-0 transition-all ${
-                        p.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-cream-100 text-muted border-cream-300'
+                        p.is_active ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]' : 'bg-cream-100 text-muted border-cream-300'
                       }`}
                     >
                       {p.is_active ? 'Active' : 'Hidden'}
@@ -262,7 +262,7 @@ export default function ProductList({ products }: ProductListProps) {
                         onClick={() => handleDelete(p.id)}
                         disabled={deletingId === p.id}
                         className={`p-1.5 transition-all ${
-                          confirmDeleteId === p.id ? 'text-rose-600 font-bold text-xs' : 'text-muted hover:text-rose-600'
+                          confirmDeleteId === p.id ? 'text-[#024F5F] font-bold text-xs' : 'text-muted hover:text-[#024F5F]'
                         }`}
                         title={confirmDeleteId === p.id ? 'Click to confirm' : 'Delete'}
                       >
@@ -298,9 +298,9 @@ export default function ProductList({ products }: ProductListProps) {
                         : formatPrice(p.minPrice);
 
                   const stockBadgeClass = p.outOfStock
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
                     : p.lowStock
-                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      ? 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
                       : 'bg-cream-100 text-brand-700 border-cream-300';
 
                   return (
@@ -347,12 +347,12 @@ export default function ProductList({ products }: ProductListProps) {
                           disabled={togglingId === p.id}
                           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border transition-all ${
                             p.is_active
-                              ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                              ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64] hover:bg-[#F6F1EC]'
                               : 'bg-cream-100 text-muted border-cream-300 hover:bg-cream-200'
                           }`}
                           title="Click to toggle status"
                         >
-                          {p.is_active ? <Eye className="h-3 w-3 text-green-600" /> : <EyeOff className="h-3 w-3" />}
+                          {p.is_active ? <Eye className="h-3 w-3 text-[#024F5F]" /> : <EyeOff className="h-3 w-3" />}
                           <span>{p.is_active ? 'Active' : 'Hidden'}</span>
                         </button>
                       </td>
@@ -382,8 +382,8 @@ export default function ProductList({ products }: ProductListProps) {
                             disabled={deletingId === p.id}
                             className={`rounded-lg p-2 transition-all ${
                               confirmDeleteId === p.id
-                                ? 'bg-rose-50 text-rose-600 font-bold text-xs px-2'
-                                : 'text-muted hover:text-rose-500 hover:bg-rose-50'
+                                ? 'bg-[#F6F1EC] text-[#024F5F] font-bold text-xs px-2'
+                                : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
                             }`}
                             title={confirmDeleteId === p.id ? 'Click to confirm delete' : 'Delete'}
                           >

@@ -33,16 +33,19 @@ import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
 import type { ProductReview } from '@/lib/reviews';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { getColorGallery, getVariantPricing } from '@/lib/products';
 import { submitReview } from '@/actions/reviews';
 
 export default function ProductDetailClient({
   product,
   relatedProducts,
   reviews,
+  shippingPolicy,
 }: {
   product: Product;
   relatedProducts: Product[];
   reviews: ProductReview[];
+  shippingPolicy: string;
 }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -50,14 +53,31 @@ export default function ProductDetailClient({
   const { user, isLoggedIn } = useAuth();
   const shipping = useShippingSettings();
 
-  // Gallery list: images from product or default to single image
-  const galleryImages = product.images && product.images.length > 0
-    ? product.images
-    : [product.image, '/images/shopby/heritage-fabric.jpg'];
-
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [videoActive, setVideoActive] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>(product.colors[0]?.name || '');
+
+  // Gallery list: the selected color's own photo set (picked in the admin
+  // color gallery mapping), else the product's general gallery, else the
+  // single default image. Switching color swaps the whole thumbnail strip.
+  const colorGallery = getColorGallery(product, selectedColor);
+  const galleryImages = colorGallery.length > 0 ? colorGallery : [product.image];
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+    setVideoActive(false);
+  }, [selectedColor]);
+
+  // If the customer picked a color swatch on the shop/featured card before
+  // clicking through, honor that choice here instead of resetting to the
+  // product's first color.
+  useEffect(() => {
+    const requestedColor = new URLSearchParams(window.location.search).get('color');
+    if (requestedColor && product.colors.some((c) => c.name === requestedColor)) {
+      setSelectedColor(requestedColor);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
   const firstAvailableSize = product.sizes.find((s) => !product.sizesOutOfStock?.includes(s)) ?? product.sizes[0] ?? 'S';
   const [selectedSize, setSelectedSize] = useState<string>(firstAvailableSize);
   const [quantity, setQuantity] = useState<number>(1);
@@ -102,12 +122,44 @@ export default function ProductDetailClient({
   const isWishlisted = isInWishlist(product.id);
 
   // Dynamic price: show the price for the currently selected size (falls back to overall product price)
-  const currentVariantPrice = product.variantPrices?.find((v) => v.size === selectedSize);
-  const displayPrice = currentVariantPrice?.price ?? product.price;
-  const displayOriginalPrice = currentVariantPrice?.originalPrice ?? product.originalPrice;
-  const discountPercent = displayOriginalPrice
-    ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100)
-    : 22;
+  const currentPricing = getVariantPricing(product, selectedSize, selectedColor);
+  const displayPrice = currentPricing.price;
+  const displayOriginalPrice = currentPricing.originalPrice;
+  // A size is unavailable for the chosen color when that exact combination has no stock
+  // (or doesn't exist). Products without per-color rows keep the old per-size check.
+  const isSizeSoldOut = (size: string) => {
+    if (!product.variants?.length) return product.sizesOutOfStock?.includes(size) ?? false;
+    const row = product.variants.find((v) => v.size === size && (v.color || '') === (selectedColor || ''));
+    return !row || row.stock <= 0;
+  };
+
+  // Switching color can leave the chosen size unavailable in that color; move to one that is.
+  useEffect(() => {
+    if (!isSizeSoldOut(selectedSize)) return;
+    const next = product.sizes.find((s) => !isSizeSoldOut(s));
+    if (next) setSelectedSize(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedColor]);
+  const discountPercent =
+    displayOriginalPrice && displayOriginalPrice > displayPrice
+      ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100)
+      : 0;
+
+  // Everything shown in the detail tabs comes from the product / site settings;
+  // a tab or line with nothing behind it is simply not rendered.
+  const specs = product.details;
+  const sizeChart = (specs?.sizeChart ?? []).filter((r) => r.size && (r.chest || r.shoulder || r.length || r.sleeve));
+  const chartColumns = (['chest', 'shoulder', 'length', 'sleeve'] as const).filter((c) => sizeChart.some((r) => r[c]));
+  const policyLines = shippingPolicy.split('\n').map((l) => l.trim()).filter(Boolean);
+  const detailRows: { label: string; value?: string }[] = [
+    { label: 'Fabric', value: specs?.material || product.fabric },
+    { label: 'Color', value: specs?.color || selectedColor },
+    { label: 'Set Includes', value: specs?.setIncludes },
+    { label: 'Work', value: specs?.work },
+    { label: 'Occasion', value: specs?.occasion },
+    { label: 'Fit', value: specs?.fit },
+  ].filter((r) => r.value && r.value.trim());
+  const detailImage = galleryImages[1] ?? galleryImages[0];
 
   const [showStickyBar, setShowStickyBar] = useState<boolean>(false);
 
@@ -203,7 +255,7 @@ export default function ProductDetailClient({
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#FAF6F0] text-brand-700 selection:bg-brand-500 selection:text-white">
+    <main className="min-h-screen flex flex-col bg-[#F6F1EC] text-brand-700 selection:bg-brand-500 selection:text-white">
       <Navbar />
 
       {/* Main Container */}
@@ -262,7 +314,7 @@ export default function ProductDetailClient({
               {product.videoUrl && (
                 <button
                   onClick={() => setVideoActive(true)}
-                  className={`relative w-14 sm:w-16 md:w-20 h-16 sm:h-20 md:h-24 rounded-[6px] overflow-hidden border-2 transition-all shrink-0 bg-[#1F1813] cursor-pointer flex-shrink-0 ${
+                  className={`relative w-14 sm:w-16 md:w-20 h-16 sm:h-20 md:h-24 rounded-[6px] overflow-hidden border-2 transition-all shrink-0 bg-[#00303A] cursor-pointer flex-shrink-0 ${
                     videoActive
                       ? 'border-brand-700 shadow-md ring-1 ring-brand-700'
                       : 'border-cream-300/80 hover:border-brand-400 opacity-80 hover:opacity-100'
@@ -287,7 +339,7 @@ export default function ProductDetailClient({
               className="relative w-full aspect-[4/5] sm:aspect-[4/5] md:aspect-auto md:flex-1 min-w-0 h-[380px] xs:h-[420px] sm:h-[460px] md:h-[460px] lg:h-[530px] rounded-[10px] overflow-hidden bg-cream-200 border border-cream-300/80 shadow-md group touch-pan-y select-none"
             >
               {videoActive && product.videoUrl ? (
-                <div className="absolute inset-0 bg-black flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#00303A] flex items-center justify-center">
                   {isVideoFile(product.videoUrl) ? (
                     <video
                       src={product.videoUrl}
@@ -308,7 +360,7 @@ export default function ProductDetailClient({
                   )}
                   <button
                     onClick={() => setVideoActive(false)}
-                    className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                    className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-[#00303A]/60 hover:bg-[#00303A]/80 text-white flex items-center justify-center transition-colors"
                     aria-label="Close video"
                   >
                     <X className="w-4 h-4" />
@@ -330,7 +382,7 @@ export default function ProductDetailClient({
                 <>
                   {/* Tag / Trending Badge */}
                   <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-3.5 z-10 pointer-events-none">
-                    <span className="bg-[#3E2B1E] text-[#E0EFE6] text-[9px] sm:text-[10px] font-medium px-2.5 py-1 rounded-[5px] uppercase tracking-wider shadow-md">
+                    <span className="bg-[#00303A] text-[#F6F1EC] text-[9px] sm:text-[10px] font-medium px-2.5 py-1 rounded-[5px] uppercase tracking-wider shadow-md">
                       {product.tag || 'TRENDING'}
                     </span>
                   </div>
@@ -350,7 +402,7 @@ export default function ProductDetailClient({
                     className="md:hidden absolute top-3 right-12 z-10 w-8 h-8 rounded-full bg-white/85 hover:bg-white backdrop-blur-sm flex items-center justify-center shadow-md transition-all cursor-pointer"
                     aria-label="Wishlist"
                   >
-                    <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-brand-700'}`} />
+                    <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-[#024F5F] text-[#024F5F]' : 'text-brand-700'}`} />
                   </button>
 
                   {/* Navigation Arrows */}
@@ -371,7 +423,7 @@ export default function ProductDetailClient({
                   </button>
 
                   {/* Mobile Image Counter Badge */}
-                  <div className="md:hidden absolute bottom-3 right-3 z-10 bg-black/60 backdrop-blur-sm text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full pointer-events-none">
+                  <div className="md:hidden absolute bottom-3 right-3 z-10 bg-[#00303A]/60 backdrop-blur-sm text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full pointer-events-none">
                     {activeImageIndex + 1} / {galleryImages.length}
                   </div>
                 </>
@@ -389,7 +441,7 @@ export default function ProductDetailClient({
                 <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold text-brand-600">
                   {product.category.toUpperCase()} COLLECTION
                 </span>
-                <span className="w-5 h-[1.5px] bg-[#C6B09B]" />
+                <span className="w-5 h-[1.5px] bg-[#CFAC64]" />
               </div>
 
               <h1 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold text-brand-700 tracking-tight leading-tight">
@@ -399,14 +451,14 @@ export default function ProductDetailClient({
               {/* Star Rating */}
               {product.reviewCount > 0 && (
                 <div className="flex items-center gap-3 mt-2 text-xs">
-                  <div className="flex items-center gap-1 text-amber-500">
+                  <div className="flex items-center gap-1 text-[#B08F4F]">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         className={`w-3.5 h-3.5 ${
                           i < Math.floor(product.rating)
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'text-amber-300'
+                            ? 'fill-[#CFAC64] text-[#CFAC64]'
+                            : 'text-[#B08F4F]'
                         }`}
                       />
                     ))}
@@ -426,27 +478,29 @@ export default function ProductDetailClient({
               <span className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-800">
                 ₹{displayPrice}
               </span>
-              {displayOriginalPrice && (
-                <span className="text-sm sm:text-base text-muted line-through">
-                  ₹{displayOriginalPrice}
-                </span>
+              {discountPercent > 0 && displayOriginalPrice && (
+                <>
+                  <span className="text-sm sm:text-base text-muted line-through">
+                    ₹{displayOriginalPrice}
+                  </span>
+                  <span className="bg-[#024F5F] text-white text-[11px] font-bold px-2 py-0.5 rounded-[4px] uppercase tracking-wider">
+                    {discountPercent}% OFF
+                  </span>
+                </>
               )}
-              <span className="bg-[#1F5C3B] text-white text-[11px] font-bold px-2 py-0.5 rounded-[4px] uppercase tracking-wider">
-                {discountPercent}% OFF
-              </span>
               <div className="ml-auto text-xs text-right">
-                {product.sizesOutOfStock?.includes(selectedSize) ? (
+                {isSizeSoldOut(selectedSize) ? (
                   <>
-                    <span className="inline-flex items-center gap-1.5 font-bold text-red-600">
-                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="inline-flex items-center gap-1.5 font-bold text-[#024F5F]">
+                      <span className="w-2 h-2 rounded-full bg-[#024F5F]" />
                       Out of Stock
                     </span>
                     <span className="block text-[10px] text-muted">Choose another size</span>
                   </>
                 ) : (
                   <>
-                    <span className="inline-flex items-center gap-1.5 font-bold text-[#1F5C3B]">
-                      <span className="w-2 h-2 rounded-full bg-[#1F5C3B] animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 font-bold text-[#024F5F]">
+                      <span className="w-2 h-2 rounded-full bg-[#024F5F] animate-pulse" />
                       In Stock
                     </span>
                     <span className="block text-[10px] text-muted">Ready to Ship</span>
@@ -476,7 +530,7 @@ export default function ProductDetailClient({
                     aria-label={`Select ${c.name} color`}
                   >
                     <span
-                      className="w-full h-full rounded-full border border-black/15 shadow-inner"
+                      className="w-full h-full rounded-full border border-[#00303A]/15 shadow-inner"
                       style={{ backgroundColor: c.hex }}
                     />
                   </button>
@@ -490,17 +544,19 @@ export default function ProductDetailClient({
                 <span className="font-semibold text-brand-800">
                   Size: <span className="font-normal text-brand-600">{selectedSize}</span>
                 </span>
-                <button
-                  onClick={() => setIsSizeGuideOpen(true)}
-                  className="inline-flex items-center gap-1 text-xs text-brand-600 hover:text-brand-800 underline underline-offset-4 cursor-pointer"
-                >
-                  <Ruler className="w-3.5 h-3.5" /> Size Guide
-                </button>
+                {sizeChart.length > 0 && (
+                  <button
+                    onClick={() => setIsSizeGuideOpen(true)}
+                    className="inline-flex items-center gap-1 text-xs text-brand-600 hover:text-brand-800 underline underline-offset-4 cursor-pointer"
+                  >
+                    <Ruler className="w-3.5 h-3.5" /> Size Guide
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
                 {product.sizes.map((s) => {
-                  const soldOut = product.sizesOutOfStock?.includes(s) ?? false;
+                  const soldOut = isSizeSoldOut(s);
                   return (
                     <button
                       key={s}
@@ -509,7 +565,7 @@ export default function ProductDetailClient({
                       title={soldOut ? 'Out of stock' : undefined}
                       className={`relative min-w-[40px] sm:min-w-[46px] h-9 sm:h-10 px-2.5 rounded-[5px] text-xs font-bold transition-all border ${
                         selectedSize === s
-                          ? 'bg-[#3E2B1E] text-white border-[#3E2B1E] shadow-sm'
+                          ? 'bg-[#00303A] text-white border-[#00303A] shadow-sm'
                           : soldOut
                           ? 'bg-cream-50 text-cream-300 border-cream-200 cursor-not-allowed line-through'
                           : 'bg-white text-brand-700 border-cream-300 hover:border-brand-500'
@@ -548,7 +604,7 @@ export default function ProductDetailClient({
               {/* Add to Bag Button */}
               <button
                 onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#3E2B1E] hover:bg-brand-800 active:scale-[0.99] text-white h-11 sm:h-12 rounded-[5px] font-semibold text-xs sm:text-sm tracking-wide shadow-md transition-all cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] active:scale-[0.99] text-white h-11 sm:h-12 rounded-[5px] font-semibold text-xs sm:text-sm tracking-wide shadow-md transition-all cursor-pointer"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Add to Bag</span>
@@ -559,60 +615,47 @@ export default function ProductDetailClient({
                 onClick={() => toggleWishlist(product)}
                 className={`h-11 sm:h-12 px-3 sm:px-4 rounded-[5px] border flex items-center justify-center gap-1.5 font-semibold text-xs sm:text-sm tracking-wide transition-all shrink-0 cursor-pointer ${
                   isWishlisted
-                    ? 'bg-red-50 border-red-200 text-red-600'
+                    ? 'bg-[#F6F1EC] border-[#CFAC64] text-[#024F5F]'
                     : 'bg-white border-cream-300 text-brand-800 hover:bg-cream-100'
                 }`}
                 title={isWishlisted ? 'Saved in Wishlist' : 'Add to Wishlist'}
                 aria-label="Wishlist"
               >
-                <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+                <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-[#024F5F] text-[#024F5F]' : ''}`} />
                 <span className="hidden sm:inline">{isWishlisted ? 'Wishlisted' : 'Add to Wishlist'}</span>
               </button>
             </div>
 
             {/* Short Description Paragraph */}
-            <p className="text-xs sm:text-sm text-muted leading-relaxed pt-1">
-              {product.description}
-            </p>
+            {product.description && (
+              <p className="text-xs sm:text-sm text-muted leading-relaxed pt-1">
+                {product.description}
+              </p>
+            )}
 
-            {/* 3 Feature Highlight Badges */}
-            <div className="grid grid-cols-3 gap-2 py-3 px-3 rounded-[6px] bg-cream-200/70 border border-cream-300/80">
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-brand-600 shrink-0" />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[11.5px] font-bold text-brand-800 leading-tight">
-                    Fabric
-                  </span>
-                  <span className="text-[9.5px] text-muted truncate">
-                    {product.details?.material || 'Silk-Cotton Blend'}
-                  </span>
-                </div>
+            {/* Highlights - only the ones this product actually has data for */}
+            {(specs?.material || product.fabric || specs?.occasion) && (
+              <div className="grid grid-cols-2 gap-2 py-3 px-3 rounded-[6px] bg-cream-200/70 border border-cream-300/80">
+                {(specs?.material || product.fabric) && (
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-brand-600 shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[11.5px] font-bold text-brand-800 leading-tight">Fabric</span>
+                      <span className="text-[9.5px] text-muted truncate">{specs?.material || product.fabric}</span>
+                    </div>
+                  </div>
+                )}
+                {specs?.occasion && (
+                  <div className="flex items-center gap-2 border-l border-cream-300/80 pl-2">
+                    <Calendar className="w-4 h-4 text-brand-600 shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[11.5px] font-bold text-brand-800 leading-tight">Perfect for</span>
+                      <span className="text-[9.5px] text-muted truncate">{specs.occasion}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              <div className="flex items-center gap-2 border-l border-cream-300/80 pl-2">
-                <Wind className="w-4 h-4 text-brand-600 shrink-0" />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[11.5px] font-bold text-brand-800 leading-tight">
-                    Breathable
-                  </span>
-                  <span className="text-[9.5px] text-muted truncate">
-                    All-Day Comfort
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 border-l border-cream-300/80 pl-2">
-                <Calendar className="w-4 h-4 text-brand-600 shrink-0" />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[11.5px] font-bold text-brand-800 leading-tight">
-                    Perfect for
-                  </span>
-                  <span className="text-[9.5px] text-muted truncate">
-                    {product.details?.occasion || 'Festive Occasions'}
-                  </span>
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Trust Assurance Row */}
             <div className="grid grid-cols-3 gap-2 pt-3 border-t border-cream-300 text-[11.5px] sm:text-[11px] text-muted">
@@ -641,9 +684,9 @@ export default function ProductDetailClient({
           <div className="flex items-center gap-4 sm:gap-8 overflow-x-auto lg:overflow-x-hidden no-scrollbar border-b border-cream-300 pb-3">
             {[
               { id: 'details', label: 'Product Details' },
-              { id: 'care', label: 'Fabric & Care' },
-              { id: 'sizing', label: 'Size Guide' },
-              { id: 'shipping', label: 'Shipping & Returns' },
+              ...(specs?.care ? [{ id: 'care', label: 'Fabric & Care' }] : []),
+              ...(sizeChart.length > 0 ? [{ id: 'sizing', label: 'Size Guide' }] : []),
+              ...(policyLines.length > 0 ? [{ id: 'shipping', label: 'Shipping & Returns' }] : []),
               ...(product.faqs && product.faqs.length > 0 ? [{ id: 'qa', label: 'Questions & Answers' }] : []),
               { id: 'reviews', label: `Reviews (${product.reviewCount})` },
             ].map((tab) => (
@@ -658,7 +701,7 @@ export default function ProductDetailClient({
               >
                 {tab.label}
                 {activeTab === tab.id && (
-                  <span className="absolute bottom-[-13px] left-0 right-0 h-[2.5px] bg-[#3E2B1E] rounded-full" />
+                  <span className="absolute bottom-[-13px] left-0 right-0 h-[2.5px] bg-[#00303A] rounded-full" />
                 )}
               </button>
             ))}
@@ -668,152 +711,88 @@ export default function ProductDetailClient({
           <div className="py-8">
             {activeTab === 'details' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* Left details */}
-                <div className="lg:col-span-7 space-y-4">
+                <div className={`${detailImage ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-4`}>
                   <h3 className="font-heading text-2xl font-bold text-brand-800">
                     Product Details
                   </h3>
-                  <p className="text-sm text-muted leading-relaxed">
-                    {product.description ||
-                      `${product.name} is made for everyday comfort and traditional style, good for both regular wear and special occasions.`}
-                  </p>
+                  {product.description && (
+                    <p className="text-sm text-muted leading-relaxed">{product.description}</p>
+                  )}
 
-                  <ul className="space-y-2.5 pt-2 text-sm text-brand-800">
-                    <li className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
-                      <span><strong>Fabric:</strong> {product.details?.material || product.fabric}</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
-                      <span><strong>Color:</strong> {product.details?.color || selectedColor}</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
-                      <span><strong>Set Includes:</strong> {product.details?.setIncludes || 'Kurta (Bottom not included)'}</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
-                      <span><strong>Work:</strong> {product.details?.work || 'Simple woven texture'}</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
-                      <span><strong>Occasion:</strong> {product.details?.occasion || 'Weddings, Diwali, Festive Gatherings'}</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
-                      <span><strong>Fit:</strong> {product.details?.fit || 'Regular Fit'}</span>
-                    </li>
-                  </ul>
+                  {detailRows.length > 0 && (
+                    <ul className="space-y-2.5 pt-2 text-sm text-brand-800">
+                      {detailRows.map((row) => (
+                        <li key={row.label} className="flex items-center gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
+                          <span><strong>{row.label}:</strong> {row.value}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
-                {/* Right Macro Fabric Close-up */}
-                <div className="lg:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden border border-cream-300 shadow-md group">
-                  <Image
-                    src="/images/shopby/heritage-fabric.jpg"
-                    alt="Fabric weave macro texture"
-                    fill
-                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-brand-800 shadow">
-                    <Plus className="w-4 h-4" />
+                {detailImage && (
+                  <div className="lg:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden border border-cream-300 shadow-md group">
+                    <Image
+                      src={detailImage}
+                      alt={product.name}
+                      fill
+                      className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-brand-800 shadow">
+                      <Plus className="w-4 h-4" />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
-            {activeTab === 'care' && (
+            {activeTab === 'care' && specs?.care && (
               <div className="max-w-2xl space-y-4 text-sm text-muted">
                 <h3 className="font-heading text-2xl font-bold text-brand-800">
                   Fabric & Care Instructions
                 </h3>
-                <p>
-                  {product.details?.care || 'Dry clean is recommended to keep the fabric and embroidery in good condition.'}
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                  <div className="p-3 bg-cream-200 rounded-lg text-center font-medium text-xs text-brand-800">
-                    Dry Clean Recommended
-                  </div>
-                  <div className="p-3 bg-cream-200 rounded-lg text-center font-medium text-xs text-brand-800">
-                    Iron On Low Heat
-                  </div>
-                  <div className="p-3 bg-cream-200 rounded-lg text-center font-medium text-xs text-brand-800">
-                    Do Not Bleach
-                  </div>
-                  <div className="p-3 bg-cream-200 rounded-lg text-center font-medium text-xs text-brand-800">
-                    Store in Cotton Bag
-                  </div>
-                </div>
+                <p className="whitespace-pre-line">{specs.care}</p>
               </div>
             )}
 
-            {activeTab === 'sizing' && (
+            {activeTab === 'sizing' && sizeChart.length > 0 && (
               <div className="max-w-3xl space-y-4">
-                <h3 className="font-heading text-2xl font-bold text-brand-800">
-                  Standard Size Chart (Inches)
-                </h3>
+                <h3 className="font-heading text-2xl font-bold text-brand-800">Size Chart</h3>
                 <div className="overflow-x-auto border border-cream-300 rounded-xl bg-white">
                   <table className="w-full text-xs text-left">
                     <thead className="bg-cream-200 text-brand-800 uppercase font-bold text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3">Size</th>
-                        <th className="p-3">Chest</th>
-                        <th className="p-3">Shoulder</th>
-                        <th className="p-3">Length</th>
-                        <th className="p-3">Sleeve</th>
+                        {chartColumns.map((c) => (
+                          <th key={c} className="p-3 capitalize">{c}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-cream-200 text-brand-700">
-                      <tr>
-                        <td className="p-3 font-bold">S</td>
-                        <td className="p-3">38"</td>
-                        <td className="p-3">17.5"</td>
-                        <td className="p-3">40"</td>
-                        <td className="p-3">24.5"</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-bold">M</td>
-                        <td className="p-3">40"</td>
-                        <td className="p-3">18"</td>
-                        <td className="p-3">42"</td>
-                        <td className="p-3">25"</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-bold">L</td>
-                        <td className="p-3">42"</td>
-                        <td className="p-3">18.5"</td>
-                        <td className="p-3">44"</td>
-                        <td className="p-3">25.5"</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-bold">XL</td>
-                        <td className="p-3">44"</td>
-                        <td className="p-3">19"</td>
-                        <td className="p-3">46"</td>
-                        <td className="p-3">26"</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-bold">XXL</td>
-                        <td className="p-3">46"</td>
-                        <td className="p-3">19.5"</td>
-                        <td className="p-3">48"</td>
-                        <td className="p-3">26.5"</td>
-                      </tr>
+                      {sizeChart.map((row) => (
+                        <tr key={row.size}>
+                          <td className="p-3 font-bold">{row.size}</td>
+                          {chartColumns.map((c) => (
+                            <td key={c} className="p-3">{row[c] || '-'}</td>
+                          ))}
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
             )}
 
-            {activeTab === 'shipping' && (
+            {activeTab === 'shipping' && policyLines.length > 0 && (
               <div className="max-w-2xl space-y-4 text-sm text-muted">
                 <h3 className="font-heading text-2xl font-bold text-brand-800">
                   Shipping & Return Policy
                 </h3>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li>Dispatched within 24-48 hours.</li>
-                  <li>Standard delivery in 3-5 business days across India.</li>
-                  <li>Express next-day delivery available in select metro cities.</li>
-                  <li>Hassle-free 7-day exchange and returns from delivery date.</li>
+                  {policyLines.map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -856,7 +835,7 @@ export default function ProductDetailClient({
                       <div className="flex items-center gap-2 mt-1.5 text-sm">
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'fill-amber-400 text-amber-400' : 'text-amber-300'}`} />
+                            <Star key={i} className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'fill-[#CFAC64] text-[#CFAC64]' : 'text-[#B08F4F]'}`} />
                           ))}
                         </div>
                         <span className="font-bold text-brand-800">{product.rating} / 5</span>
@@ -869,7 +848,7 @@ export default function ProductDetailClient({
                   {!isLoggedIn && (
                     <a
                       href="/account"
-                      className="inline-flex items-center gap-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white px-4 py-2.5 text-xs font-semibold transition-all shadow-sm"
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-4 py-2.5 text-xs font-semibold transition-all shadow-sm"
                     >
                       Sign in to Write a Review
                     </a>
@@ -897,7 +876,7 @@ export default function ProductDetailClient({
                               <Star
                                 className={`w-7 h-7 transition-colors ${
                                   star <= (reviewHover || reviewRating)
-                                    ? 'fill-amber-400 text-amber-400'
+                                    ? 'fill-[#CFAC64] text-[#CFAC64]'
                                     : 'text-cream-400 fill-cream-200'
                                 }`}
                               />
@@ -928,7 +907,7 @@ export default function ProductDetailClient({
                       <button
                         type="submit"
                         disabled={reviewSubmitting || reviewText.trim().length < 10}
-                        className="inline-flex items-center gap-2 bg-brand-700 hover:bg-brand-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                       >
                         {reviewSubmitting ? (
                           <>
@@ -945,7 +924,7 @@ export default function ProductDetailClient({
 
                 {/* Thank you message after submission */}
                 {reviewSubmitted && (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800 font-semibold">
+                  <div className="rounded-2xl border border-[#CFAC64] bg-[#F6F1EC] px-5 py-4 text-sm text-[#024F5F] font-semibold">
                     Thank you! Your review has been submitted and will appear after admin approval.
                   </div>
                 )}
@@ -972,9 +951,9 @@ export default function ProductDetailClient({
                             </div>
                             <span className="text-[11px] text-muted shrink-0">{review.createdAt}</span>
                           </div>
-                          <div className="flex text-amber-400 mb-2">
+                          <div className="flex text-[#CFAC64] mb-2">
                             {[...Array(5)].map((_, i) => (
-                              <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-cream-300'}`} />
+                              <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-[#CFAC64] text-[#CFAC64]' : 'text-cream-300'}`} />
                             ))}
                           </div>
                           {review.reviewText && (
@@ -1034,7 +1013,7 @@ export default function ProductDetailClient({
                 >
                   {/* Product Image Container */}
                   <div className="relative aspect-[4/4.8] lg:aspect-[4/4.1] bg-cream-200 overflow-hidden">
-                    <Link href={`/product/${rel.id}`} className="block w-full h-full">
+                    <Link href={currentSelectedColor ? `/product/${rel.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${rel.id}`} className="block w-full h-full">
                       <Image
                         src={currentImage}
                         alt={rel.name}
@@ -1059,12 +1038,12 @@ export default function ProductDetailClient({
                       }}
                       className={`absolute top-2 right-2 sm:top-2.5 sm:right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all shadow-md z-10 ${
                         isRelWishlisted
-                          ? 'bg-white text-red-500 fill-red-500'
-                          : 'bg-white/90 text-brand-700 hover:text-red-500 hover:bg-white'
+                          ? 'bg-white text-[#024F5F] fill-[#024F5F]'
+                          : 'bg-white/90 text-brand-700 hover:text-[#024F5F] hover:bg-white'
                       }`}
                       aria-label="Toggle Wishlist"
                     >
-                      <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRelWishlisted ? 'fill-red-500' : ''}`} />
+                      <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRelWishlisted ? 'fill-[#024F5F]' : ''}`} />
                     </button>
 
                     {/* Quick View & Add to Cart Buttons */}
@@ -1081,7 +1060,7 @@ export default function ProductDetailClient({
                       </button>
                       <button
                         onClick={(e) => handleQuickAddRelated(rel, e)}
-                        className="bg-brand-500 hover:bg-brand-600 active:scale-95 text-white p-1.5 sm:p-2 rounded-[4px] shadow-md transition-all flex items-center justify-center cursor-pointer"
+                        className="bg-[#CFAC64] hover:bg-[#B08F4F] active:scale-95 text-white p-1.5 sm:p-2 rounded-[4px] shadow-md transition-all flex items-center justify-center cursor-pointer"
                         title="Add to Bag"
                         aria-label="Add to Bag"
                       >
@@ -1095,15 +1074,15 @@ export default function ProductDetailClient({
                     <div>
                       {/* Stars */}
                       {rel.reviewCount > 0 && (
-                      <div className="flex items-center gap-1 sm:gap-1.5 text-amber-500 text-xs mb-1">
+                      <div className="flex items-center gap-1 sm:gap-1.5 text-[#B08F4F] text-xs mb-1">
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
                               className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
                                 i < Math.floor(rel.rating)
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'text-amber-300'
+                                  ? 'fill-[#CFAC64] text-[#CFAC64]'
+                                  : 'text-[#B08F4F]'
                               }`}
                             />
                           ))}
@@ -1115,7 +1094,7 @@ export default function ProductDetailClient({
                       )}
 
                       <Link
-                        href={`/product/${rel.id}`}
+                        href={currentSelectedColor ? `/product/${rel.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${rel.id}`}
                         className="font-heading text-sm sm:text-base md:text-lg font-bold text-brand-700 line-clamp-1 hover:text-brand-500 transition-colors block"
                       >
                         {rel.name}
@@ -1167,7 +1146,7 @@ export default function ProductDetailClient({
       </div>
 
       {/* Size Guide Modal */}
-      {isSizeGuideOpen && (
+      {isSizeGuideOpen && sizeChart.length > 0 && (
         <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
           <div
             className="fixed inset-0 bg-brand-900/60 backdrop-blur-sm"
@@ -1182,28 +1161,29 @@ export default function ProductDetailClient({
                 onClick={() => setIsSizeGuideOpen(false)}
                 className="text-muted hover:text-brand-800 text-sm font-bold"
               >
-                ✕
+                x
               </button>
             </div>
-            <div className="py-4 text-xs space-y-3">
-              <p className="text-muted">
-                All measurements are in inches. For a relaxed comfortable fit, choose your exact chest size.
-              </p>
+            <div className="py-4 text-xs">
               <div className="overflow-x-auto border border-cream-300 rounded-lg bg-white">
                 <table className="w-full text-left">
                   <thead className="bg-cream-200 font-bold text-brand-800">
                     <tr>
                       <th className="p-2.5">Size</th>
-                      <th className="p-2.5">Chest</th>
-                      <th className="p-2.5">Length</th>
+                      {chartColumns.map((c) => (
+                        <th key={c} className="p-2.5 capitalize">{c}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-cream-200">
-                    <tr><td className="p-2.5 font-bold">S</td><td className="p-2.5">38"</td><td className="p-2.5">40"</td></tr>
-                    <tr><td className="p-2.5 font-bold">M</td><td className="p-2.5">40"</td><td className="p-2.5">42"</td></tr>
-                    <tr><td className="p-2.5 font-bold">L</td><td className="p-2.5">42"</td><td className="p-2.5">44"</td></tr>
-                    <tr><td className="p-2.5 font-bold">XL</td><td className="p-2.5">44"</td><td className="p-2.5">46"</td></tr>
-                    <tr><td className="p-2.5 font-bold">XXL</td><td className="p-2.5">46"</td><td className="p-2.5">48"</td></tr>
+                    {sizeChart.map((row) => (
+                      <tr key={row.size}>
+                        <td className="p-2.5 font-bold">{row.size}</td>
+                        {chartColumns.map((c) => (
+                          <td key={c} className="p-2.5">{row[c] || '-'}</td>
+                        ))}
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1215,7 +1195,7 @@ export default function ProductDetailClient({
       {/* Fullscreen Image Preview */}
       {isFullscreenImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 z-50 bg-[#00303A]/95 flex items-center justify-center p-4 cursor-zoom-out"
           onClick={() => setIsFullscreenImage(false)}
         >
           <div className="relative max-w-4xl max-h-[90vh] w-full aspect-[3/4]">
@@ -1231,7 +1211,7 @@ export default function ProductDetailClient({
 
       {/* Mobile Sticky Bottom Action Bar (Appears smoothly when scrolling down) */}
       <div
-        className={`md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#FAF6F0]/95 backdrop-blur-md border-t border-cream-300 px-3.5 sm:px-4 py-2.5 shadow-[0_-6px_25px_rgba(0,0,0,0.12)] transition-all duration-300 transform ${
+        className={`md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#F6F1EC]/95 backdrop-blur-md border-t border-cream-300 px-3.5 sm:px-4 py-2.5 shadow-[0_-6px_25px_rgba(0,48,58,0.12)] transition-all duration-300 transform ${
           showStickyBar ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}
       >
@@ -1264,7 +1244,7 @@ export default function ProductDetailClient({
             {/* Add to Bag Button */}
             <button
               onClick={handleAddToCart}
-              className="flex items-center justify-center gap-1.5 bg-[#3E2B1E] hover:bg-brand-800 active:scale-[0.98] text-white h-10 px-3.5 sm:px-4 rounded-[5px] font-semibold text-xs tracking-wide shadow-md transition-all shrink-0 cursor-pointer flex-1
+              className="flex items-center justify-center gap-1.5 bg-[#CFAC64] hover:bg-[#B08F4F] active:scale-[0.98] text-white h-10 px-3.5 sm:px-4 rounded-[5px] font-semibold text-xs tracking-wide shadow-md transition-all shrink-0 cursor-pointer flex-1
               "
             >
               <ShoppingBag className="w-3.5 h-3.5" />
@@ -1277,12 +1257,12 @@ export default function ProductDetailClient({
               onClick={() => toggleWishlist(product)}
               className={`w-10 h-10 rounded-[5px] border flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                 isWishlisted
-                  ? 'bg-red-50 border-red-200 text-red-600'
+                  ? 'bg-[#F6F1EC] border-[#CFAC64] text-[#024F5F]'
                   : 'bg-white border-cream-300 text-brand-800 hover:bg-cream-100'
               }`}
               aria-label="Wishlist"
             >
-              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-[#024F5F] text-[#024F5F]' : ''}`} />
             </button>
           </div>
       </div>

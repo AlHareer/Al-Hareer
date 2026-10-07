@@ -14,12 +14,12 @@ export default function Toast() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-2xl bg-brand-800 text-white border border-brand-700 min-w-[280px] max-w-sm animate-bounce-short transition-all"
+          className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-2xl bg-[#CFAC64] text-white border border-brand-700 min-w-[280px] max-w-sm animate-bounce-short transition-all"
         >
           {toast.type === 'error' ? (
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-[#024F5F] flex-shrink-0" />
           ) : toast.type === 'info' ? (
-            <Info className="w-5 h-5 text-blue-400 flex-shrink-0" />
+            <Info className="w-5 h-5 text-[#024F5F] flex-shrink-0" />
           ) : (
             <CheckCircle2 className="w-5 h-5 text-gold flex-shrink-0" />
           )}

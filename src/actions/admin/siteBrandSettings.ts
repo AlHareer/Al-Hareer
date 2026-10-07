@@ -31,7 +31,12 @@ const DEFAULT_BRAND_SETTINGS: BrandSettings = {
   cod_enabled: {
     value: 'true',
     category: 'checkout',
-    description: 'Allow Cash on Delivery at checkout (COD is the only payment method)',
+    description: 'Allow Cash on Delivery at checkout',
+  },
+  razorpay_enabled: {
+    value: 'true',
+    category: 'checkout',
+    description: 'Allow online payment via Razorpay (UPI/Card/Net Banking) at checkout',
   },
 };
 

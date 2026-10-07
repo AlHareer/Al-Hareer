@@ -4,21 +4,35 @@
 
 @layer base {
   :root {
-    --bg-color: #FAF6F0;
-    --card-bg: #F3ECE1;
-    --text-primary: #2B231D;
-    --text-secondary: #655B53;
-    --accent-brown: #4A3525;
-    --accent-hover: #36261A;
-    --gold: #D4AF37;
+    --bg-color: #F6F1EC;
+    --card-bg: #F6F1EC;
+    --text-primary: #00303A;
+    --text-secondary: #024F5F;
+    --accent-brown: #024F5F;
+    --accent-hover: #00303A;
+    --gold: #CFAC64;
     --white: #FFFFFF;
-    --border-color: #E2D7C7;
+    --border-color: #CFAC64;
   }
 
   html {
+    /* Bumps the root size so every rem-based Tailwind text/spacing utility
+       (text-xs, text-sm, text-base, text-lg, ... and most padding/gap
+       classes) scales up together, site-wide, without editing every file. */
+    font-size: 112.5%; /* 18px base instead of the browser default 16px */
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
     overflow-x: clip;
+  }
+
+  /* Site-wide: every input/textarea placeholder, much lighter than regular
+     text, no matter which placeholder color class an individual field uses
+     (placeholder-[#CFAC64], placeholder:text-muted, etc.) — overrides them
+     all so forms don't need to be edited one by one. */
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(0, 48, 58, 0.32) !important;
+    opacity: 1 !important;
   }
 
   body {
@@ -31,7 +45,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading), 'Montserrat', sans-serif;
+    font-family: var(--font-heading), Georgia, serif;
     color: var(--text-primary);
   }
 
@@ -44,17 +58,17 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #D3C4AF;
+    background: #024F5F;
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #8B6B52;
+    background: #024F5F;
   }
 
   /* Ultra-thin scrollbar utility */
   .thin-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #D3C4AF transparent;
+    scrollbar-color: #024F5F transparent;
   }
   .thin-scrollbar::-webkit-scrollbar {
     height: 3px;
@@ -64,11 +78,11 @@
     background: transparent;
   }
   .thin-scrollbar::-webkit-scrollbar-thumb {
-    background: #D3C4AF;
+    background: #024F5F;
     border-radius: 9999px;
   }
   .thin-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #8B6B52;
+    background: #024F5F;
   }
 
   /* Hide scrollbar when needed */
@@ -85,7 +99,7 @@
   }
 
   .font-serif-luxury {
-    font-family: var(--font-heading), 'Montserrat', sans-serif;
+    font-family: var(--font-heading), Georgia, serif;
   }
 
 }
@@ -104,15 +118,15 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm bg-brand-500 text-white font-medium text-sm transition-all duration-300 hover:bg-brand-600 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 cursor-pointer;
+    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm bg-gold text-white font-semibold text-sm transition-all duration-300 hover:bg-gold-dark hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 cursor-pointer;
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm border border-brand-500 text-brand-500 font-medium text-sm transition-all duration-300 hover:bg-brand-500 hover:text-white cursor-pointer;
+    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm border border-gold text-gold font-semibold text-sm transition-all duration-300 hover:bg-gold hover:text-white cursor-pointer;
   }
 
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm bg-gold text-brand-900 font-semibold text-sm transition-all duration-300 hover:bg-gold-dark hover:text-white hover:-translate-y-0.5 shadow-md cursor-pointer;
+    @apply inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-sm bg-gold text-white font-semibold text-sm transition-all duration-300 hover:bg-gold-dark hover:-translate-y-0.5 shadow-md cursor-pointer;
   }
 
   .tag-pill {
@@ -120,11 +134,28 @@
   }
 
   .glass-header {
-    @apply bg-[#FAF6F0]/95 backdrop-blur-md border-b border-[#E2D7C7]/80;
+    @apply bg-[#F6F1EC]/95 backdrop-blur-md border-b border-[#CFAC64]/80;
+  }
+
+
+  .section-title {
+    @apply font-heading text-3xl sm:text-4xl font-bold text-brand-500 tracking-tight text-center;
+  }
+
+  .section-subtitle {
+    @apply text-sm sm:text-base font-medium text-brand-500 text-center mt-2;
+  }
+
+  .theme-card {
+    @apply bg-cream-100 border border-gold/40 rounded-lg shadow-luxury transition-all duration-300 hover:shadow-luxury-hover hover:-translate-y-0.5;
+  }
+
+  .teal-band {
+    @apply bg-brand-500 text-white;
   }
 
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-[#E2D7C7]/60 shadow-luxury;
+    @apply bg-white/80 backdrop-blur-md border border-[#CFAC64]/60 shadow-luxury;
   }
 }
 
@@ -135,7 +166,7 @@
   }
   body {
     background: #ffffff !important;
-    color: #111827 !important;
+    color: #00303A !important;
     font-size: 11pt !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;

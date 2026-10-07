@@ -13,7 +13,7 @@ export type VariantRow = {
 };
 
 const inputClass =
-  'w-full rounded-xl border border-cream-300 bg-cream-50/70 px-3 py-2 text-xs sm:text-sm text-brand-700 placeholder:text-muted/60 transition-all focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/10';
+  'w-full min-w-0 rounded-xl border border-cream-300 bg-cream-50/70 px-3 py-2 text-xs sm:text-sm text-brand-700 placeholder:text-muted/60 transition-all focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
 
 export const emptyVariant = (name = ''): VariantRow => ({
   variant_name: name,
@@ -71,7 +71,6 @@ export default function VariantsEditor({
 
   return (
     <div className="space-y-3.5">
-      <input type="hidden" name="variants_json" value={JSON.stringify(variants)} />
 
       {/* Header bar with summary & quick presets */}
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-cream-100/60 px-3.5 py-2 text-xs">
@@ -114,42 +113,42 @@ export default function VariantsEditor({
 
       {/* Desktop Table View (>= lg) */}
       <div className="hidden lg:block overflow-hidden rounded-xl border border-cream-200">
-        <table className="w-full text-left text-xs">
+        <table className="w-full table-fixed text-left text-xs">
           <thead className="bg-cream-100/80 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-cream-200">
             <tr>
-              <th className="py-2.5 px-3 w-[18%]">Size / Name *</th>
-              <th className="py-2.5 px-3 w-[22%]">Color &amp; Swatch</th>
-              <th className="py-2.5 px-3 w-[16%]">Selling Price (₹) *</th>
-              <th className="py-2.5 px-3 w-[16%]">Regular Price (₹)</th>
-              <th className="py-2.5 px-3 w-[12%]">Stock *</th>
+              <th className="py-2.5 px-3 w-[10%] whitespace-nowrap">Size *</th>
+              <th className="py-2.5 px-3 w-[19%]">Color &amp; Swatch</th>
+              <th className="py-2.5 px-3 w-[19%]">Selling Price (₹) *</th>
+              <th className="py-2.5 px-3 w-[19%]">Regular Price (₹)</th>
+              <th className="py-2.5 px-3 w-[13%]">Stock *</th>
               <th className="py-2.5 px-3 w-[10%] text-center">Status</th>
-              <th className="py-2.5 px-3 w-[6%] text-right"></th>
+              <th className="py-2.5 px-3 w-[10%] text-right"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-cream-200 bg-white">
             {variants.map((v, i) => (
               <tr key={i} className="hover:bg-cream-50/50 transition-colors">
-                <td className="py-2 px-3">
+                <td className="py-2 pl-3 pr-1.5">
                   <input
                     required
-                    placeholder="e.g. M, 40"
+                    placeholder="M"
                     value={v.variant_name}
                     onChange={(e) => update(i, 'variant_name', e.target.value)}
-                    className={inputClass}
+                    className={`${inputClass} px-2 text-center`}
                   />
                 </td>
                 <td className="py-2 px-3">
                   <div className="flex items-center gap-1.5">
                     <input
-                      placeholder="Color name"
+                      placeholder="Color"
                       value={v.color}
                       onChange={(e) => update(i, 'color', e.target.value)}
-                      className={inputClass}
+                      className={`${inputClass} min-w-0 flex-1`}
                     />
                     <div className="relative shrink-0" title="Click to pick swatch color">
                       <input
                         type="color"
-                        value={/^#[0-9a-f]{6}$/i.test(v.color_hex) ? v.color_hex : '#cccccc'}
+                        value={/^#[0-9a-f]{6}$/i.test(v.color_hex) ? v.color_hex : '#CFAC64'}
                         onChange={(e) => update(i, 'color_hex', e.target.value)}
                         className="h-8 w-8 cursor-pointer rounded-lg border border-cream-300 bg-cream-50 p-0.5 transition-transform hover:scale-105"
                       />
@@ -203,7 +202,7 @@ export default function VariantsEditor({
                     onClick={() => update(i, 'is_active', !v.is_active)}
                     className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
                       v.is_active
-                        ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
+                        ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] hover:bg-[#F6F1EC]'
                         : 'bg-cream-100 text-muted border border-cream-300 hover:bg-cream-200'
                     }`}
                   >
@@ -215,7 +214,7 @@ export default function VariantsEditor({
                   <button
                     type="button"
                     onClick={() => remove(i)}
-                    className="p-1.5 text-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC] rounded-lg transition-colors"
                     title="Remove variant"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -240,7 +239,7 @@ export default function VariantsEditor({
                   type="button"
                   onClick={() => update(i, 'is_active', !v.is_active)}
                   className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all ${
-                    v.is_active ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-cream-100 text-muted border border-cream-300'
+                    v.is_active ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]' : 'bg-cream-100 text-muted border border-cream-300'
                   }`}
                 >
                   {v.is_active ? 'Active' : 'Hidden'}
@@ -248,7 +247,7 @@ export default function VariantsEditor({
                 <button
                   type="button"
                   onClick={() => remove(i)}
-                  className="p-1 text-muted hover:text-red-500 hover:bg-red-50 rounded-md"
+                  className="p-1 text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC] rounded-md"
                   title="Remove variant"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -275,11 +274,11 @@ export default function VariantsEditor({
                     placeholder="Color"
                     value={v.color}
                     onChange={(e) => update(i, 'color', e.target.value)}
-                    className={inputClass}
+                    className={`${inputClass} flex-1`}
                   />
                   <input
                     type="color"
-                    value={/^#[0-9a-f]{6}$/i.test(v.color_hex) ? v.color_hex : '#cccccc'}
+                    value={/^#[0-9a-f]{6}$/i.test(v.color_hex) ? v.color_hex : '#CFAC64'}
                     onChange={(e) => update(i, 'color_hex', e.target.value)}
                     className="h-8 w-8 shrink-0 cursor-pointer rounded-lg border border-cream-300 bg-cream-50 p-0.5"
                   />

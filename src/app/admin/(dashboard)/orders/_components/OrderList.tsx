@@ -19,8 +19,9 @@ import {
   Check,
   Package,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
-import { type OrderListItem, quickUpdateOrderStatus } from '@/actions/admin/orders';
+import { type OrderListItem, quickUpdateOrderStatus, deleteOrder } from '@/actions/admin/orders';
 import { ORDER_STATUSES } from '@/lib/orderConstants';
 
 const STATUS_CONFIG: Record<
@@ -29,26 +30,26 @@ const STATUS_CONFIG: Record<
 > = {
   processing: {
     label: 'Processing',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
-    dotClass: 'bg-amber-500',
+    badgeClass: 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]/80',
+    dotClass: 'bg-[#CFAC64]',
     icon: Clock,
   },
   shipped: {
     label: 'Shipped',
-    badgeClass: 'bg-blue-50 text-blue-800 border-blue-200/80',
-    dotClass: 'bg-blue-500',
+    badgeClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/80',
+    dotClass: 'bg-[#024F5F]',
     icon: Truck,
   },
   delivered: {
     label: 'Delivered',
-    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-    dotClass: 'bg-emerald-500',
+    badgeClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/80',
+    dotClass: 'bg-[#024F5F]',
     icon: CheckCircle2,
   },
   cancelled: {
     label: 'Cancelled',
-    badgeClass: 'bg-rose-50 text-rose-800 border-rose-200/80',
-    dotClass: 'bg-rose-500',
+    badgeClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/80',
+    dotClass: 'bg-[#024F5F]',
     icon: XCircle,
   },
 };
@@ -83,6 +84,7 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'cod' | 'prepaid'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest_amount'>('newest');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   // Counts for filter tabs
@@ -138,6 +140,21 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
     navigator.clipboard.writeText(orderNum);
     setCopiedId(orderNum);
     setTimeout(() => setCopiedId(null), 1800);
+  };
+
+  // Delete an order — click once to arm, click again (within the same render) to confirm.
+  const handleDelete = (e: React.MouseEvent, orderId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirmDeleteId !== orderId) {
+      setConfirmDeleteId(orderId);
+      return;
+    }
+    setConfirmDeleteId(null);
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    startTransition(async () => {
+      await deleteOrder(orderId);
+    });
   };
 
   // Quick inline status updater
@@ -264,11 +281,11 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
               : 'border border-cream-300 bg-white text-brand-700 hover:border-brand-300 hover:bg-cream-50 shadow-2xs'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-amber-500" />
+          <span className="h-2 w-2 rounded-full bg-[#CFAC64]" />
           <span>Processing</span>
           <span
             className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === 'processing' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800'
+              statusFilter === 'processing' ? 'bg-white/25 text-white' : 'bg-[#F6F1EC] text-[#B08F4F]'
             }`}
           >
             {counts.processing}
@@ -283,11 +300,11 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
               : 'border border-cream-300 bg-white text-brand-700 hover:border-brand-300 hover:bg-cream-50 shadow-2xs'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-blue-500" />
+          <span className="h-2 w-2 rounded-full bg-[#024F5F]" />
           <span>Shipped</span>
           <span
             className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === 'shipped' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800'
+              statusFilter === 'shipped' ? 'bg-white/25 text-white' : 'bg-[#F6F1EC] text-[#024F5F]'
             }`}
           >
             {counts.shipped}
@@ -302,11 +319,11 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
               : 'border border-cream-300 bg-white text-brand-700 hover:border-brand-300 hover:bg-cream-50 shadow-2xs'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="h-2 w-2 rounded-full bg-[#024F5F]" />
           <span>Delivered</span>
           <span
             className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === 'delivered' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-800'
+              statusFilter === 'delivered' ? 'bg-white/25 text-white' : 'bg-[#F6F1EC] text-[#024F5F]'
             }`}
           >
             {counts.delivered}
@@ -321,11 +338,11 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
               : 'border border-cream-300 bg-white text-brand-700 hover:border-brand-300 hover:bg-cream-50 shadow-2xs'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-rose-500" />
+          <span className="h-2 w-2 rounded-full bg-[#024F5F]" />
           <span>Cancelled</span>
           <span
             className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === 'cancelled' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-800'
+              statusFilter === 'cancelled' ? 'bg-white/25 text-white' : 'bg-[#F6F1EC] text-[#024F5F]'
             }`}
           >
             {counts.cancelled}
@@ -368,7 +385,7 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
                 setStatusFilter('all');
                 setPaymentFilter('all');
               }}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-luxury hover:bg-brand-600 transition-colors cursor-pointer"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#CFAC64] px-4 py-2 text-xs font-semibold text-white shadow-luxury hover:bg-[#B08F4F] transition-colors cursor-pointer"
             >
               Clear Filters
             </button>
@@ -417,7 +434,7 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
                             title="Copy Order Number"
                           >
                             {copiedId === o.order_number ? (
-                              <Check className="h-3 w-3 text-emerald-600" />
+                              <Check className="h-3 w-3 text-[#024F5F]" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}
@@ -452,8 +469,8 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ${
                             isCOD
-                              ? 'bg-amber-50 text-amber-800 border border-amber-200/60'
-                              : 'bg-emerald-50 text-emerald-800 border border-emerald-200/60'
+                              ? 'bg-[#F6F1EC] text-[#B08F4F] border border-[#CFAC64]/60'
+                              : 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]/60'
                           }`}
                         >
                           {isCOD ? 'COD' : 'Prepaid'}
@@ -483,15 +500,29 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
                         </select>
                       </td>
 
-                      {/* Action: View Details Button */}
+                      {/* Action: View Details + Delete */}
                       <td className="py-3.5 px-4 text-right">
-                        <Link
-                          href={`/admin/orders/${o.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-cream-300 bg-white px-3 py-1.5 text-xs font-semibold text-brand-700 hover:border-brand-500 hover:bg-cream-50 hover:text-brand-600 transition-all shadow-2xs whitespace-nowrap"
-                        >
-                          <Eye className="h-3.5 w-3.5 text-muted" />
-                          <span>View Details</span>
-                        </Link>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/admin/orders/${o.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-cream-300 bg-white px-3 py-1.5 text-xs font-semibold text-brand-700 hover:border-brand-500 hover:bg-cream-50 hover:text-brand-600 transition-all shadow-2xs whitespace-nowrap"
+                          >
+                            <Eye className="h-3.5 w-3.5 text-muted" />
+                            <span>View Details</span>
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDelete(e, o.id)}
+                            title={confirmDeleteId === o.id ? 'Click again to confirm delete' : 'Delete order'}
+                            className={`rounded-xl border p-2 transition-all shadow-2xs ${
+                              confirmDeleteId === o.id
+                                ? 'border-[#024F5F] bg-[#F6F1EC] text-[#024F5F]'
+                                : 'border-cream-300 bg-white text-muted hover:border-[#024F5F] hover:text-[#024F5F] hover:bg-[#F6F1EC]'
+                            }`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -531,7 +562,7 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
                         title="Copy Order Number"
                       >
                         {copiedId === o.order_number ? (
-                          <Check className="h-3 w-3 text-emerald-600" />
+                          <Check className="h-3 w-3 text-[#024F5F]" />
                         ) : (
                           <Copy className="h-3 w-3" />
                         )}
@@ -584,8 +615,8 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
                       <span
                         className={`rounded px-1.5 py-0.2 font-semibold text-[10px] ${
                           isCOD
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-[#F6F1EC] text-[#B08F4F]'
+                            : 'bg-[#F6F1EC] text-[#024F5F]'
                         }`}
                       >
                         {isCOD ? 'COD' : 'Prepaid'}
@@ -602,13 +633,27 @@ export default function OrderList({ initialOrders }: { initialOrders: OrderListI
                       </p>
                     </div>
 
-                    <Link
-                      href={`/admin/orders/${o.id}`}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white transition-all shadow-luxury hover:shadow-luxury-hover"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                      <span>View Details</span>
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, o.id)}
+                        title={confirmDeleteId === o.id ? 'Click again to confirm delete' : 'Delete order'}
+                        className={`inline-flex items-center justify-center rounded-xl border p-2.5 transition-all ${
+                          confirmDeleteId === o.id
+                            ? 'border-[#024F5F] bg-[#F6F1EC] text-[#024F5F]'
+                            : 'border-cream-300 bg-white text-muted hover:border-[#024F5F] hover:text-[#024F5F] hover:bg-[#F6F1EC]'
+                        }`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                      <Link
+                        href={`/admin/orders/${o.id}`}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-3.5 py-2 text-xs font-semibold text-white transition-all shadow-luxury hover:shadow-luxury-hover"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>View Details</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               );

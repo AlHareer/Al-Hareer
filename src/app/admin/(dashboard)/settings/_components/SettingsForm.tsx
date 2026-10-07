@@ -25,28 +25,28 @@ const CATEGORY_META = {
     badge: 'Basic Info',
     description: 'Your store name and short subtitle shown on the website.',
     icon: Building2,
-    accentBg: 'bg-amber-500/10 text-amber-700 border-amber-200/60',
+    accentBg: 'bg-[#CFAC64]/10 text-[#B08F4F] border-[#CFAC64]/60',
   },
   contact: {
     label: 'Contact Information',
     badge: 'Phone & Email',
     description: 'Phone number, email, and WhatsApp for customer support.',
     icon: Phone,
-    accentBg: 'bg-emerald-500/10 text-emerald-700 border-emerald-200/60',
+    accentBg: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
   },
   social: {
     label: 'Social Media Links',
     badge: 'Social',
     description: 'Links to your Instagram, Facebook, and YouTube accounts.',
     icon: Share2,
-    accentBg: 'bg-blue-500/10 text-blue-700 border-blue-200/60',
+    accentBg: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
   },
   checkout: {
     label: 'Payment Method',
     badge: 'Payments',
     description: 'Choose if customers can pay with Cash on Delivery (COD).',
     icon: Wallet,
-    accentBg: 'bg-purple-500/10 text-purple-700 border-purple-200/60',
+    accentBg: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
   },
 } as const;
 
@@ -108,6 +108,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
   };
 
   const isCodActive = settings.cod_enabled?.value !== 'false';
+  const isRazorpayActive = settings.razorpay_enabled?.value !== 'false';
   const hasWhatsApp = Boolean(settings.whatsapp_number?.value?.trim());
   const hasSupportEmail = Boolean(settings.contact_email?.value?.trim());
   const connectedSocialsCount = [
@@ -122,7 +123,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
       <div className="rounded-2xl border border-cream-200/90 bg-white p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-700 text-white font-heading font-bold text-lg text-gold">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#CFAC64] text-white font-heading font-bold text-lg text-gold">
               {(settings.brand_name?.value || 'AH').slice(0, 2).toUpperCase()}
             </div>
             <div>
@@ -130,8 +131,8 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
                 <h2 className="font-heading text-lg font-bold text-brand-700">
                   {settings.brand_name?.value || 'Al Hareer'}
                 </h2>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F1EC] border border-[#CFAC64] px-2 py-0.5 text-[10px] font-bold text-[#024F5F]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#024F5F] animate-pulse" />
                   Live Store
                 </span>
               </div>
@@ -145,11 +146,21 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
             <span
               className={`px-2.5 py-1 rounded-lg border font-medium ${
                 isCodActive
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                  ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
+                  : 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
               }`}
             >
               COD: {isCodActive ? 'On' : 'Off'}
+            </span>
+
+            <span
+              className={`px-2.5 py-1 rounded-lg border font-medium ${
+                isRazorpayActive
+                  ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
+                  : 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
+              }`}
+            >
+              Razorpay: {isRazorpayActive ? 'On' : 'Off'}
             </span>
 
             <span className="px-2.5 py-1 rounded-lg border border-cream-200 bg-cream-50 text-brand-700 font-medium">
@@ -201,7 +212,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
                     <div className="flex items-center gap-2">
                       <h3 className="font-heading text-sm sm:text-base font-bold text-brand-700">{meta.label}</h3>
                       {isCategoryModified && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-bold text-[#B08F4F] bg-[#F6F1EC] px-2 py-0.5 rounded-full">
                           ● Unsaved changes
                         </span>
                       )}
@@ -216,17 +227,17 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
                     <div
                       className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg ${
                         currentResult.success
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-red-50 text-red-700 border border-red-200'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]'
+                          : 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]'
                       }`}
                     >
                       {currentResult.success ? (
                         <>
-                          <Check className="h-3.5 w-3.5 text-emerald-600" /> Saved successfully
+                          <Check className="h-3.5 w-3.5 text-[#024F5F]" /> Saved successfully
                         </>
                       ) : (
                         <>
-                          <AlertCircle className="h-3.5 w-3.5 text-red-600" /> {currentResult.error || 'Failed to save'}
+                          <AlertCircle className="h-3.5 w-3.5 text-[#024F5F]" /> {currentResult.error || 'Failed to save'}
                         </>
                       )}
                     </div>
@@ -271,7 +282,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
                             onClick={() => handleChange(key, isOn ? 'false' : 'true')}
                             className={`flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all ${
                               isOn
-                                ? 'border-emerald-200 bg-emerald-50/60'
+                                ? 'border-[#CFAC64] bg-[#F6F1EC]/60'
                                 : 'border-cream-200 bg-cream-50/40'
                             }`}
                           >
@@ -283,7 +294,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
                                 <span
                                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                                     isOn
-                                      ? 'bg-emerald-100 text-emerald-800'
+                                      ? 'bg-[#F6F1EC] text-[#024F5F]'
                                       : 'bg-cream-200 text-muted'
                                   }`}
                                 >
@@ -297,7 +308,57 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
 
                             <span
                               className={`relative flex h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors ${
-                                isOn ? 'bg-emerald-600' : 'bg-cream-400'
+                                isOn ? 'bg-[#024F5F]' : 'bg-cream-400'
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform ${
+                                  isOn ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                              />
+                            </span>
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    // Online Payment (Razorpay) Option
+                    if (key === 'razorpay_enabled') {
+                      const isOn = item.value !== 'false';
+                      return (
+                        <div key={key} className="sm:col-span-2">
+                          <button
+                            type="button"
+                            onClick={() => handleChange(key, isOn ? 'false' : 'true')}
+                            className={`flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all ${
+                              isOn
+                                ? 'border-[#CFAC64] bg-[#F6F1EC]/60'
+                                : 'border-cream-200 bg-cream-50/40'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-heading text-sm font-bold text-brand-700">
+                                  Online Payment (Razorpay)
+                                </span>
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                    isOn
+                                      ? 'bg-[#F6F1EC] text-[#024F5F]'
+                                      : 'bg-cream-200 text-muted'
+                                  }`}
+                                >
+                                  {isOn ? 'Active' : 'Turned Off'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted mt-1">
+                                Allow customers to pay by UPI, Card, or Net Banking via Razorpay.
+                              </p>
+                            </div>
+
+                            <span
+                              className={`relative flex h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors ${
+                                isOn ? 'bg-[#024F5F]' : 'bg-cream-400'
                               }`}
                             >
                               <span
@@ -319,42 +380,42 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Bra
                     let isUrl = false;
 
                     if (key === 'brand_name') {
-                      iconNode = <Building2 className="h-4 w-4 text-amber-600" />;
+                      iconNode = <Building2 className="h-4 w-4 text-[#B08F4F]" />;
                       placeholder = 'Al Hareer';
                       label = 'Store Name';
                       helperText = 'Shown on the website logo and header.';
                     } else if (key === 'tagline') {
-                      iconNode = <Sparkles className="h-4 w-4 text-amber-600" />;
+                      iconNode = <Sparkles className="h-4 w-4 text-[#B08F4F]" />;
                       placeholder = 'Tradition in Style';
                       label = 'Store Tagline';
                       helperText = 'Short subtitle shown under your store name.';
                     } else if (key === 'contact_email') {
-                      iconNode = <Mail className="h-4 w-4 text-emerald-600" />;
+                      iconNode = <Mail className="h-4 w-4 text-[#024F5F]" />;
                       placeholder = 'support@alhareer.com';
                       label = 'Support Email';
                       helperText = 'Email where customers can reach you.';
                     } else if (key === 'contact_phone') {
-                      iconNode = <Phone className="h-4 w-4 text-emerald-600" />;
+                      iconNode = <Phone className="h-4 w-4 text-[#024F5F]" />;
                       placeholder = '+91 98765 43210';
                       label = 'Phone Number';
                       helperText = 'Contact phone number shown on the website.';
                     } else if (key === 'whatsapp_number') {
-                      iconNode = <WhatsAppIcon className="h-4 w-4 text-emerald-600" />;
+                      iconNode = <WhatsAppIcon className="h-4 w-4 text-[#024F5F]" />;
                       placeholder = '919876543210';
                       label = 'WhatsApp Number';
                       helperText = 'Number for WhatsApp chat button (include country code, like 919876543210).';
                     } else if (key === 'instagram_url') {
-                      iconNode = <InstagramIcon className="h-4 w-4 text-pink-600" />;
+                      iconNode = <InstagramIcon className="h-4 w-4 text-[#024F5F]" />;
                       placeholder = 'https://instagram.com/alhareer';
                       label = 'Instagram Link';
                       isUrl = true;
                     } else if (key === 'facebook_url') {
-                      iconNode = <FacebookIcon className="h-4 w-4 text-blue-600" />;
+                      iconNode = <FacebookIcon className="h-4 w-4 text-[#024F5F]" />;
                       placeholder = 'https://facebook.com/alhareer';
                       label = 'Facebook Link';
                       isUrl = true;
                     } else if (key === 'youtube_url') {
-                      iconNode = <YoutubeIcon className="h-4 w-4 text-red-600" />;
+                      iconNode = <YoutubeIcon className="h-4 w-4 text-[#024F5F]" />;
                       placeholder = 'https://youtube.com/@alhareer';
                       label = 'YouTube Link';
                       isUrl = true;

@@ -148,7 +148,7 @@ export default function VideoUploader({
             <button
               type="button"
               onClick={() => onChange(null)}
-              className="p-1.5 rounded-full text-muted hover:text-red-500 hover:bg-red-50 transition-colors"
+              className="p-1.5 rounded-full text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC] transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -156,11 +156,11 @@ export default function VideoUploader({
         </div>
       )}
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-[#024F5F]">{error}</p>}
 
       {/* Preview */}
       {value && (
-        <div className="rounded-xl overflow-hidden border border-cream-300 bg-black aspect-video w-full max-w-sm">
+        <div className="rounded-xl overflow-hidden border border-cream-300 bg-[#00303A] aspect-video w-full max-w-sm">
           {isVideoFile(value) ? (
             <video
               src={value}

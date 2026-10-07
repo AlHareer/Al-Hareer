@@ -12,22 +12,22 @@ interface DashboardRecentOrdersProps {
 const STATUS_BADGES: Record<string, { label: string; class: string; icon: any }> = {
   processing: {
     label: 'Processing',
-    class: 'bg-amber-50 text-amber-800 border-amber-300/80',
+    class: 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]/80',
     icon: Clock,
   },
   shipped: {
     label: 'Shipped',
-    class: 'bg-blue-50 text-blue-700 border-blue-200',
+    class: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]',
     icon: Truck,
   },
   delivered: {
     label: 'Delivered',
-    class: 'bg-green-50 text-green-700 border-green-200',
+    class: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]',
     icon: CheckCircle2,
   },
   cancelled: {
     label: 'Cancelled',
-    class: 'bg-rose-50 text-rose-700 border-rose-200',
+    class: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]',
     icon: XCircle,
   },
 };

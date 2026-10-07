@@ -21,14 +21,14 @@ export default async function AdminInquiriesPage() {
       label: 'Needs Reply (New)',
       value: unresolvedCount.toString(),
       icon: Clock,
-      bgClass: 'bg-amber-50 text-amber-700',
+      bgClass: 'bg-[#F6F1EC] text-[#B08F4F]',
       pulse: unresolvedCount > 0,
     },
     {
       label: 'Resolved',
       value: resolvedCount.toString(),
       icon: CheckCircle2,
-      bgClass: 'bg-emerald-50 text-emerald-700',
+      bgClass: 'bg-[#F6F1EC] text-[#024F5F]',
     },
   ];
 
@@ -59,7 +59,7 @@ export default async function AdminInquiriesPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <p className="font-heading text-xl font-bold text-brand-700 leading-tight">{s.value}</p>
-                {s.pulse && <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
+                {s.pulse && <span className="h-2 w-2 rounded-full bg-[#CFAC64] animate-pulse" />}
               </div>
               <p className="text-[11px] font-semibold text-muted mt-0.5 truncate">{s.label}</p>
             </div>

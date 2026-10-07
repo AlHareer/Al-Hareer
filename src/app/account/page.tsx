@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import OrderTracking from '@/components/account/OrderTracking';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -34,6 +35,7 @@ import {
   Sparkles,
   Check,
   RefreshCw,
+  ChevronDown,
 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -75,6 +77,12 @@ export interface Order {
   items?: OrderItem[];
   shippingAddress: OrderShippingAddress;
   paymentMethod: string;
+  createdAt?: string;
+  updatedAt?: string;
+  // Shipment details the admin enters on the order (all optional).
+  courierName?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
 }
 
 type OrderStatusFilter = 'all' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -92,41 +100,41 @@ const getStatusBadge = (status: string) => {
   const s = (status || '').toLowerCase();
   if (s === 'delivered') {
     return {
-      bg: 'bg-[#EAF5EC] text-[#1E7E34] border-[#CDE5D1]',
+      bg: 'bg-[#F6F1EC] text-[#024F5F] border-[#F6F1EC]',
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
       label: 'Delivered',
     };
   }
   if (s === 'shipped') {
     return {
-      bg: 'bg-[#EBF3FF] text-[#1E40AF] border-[#BFDBFE]',
+      bg: 'bg-[#F6F1EC] text-[#024F5F] border-[#F6F1EC]',
       icon: <Truck className="w-3.5 h-3.5" />,
       label: 'Shipped',
     };
   }
   if (s === 'processing') {
     return {
-      bg: 'bg-[#FFF7ED] text-[#C2410C] border-[#FFEDD5]',
+      bg: 'bg-[#F6F1EC] text-[#B08F4F] border-[#F6F1EC]',
       icon: <Clock className="w-3.5 h-3.5" />,
       label: 'Processing',
     };
   }
   if (s === 'pending') {
     return {
-      bg: 'bg-[#FEF9C3] text-[#854D0E] border-[#FEF08A]',
+      bg: 'bg-[#F6F1EC] text-[#B08F4F] border-[#F6F1EC]',
       icon: <AlertCircle className="w-3.5 h-3.5" />,
       label: 'Pending',
     };
   }
   if (s === 'cancelled') {
     return {
-      bg: 'bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]',
+      bg: 'bg-[#F6F1EC] text-[#024F5F] border-[#F6F1EC]',
       icon: <XCircle className="w-3.5 h-3.5" />,
       label: 'Cancelled',
     };
   }
   return {
-    bg: 'bg-[#FAF6F1] text-[#4A3525] border-[#E5DACD]',
+    bg: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]',
     icon: <Package className="w-3.5 h-3.5" />,
     label: status || 'Pending',
   };
@@ -566,11 +574,6 @@ function AuthAndDashboardContent() {
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
 
-  // Forgot Password Modal
-  const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotSubmitted, setForgotSubmitted] = useState(false);
-
   // Terms Modal
   const [showTermsModal, setShowTermsModal] = useState(false);
 
@@ -652,22 +655,6 @@ function AuthAndDashboardContent() {
       return;
     }
     showToast('🎉 Account created successfully! Welcome to Al Hareer.', 'success');
-  };
-
-  // Handle Forgot Password Submit
-  const handleForgotSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) {
-      showToast('Please enter your registered email address', 'error');
-      return;
-    }
-    setForgotSubmitted(true);
-    showToast('Password reset link sent to your email!', 'success');
-    setTimeout(() => {
-      setIsForgotOpen(false);
-      setForgotSubmitted(false);
-      setForgotEmail('');
-    }, 2000);
   };
 
   // Handle Save Settings — updates name/phone (email changes need a
@@ -753,7 +740,7 @@ function AuthAndDashboardContent() {
     : '';
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] flex flex-col justify-between selection:bg-[#4A3525] selection:text-white pb-20 lg:pb-0">
+    <div className="min-h-screen bg-[#F6F1EC] flex flex-col justify-between selection:bg-[#024F5F] selection:text-white pb-20 lg:pb-0">
       {/* 1. SITE NAVBAR */}
       <Navbar />
 
@@ -762,7 +749,7 @@ function AuthAndDashboardContent() {
         <div className="max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-10">
           
           {authLoading ? (
-            <div className="flex items-center justify-center py-24 text-sm text-[#7A6F66]">Loading your account…</div>
+            <div className="flex items-center justify-center py-24 text-sm text-[#024F5F]">Loading your account…</div>
           ) : isLoggedIn ? (
             /* ========================================================================= */
             /* VIEW 1: FULL USER ACCOUNT DASHBOARD (MATCHING USER SCREENSHOT)            */
@@ -777,8 +764,8 @@ function AuthAndDashboardContent() {
                     onClick={() => setActiveTab('dashboard')}
                     className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95 ${
                       activeTab === 'dashboard'
-                        ? 'bg-[#2B231D] text-white shadow-xs'
-                        : 'bg-white text-[#7A6F66] border border-[#E8DFD5] hover:bg-[#FAF6F1]'
+                        ? 'bg-[#00303A] text-white shadow-xs'
+                        : 'bg-white text-[#024F5F] border border-[#CFAC64] hover:bg-[#F6F1EC]'
                     }`}
                   >
                     <LayoutDashboard className="w-3.5 h-3.5" />
@@ -790,8 +777,8 @@ function AuthAndDashboardContent() {
                     onClick={() => setActiveTab('orders')}
                     className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95 ${
                       activeTab === 'orders'
-                        ? 'bg-[#2B231D] text-white shadow-xs'
-                        : 'bg-white text-[#7A6F66] border border-[#E8DFD5] hover:bg-[#FAF6F1]'
+                        ? 'bg-[#00303A] text-white shadow-xs'
+                        : 'bg-white text-[#024F5F] border border-[#CFAC64] hover:bg-[#F6F1EC]'
                     }`}
                   >
                     <Package className="w-3.5 h-3.5" />
@@ -803,8 +790,8 @@ function AuthAndDashboardContent() {
                     onClick={() => setActiveTab('track')}
                     className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95 ${
                       activeTab === 'track'
-                        ? 'bg-[#2B231D] text-white shadow-xs'
-                        : 'bg-white text-[#7A6F66] border border-[#E8DFD5] hover:bg-[#FAF6F1]'
+                        ? 'bg-[#00303A] text-white shadow-xs'
+                        : 'bg-white text-[#024F5F] border border-[#CFAC64] hover:bg-[#F6F1EC]'
                     }`}
                   >
                     <Truck className="w-3.5 h-3.5" />
@@ -816,8 +803,8 @@ function AuthAndDashboardContent() {
                     onClick={() => setActiveTab('addresses')}
                     className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95 ${
                       activeTab === 'addresses'
-                        ? 'bg-[#2B231D] text-white shadow-xs'
-                        : 'bg-white text-[#7A6F66] border border-[#E8DFD5] hover:bg-[#FAF6F1]'
+                        ? 'bg-[#00303A] text-white shadow-xs'
+                        : 'bg-white text-[#024F5F] border border-[#CFAC64] hover:bg-[#F6F1EC]'
                     }`}
                   >
                     <MapPin className="w-3.5 h-3.5" />
@@ -829,8 +816,8 @@ function AuthAndDashboardContent() {
                     onClick={() => setActiveTab('settings')}
                     className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95 ${
                       activeTab === 'settings'
-                        ? 'bg-[#2B231D] text-white shadow-xs'
-                        : 'bg-white text-[#7A6F66] border border-[#E8DFD5] hover:bg-[#FAF6F1]'
+                        ? 'bg-[#00303A] text-white shadow-xs'
+                        : 'bg-white text-[#024F5F] border border-[#CFAC64] hover:bg-[#F6F1EC]'
                     }`}
                   >
                     <Settings className="w-3.5 h-3.5" />
@@ -843,24 +830,24 @@ function AuthAndDashboardContent() {
                 
                 {/* LEFT SIDEBAR: User Info & Navigation Menu (Desktop) */}
                 <aside className="hidden lg:block lg:col-span-3 xl:col-span-3 space-y-6">
-                  <div className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-5 sm:p-6 space-y-6">
+                  <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-5 sm:p-6 space-y-6">
                     
                     {/* User Profile Header */}
-                    <div className="flex items-center gap-3.5 pb-5 border-b border-[#F0EAE1]">
-                      <div className="w-14 h-14 rounded-full bg-[#EFE8E0] text-[#4A3525] font-heading font-bold text-2xl flex items-center justify-center border border-[#DACDC0] shrink-0 shadow-xs">
+                    <div className="flex items-center gap-3.5 pb-5 border-b border-[#F6F1EC]">
+                      <div className="w-14 h-14 rounded-full bg-[#F6F1EC] text-[#024F5F] font-heading font-bold text-2xl flex items-center justify-center border border-[#CFAC64] shrink-0 shadow-xs">
                         {userInitial}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-heading text-base sm:text-lg font-bold text-[#2B231D] truncate leading-tight">
+                        <h3 className="font-heading text-base sm:text-lg font-bold text-[#00303A] truncate leading-tight">
                           {displayName}
                         </h3>
-                        <p className="text-xs text-[#7A6F66] truncate mt-0.5">
+                        <p className="text-xs text-[#024F5F] truncate mt-0.5">
                           {displayEmail}
                         </p>
                         <button
                           type="button"
                           onClick={() => setActiveTab('settings')}
-                          className="text-[11px] font-semibold text-[#8B6B52] hover:text-[#4A3525] underline underline-offset-2 mt-1 transition-colors cursor-pointer"
+                          className="text-[11px] font-semibold text-[#024F5F] hover:text-[#024F5F] underline underline-offset-2 mt-1 transition-colors cursor-pointer"
                         >
                           Edit Profile
                         </button>
@@ -874,11 +861,11 @@ function AuthAndDashboardContent() {
                         onClick={() => setActiveTab('dashboard')}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                           activeTab === 'dashboard'
-                            ? 'bg-[#EFE8E0] text-[#2B231D] shadow-2xs font-bold'
-                            : 'text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#FAF6F1]'
+                            ? 'bg-[#F6F1EC] text-[#00303A] shadow-2xs font-bold'
+                            : 'text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC]'
                         }`}
                       >
-                        <LayoutDashboard className="w-4 h-4 text-[#4A3525]" />
+                        <LayoutDashboard className="w-4 h-4 text-[#024F5F]" />
                         <span>Dashboard</span>
                       </button>
 
@@ -887,15 +874,15 @@ function AuthAndDashboardContent() {
                         onClick={() => setActiveTab('orders')}
                         className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                           activeTab === 'orders'
-                            ? 'bg-[#EFE8E0] text-[#2B231D] shadow-2xs font-bold'
-                            : 'text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#FAF6F1]'
+                            ? 'bg-[#F6F1EC] text-[#00303A] shadow-2xs font-bold'
+                            : 'text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC]'
                         }`}
                       >
                         <span className="flex items-center gap-3">
-                          <Package className="w-4 h-4 text-[#4A3525]" />
+                          <Package className="w-4 h-4 text-[#024F5F]" />
                           <span>My Orders</span>
                         </span>
-                        <span className="text-[10.5px] font-bold bg-[#FAF6F1] px-2 py-0.5 rounded-full text-[#4A3525] border border-[#E5DACD]">
+                        <span className="text-[10.5px] font-bold bg-[#F6F1EC] px-2 py-0.5 rounded-full text-[#024F5F] border border-[#CFAC64]">
                           {orders.length}
                         </span>
                       </button>
@@ -905,11 +892,11 @@ function AuthAndDashboardContent() {
                         onClick={() => setActiveTab('track')}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                           activeTab === 'track'
-                            ? 'bg-[#EFE8E0] text-[#2B231D] shadow-2xs font-bold'
-                            : 'text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#FAF6F1]'
+                            ? 'bg-[#F6F1EC] text-[#00303A] shadow-2xs font-bold'
+                            : 'text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC]'
                         }`}
                       >
-                        <Truck className="w-4 h-4 text-[#4A3525]" />
+                        <Truck className="w-4 h-4 text-[#024F5F]" />
                         <span>Track Order</span>
                       </button>
 
@@ -918,11 +905,11 @@ function AuthAndDashboardContent() {
                         onClick={() => setActiveTab('addresses')}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                           activeTab === 'addresses'
-                            ? 'bg-[#EFE8E0] text-[#2B231D] shadow-2xs font-bold'
-                            : 'text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#FAF6F1]'
+                            ? 'bg-[#F6F1EC] text-[#00303A] shadow-2xs font-bold'
+                            : 'text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC]'
                         }`}
                       >
-                        <MapPin className="w-4 h-4 text-[#4A3525]" />
+                        <MapPin className="w-4 h-4 text-[#024F5F]" />
                         <span>Addresses</span>
                       </button>
 
@@ -931,19 +918,19 @@ function AuthAndDashboardContent() {
                         onClick={() => setActiveTab('settings')}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                           activeTab === 'settings'
-                            ? 'bg-[#EFE8E0] text-[#2B231D] shadow-2xs font-bold'
-                            : 'text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#FAF6F1]'
+                            ? 'bg-[#F6F1EC] text-[#00303A] shadow-2xs font-bold'
+                            : 'text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC]'
                         }`}
                       >
-                        <Settings className="w-4 h-4 text-[#4A3525]" />
+                        <Settings className="w-4 h-4 text-[#024F5F]" />
                         <span>Account Settings</span>
                       </button>
 
-                      <div className="pt-2 border-t border-[#F0EAE1]">
+                      <div className="pt-2 border-t border-[#F6F1EC]">
                         <button
                           type="button"
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-[#8B2D2D] hover:bg-[#8B2D2D]/10 transition-colors cursor-pointer"
+                          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-[#024F5F] hover:bg-[#024F5F]/10 transition-colors cursor-pointer"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>
@@ -964,16 +951,16 @@ function AuthAndDashboardContent() {
                     <div className="space-y-4 sm:space-y-6 md:space-y-7 animate-in fade-in duration-200">
                       
                       {/* 1. HERO WELCOME BANNER (With Style Lives Here Calligraphy & Floral Element) */}
-                      <div className="rounded-2xl bg-gradient-to-r from-[#F6EDE3] via-[#EFE6DB] to-[#E8DDD1] border border-[#E5DACD] p-5 sm:p-7 md:p-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 relative overflow-hidden shadow-2xs">
+                      <div className="rounded-2xl bg-gradient-to-r from-[#F6F1EC] via-[#F6F1EC] to-[#F6F1EC] border border-[#CFAC64] p-5 sm:p-7 md:p-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 relative overflow-hidden shadow-2xs">
                         {/* Left Welcome Copy */}
                         <div className="space-y-1 sm:space-y-1.5 z-10 max-w-lg">
-                          <p className="text-xs sm:text-sm text-[#7A6F66] font-medium tracking-wide">
+                          <p className="text-xs sm:text-sm text-[#024F5F] font-medium tracking-wide">
                             Welcome Back,
                           </p>
-                          <h1 className="font-heading text-2xl sm:text-3xl md:text-5xl font-bold text-[#2B231D] tracking-tight leading-tight">
+                          <h1 className="font-heading text-2xl sm:text-3xl md:text-5xl font-bold text-[#00303A] tracking-tight leading-tight">
                             {displayName}
                           </h1>
-                          <p className="text-xs sm:text-sm text-[#7A6F66] pt-0.5">
+                          <p className="text-xs sm:text-sm text-[#024F5F] pt-0.5">
                             Manage your orders, wishlist and account details.
                           </p>
                         </div>
@@ -981,10 +968,10 @@ function AuthAndDashboardContent() {
                         {/* Right Calligraphy & Aesthetic Floral Asset */}
                         <div className="flex items-center gap-3 sm:gap-6 z-10 select-none self-end sm:self-center shrink-0">
                           <div className="flex flex-col items-end">
-                            <span className="font-script text-2xl sm:text-3xl md:text-5xl text-[#5C4533] leading-none">
+                            <span className="font-script text-2xl sm:text-3xl md:text-5xl text-[#00303A] leading-none">
                               Style Lives Here
                             </span>
-                            <div className="w-28 sm:w-44 h-[1.6px] bg-[#8B6B52] mt-1.5 sm:mt-2" />
+                            <div className="w-28 sm:w-44 h-[1.6px] bg-[#024F5F] mt-1.5 sm:mt-2" />
                           </div>
                         </div>
                       </div>
@@ -994,16 +981,16 @@ function AuthAndDashboardContent() {
                         {/* Card 1: Total Orders */}
                         <div
                           onClick={() => setActiveTab('orders')}
-                          className="bg-white rounded-xl sm:rounded-2xl border border-[#E8DFD5] p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3.5 shadow-2xs hover:border-[#DACDC0] transition-all cursor-pointer group text-center sm:text-left"
+                          className="bg-white rounded-xl sm:rounded-2xl border border-[#CFAC64] p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3.5 shadow-2xs hover:border-[#CFAC64] transition-all cursor-pointer group text-center sm:text-left"
                         >
-                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525] group-hover:scale-105 transition-transform shrink-0">
+                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] group-hover:scale-105 transition-transform shrink-0">
                             <Package className="w-4 h-4 sm:w-6 sm:h-6 stroke-[1.8]" />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D] leading-none">
+                            <p className="font-heading text-lg sm:text-2xl font-bold text-[#00303A] leading-none">
                               {orders.length}
                             </p>
-                            <p className="text-[10px] sm:text-xs text-[#7A6F66] mt-1 font-medium truncate">
+                            <p className="text-[10px] sm:text-xs text-[#024F5F] mt-1 font-medium truncate">
                               Total Orders
                             </p>
                           </div>
@@ -1012,16 +999,16 @@ function AuthAndDashboardContent() {
                         {/* Card 2: Saved Addresses */}
                         <div
                           onClick={() => setActiveTab('addresses')}
-                          className="bg-white rounded-xl sm:rounded-2xl border border-[#E8DFD5] p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3.5 shadow-2xs hover:border-[#DACDC0] transition-all cursor-pointer group text-center sm:text-left"
+                          className="bg-white rounded-xl sm:rounded-2xl border border-[#CFAC64] p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3.5 shadow-2xs hover:border-[#CFAC64] transition-all cursor-pointer group text-center sm:text-left"
                         >
-                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525] group-hover:scale-105 transition-transform shrink-0">
+                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] group-hover:scale-105 transition-transform shrink-0">
                             <MapPin className="w-4 h-4 sm:w-6 sm:h-6 stroke-[1.8]" />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D] leading-none">
+                            <p className="font-heading text-lg sm:text-2xl font-bold text-[#00303A] leading-none">
                               {addresses.length}
                             </p>
-                            <p className="text-[10px] sm:text-xs text-[#7A6F66] mt-1 font-medium truncate">
+                            <p className="text-[10px] sm:text-xs text-[#024F5F] mt-1 font-medium truncate">
                               Addresses
                             </p>
                           </div>
@@ -1030,16 +1017,16 @@ function AuthAndDashboardContent() {
                         {/* Card 3: Member Tier */}
                         <div
                           onClick={() => setActiveTab('settings')}
-                          className="bg-white rounded-xl sm:rounded-2xl border border-[#E8DFD5] p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3.5 shadow-2xs hover:border-[#DACDC0] transition-all cursor-pointer group text-center sm:text-left"
+                          className="bg-white rounded-xl sm:rounded-2xl border border-[#CFAC64] p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3.5 shadow-2xs hover:border-[#CFAC64] transition-all cursor-pointer group text-center sm:text-left"
                         >
-                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525] group-hover:scale-105 transition-transform shrink-0">
+                          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] group-hover:scale-105 transition-transform shrink-0">
                             <UserIcon className="w-4 h-4 sm:w-6 sm:h-6 stroke-[1.8]" />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-heading text-xs sm:text-base font-bold text-[#2B231D] leading-none truncate">
+                            <p className="font-heading text-xs sm:text-base font-bold text-[#00303A] leading-none truncate">
                               Member
                             </p>
-                            <p className="text-[9.5px] sm:text-[11px] text-[#7A6F66] mt-1 font-medium truncate">
+                            <p className="text-[9.5px] sm:text-[11px] text-[#024F5F] mt-1 font-medium truncate">
                               {memberSince}
                             </p>
                           </div>
@@ -1050,22 +1037,22 @@ function AuthAndDashboardContent() {
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
                         
                         {/* Left: Recent Orders Table Card (Exact Screenshot Match) */}
-                        <div className="lg:col-span-7 xl:col-span-7 bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-4 sm:p-6 space-y-4">
-                          <div className="flex items-center justify-between pb-3 border-b border-[#F0EAE1]">
-                            <h3 className="font-heading text-base sm:text-lg font-bold text-[#2B231D]">
+                        <div className="lg:col-span-7 xl:col-span-7 bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-6 space-y-4">
+                          <div className="flex items-center justify-between pb-3 border-b border-[#F6F1EC]">
+                            <h3 className="font-heading text-base sm:text-lg font-bold text-[#00303A]">
                               Recent Orders
                             </h3>
                             <button
                               type="button"
                               onClick={() => setActiveTab('orders')}
-                              className="text-xs font-bold text-[#8B6B52] hover:text-[#4A3525] flex items-center gap-1 transition-colors cursor-pointer"
+                              className="text-xs font-bold text-[#024F5F] hover:text-[#024F5F] flex items-center gap-1 transition-colors cursor-pointer"
                             >
                               <span>View All</span>
                             </button>
                           </div>
 
                           {/* Desktop Structured Table Header */}
-                          <div className="hidden sm:grid grid-cols-12 gap-2 text-[11px] font-bold text-[#7A6F66] px-3 py-2 bg-[#FAF6F1] rounded-xl border border-[#EFE8E0]">
+                          <div className="hidden sm:grid grid-cols-12 gap-2 text-[11px] font-bold text-[#024F5F] px-3 py-2 bg-[#F6F1EC] rounded-xl border border-[#F6F1EC]">
                             <div className="col-span-4">Product</div>
                             <div className="col-span-2">Order ID</div>
                             <div className="col-span-2">Date</div>
@@ -1075,7 +1062,7 @@ function AuthAndDashboardContent() {
                           </div>
 
                           {/* Table Body / Rows */}
-                          <div className="divide-y divide-[#F0EAE1]">
+                          <div className="divide-y divide-[#F6F1EC]">
                             {orders.slice(0, 3).map((order) => (
                               <div
                                 key={order.id}
@@ -1085,7 +1072,7 @@ function AuthAndDashboardContent() {
                                 <div className="hidden sm:grid grid-cols-12 gap-2 items-center px-3 py-1 text-xs">
                                   {/* Product Thumbnail & Title */}
                                   <div className="col-span-4 flex items-center gap-2.5 min-w-0">
-                                    <div className="relative w-10 h-12 rounded-md bg-[#FAF6F1] border border-[#E5DACD] overflow-hidden shrink-0">
+                                    <div className="relative w-10 h-12 rounded-md bg-[#F6F1EC] border border-[#CFAC64] overflow-hidden shrink-0">
                                       <Image
                                         src={order.productImage}
                                         alt={order.productName}
@@ -1094,18 +1081,18 @@ function AuthAndDashboardContent() {
                                         sizes="40px"
                                       />
                                     </div>
-                                    <h4 className="font-heading text-xs font-bold text-[#2B231D] truncate leading-tight">
+                                    <h4 className="font-heading text-xs font-bold text-[#00303A] truncate leading-tight">
                                       {order.productName}
                                     </h4>
                                   </div>
 
                                   {/* Order ID */}
-                                  <div className="col-span-2 text-xs font-semibold text-[#7A6F66]">
+                                  <div className="col-span-2 text-xs font-semibold text-[#024F5F]">
                                     {order.id}
                                   </div>
 
                                   {/* Date */}
-                                  <div className="col-span-2 text-xs text-[#7A6F66]">
+                                  <div className="col-span-2 text-xs text-[#024F5F]">
                                     {order.date}
                                   </div>
 
@@ -1114,10 +1101,10 @@ function AuthAndDashboardContent() {
                                     <span
                                       className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-block ${
                                         order.status === 'Delivered'
-                                          ? 'bg-[#EAF5EC] text-[#1E7E34] border border-[#CDE5D1]'
+                                          ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#F6F1EC]'
                                           : order.status === 'Shipped'
-                                          ? 'bg-[#EBF3FF] text-[#1E40AF] border border-[#BFDBFE]'
-                                          : 'bg-[#FFF7ED] text-[#C2410C] border border-[#FFEDD5]'
+                                          ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#F6F1EC]'
+                                          : 'bg-[#F6F1EC] text-[#B08F4F] border border-[#F6F1EC]'
                                       }`}
                                     >
                                       {order.status}
@@ -1125,7 +1112,7 @@ function AuthAndDashboardContent() {
                                   </div>
 
                                   {/* Total */}
-                                  <div className="col-span-1 font-heading text-xs font-bold text-[#2B231D]">
+                                  <div className="col-span-1 font-heading text-xs font-bold text-[#00303A]">
                                     ₹{order.total.toLocaleString('en-IN')}
                                   </div>
 
@@ -1134,7 +1121,7 @@ function AuthAndDashboardContent() {
                                     <button
                                       type="button"
                                       onClick={() => setSelectedOrder(order)}
-                                      className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] border border-[#E5DACD] transition-colors cursor-pointer"
+                                      className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] transition-colors cursor-pointer"
                                     >
                                       View
                                     </button>
@@ -1144,7 +1131,7 @@ function AuthAndDashboardContent() {
                                 {/* Mobile Row Card */}
                                 <div className="sm:hidden flex items-center justify-between gap-2.5">
                                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div className="relative w-11 h-14 rounded-lg bg-[#FAF6F1] border border-[#E5DACD] overflow-hidden shrink-0">
+                                    <div className="relative w-11 h-14 rounded-lg bg-[#F6F1EC] border border-[#CFAC64] overflow-hidden shrink-0">
                                       <Image
                                         src={order.productImage}
                                         alt={order.productName}
@@ -1154,23 +1141,23 @@ function AuthAndDashboardContent() {
                                       />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                      <h4 className="font-heading text-xs font-bold text-[#2B231D] truncate">
+                                      <h4 className="font-heading text-xs font-bold text-[#00303A] truncate">
                                         {order.productName}
                                       </h4>
-                                      <p className="text-[10.5px] text-[#7A6F66] truncate mt-0.5">
+                                      <p className="text-[10.5px] text-[#024F5F] truncate mt-0.5">
                                         {order.id} • {order.date}
                                       </p>
                                       <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs font-bold text-[#2B231D]">
+                                        <span className="text-xs font-bold text-[#00303A]">
                                           ₹{order.total.toLocaleString('en-IN')}
                                         </span>
                                         <span
                                           className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded-md ${
                                             order.status === 'Delivered'
-                                              ? 'bg-[#EAF5EC] text-[#1E7E34]'
+                                              ? 'bg-[#F6F1EC] text-[#024F5F]'
                                               : order.status === 'Shipped'
-                                              ? 'bg-[#EBF3FF] text-[#1E40AF]'
-                                              : 'bg-[#FFF7ED] text-[#C2410C]'
+                                              ? 'bg-[#F6F1EC] text-[#024F5F]'
+                                              : 'bg-[#F6F1EC] text-[#B08F4F]'
                                           }`}
                                         >
                                           {order.status}
@@ -1183,7 +1170,7 @@ function AuthAndDashboardContent() {
                                     <button
                                       type="button"
                                       onClick={() => setSelectedOrder(order)}
-                                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] border border-[#E5DACD] transition-colors cursor-pointer active:scale-95"
+                                      className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] transition-colors cursor-pointer active:scale-95"
                                     >
                                       View
                                     </button>
@@ -1195,8 +1182,8 @@ function AuthAndDashboardContent() {
                         </div>
 
                         {/* Right: Quick Actions Card */}
-                        <div className="lg:col-span-5 xl:col-span-5 bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-4 sm:p-6 space-y-3.5">
-                          <h3 className="font-heading text-base sm:text-lg font-bold text-[#2B231D] pb-3 border-b border-[#F0EAE1]">
+                        <div className="lg:col-span-5 xl:col-span-5 bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-6 space-y-3.5">
+                          <h3 className="font-heading text-base sm:text-lg font-bold text-[#00303A] pb-3 border-b border-[#F6F1EC]">
                             Quick Actions
                           </h3>
 
@@ -1204,17 +1191,17 @@ function AuthAndDashboardContent() {
                             {/* Action 1: Track Order */}
                             <div
                               onClick={() => setActiveTab('track')}
-                              className="p-3 sm:p-4 rounded-xl bg-[#FAF6F1]/70 hover:bg-[#FAF6F1] border border-[#E5DACD] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
+                              className="p-3 sm:p-4 rounded-xl bg-[#F6F1EC]/70 hover:bg-[#F6F1EC] border border-[#CFAC64] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
                             >
                               <div className="flex items-start justify-between">
-                                <Package className="w-4 h-4 sm:w-5 sm:h-5 text-[#4A3525]" />
-                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#A89C8F] group-hover:translate-x-0.5 transition-transform" />
+                                <Package className="w-4 h-4 sm:w-5 sm:h-5 text-[#024F5F]" />
+                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#CFAC64] group-hover:translate-x-0.5 transition-transform" />
                               </div>
                               <div className="mt-2.5 sm:mt-3">
-                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D]">
+                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A]">
                                   Track Order
                                 </h4>
-                                <p className="text-[10px] sm:text-[10.5px] text-[#7A6F66] mt-0.5 truncate">
+                                <p className="text-[10px] sm:text-[10.5px] text-[#024F5F] mt-0.5 truncate">
                                   Live order status
                                 </p>
                               </div>
@@ -1223,17 +1210,17 @@ function AuthAndDashboardContent() {
                             {/* Action 2: View Wishlist */}
                             <Link
                               href="/wishlist"
-                              className="p-3 sm:p-4 rounded-xl bg-[#FAF6F1]/70 hover:bg-[#FAF6F1] border border-[#E5DACD] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
+                              className="p-3 sm:p-4 rounded-xl bg-[#F6F1EC]/70 hover:bg-[#F6F1EC] border border-[#CFAC64] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
                             >
                               <div className="flex items-start justify-between">
-                                <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B2D2D]" />
-                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#A89C8F] group-hover:translate-x-0.5 transition-transform" />
+                                <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-[#024F5F]" />
+                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#CFAC64] group-hover:translate-x-0.5 transition-transform" />
                               </div>
                               <div className="mt-2.5 sm:mt-3">
-                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D]">
+                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A]">
                                   Wishlist
                                 </h4>
-                                <p className="text-[10px] sm:text-[10.5px] text-[#7A6F66] mt-0.5 truncate">
+                                <p className="text-[10px] sm:text-[10.5px] text-[#024F5F] mt-0.5 truncate">
                                   Saved items
                                 </p>
                               </div>
@@ -1242,17 +1229,17 @@ function AuthAndDashboardContent() {
                             {/* Action 3: Manage Addresses */}
                             <div
                               onClick={() => setActiveTab('addresses')}
-                              className="p-3 sm:p-4 rounded-xl bg-[#FAF6F1]/70 hover:bg-[#FAF6F1] border border-[#E5DACD] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
+                              className="p-3 sm:p-4 rounded-xl bg-[#F6F1EC]/70 hover:bg-[#F6F1EC] border border-[#CFAC64] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
                             >
                               <div className="flex items-start justify-between">
-                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#4A3525]" />
-                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#A89C8F] group-hover:translate-x-0.5 transition-transform" />
+                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#024F5F]" />
+                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#CFAC64] group-hover:translate-x-0.5 transition-transform" />
                               </div>
                               <div className="mt-2.5 sm:mt-3">
-                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D]">
+                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A]">
                                   Addresses
                                 </h4>
-                                <p className="text-[10px] sm:text-[10.5px] text-[#7A6F66] mt-0.5 truncate">
+                                <p className="text-[10px] sm:text-[10.5px] text-[#024F5F] mt-0.5 truncate">
                                   Manage shipping
                                 </p>
                               </div>
@@ -1261,17 +1248,17 @@ function AuthAndDashboardContent() {
                             {/* Action 4: Account Settings */}
                             <div
                               onClick={() => setActiveTab('settings')}
-                              className="p-3 sm:p-4 rounded-xl bg-[#FAF6F1]/70 hover:bg-[#FAF6F1] border border-[#E5DACD] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
+                              className="p-3 sm:p-4 rounded-xl bg-[#F6F1EC]/70 hover:bg-[#F6F1EC] border border-[#CFAC64] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
                             >
                               <div className="flex items-start justify-between">
-                                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-[#4A3525]" />
-                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#A89C8F] group-hover:translate-x-0.5 transition-transform" />
+                                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-[#024F5F]" />
+                                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#CFAC64] group-hover:translate-x-0.5 transition-transform" />
                               </div>
                               <div className="mt-2.5 sm:mt-3">
-                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D]">
+                                <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A]">
                                   Settings
                                 </h4>
-                                <p className="text-[10px] sm:text-[10.5px] text-[#7A6F66] mt-0.5 truncate">
+                                <p className="text-[10px] sm:text-[10.5px] text-[#024F5F] mt-0.5 truncate">
                                   Profile & info
                                 </p>
                               </div>
@@ -1283,19 +1270,19 @@ function AuthAndDashboardContent() {
 
                     
                       {/* 4. DISCOVER MORE STYLES PROMO BANNER */}
-                      <div className="rounded-2xl bg-[#FAF6F1] border border-[#E8DFD5] p-5 sm:p-7 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 shadow-2xs">
+                      <div className="rounded-2xl bg-[#F6F1EC] border border-[#CFAC64] p-5 sm:p-7 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 shadow-2xs">
                         <div className="space-y-1">
-                          <h3 className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D]">
+                          <h3 className="font-heading text-lg sm:text-2xl font-bold text-[#00303A]">
                             Discover More Styles
                           </h3>
-                          <p className="text-xs sm:text-sm text-[#7A6F66]">
+                          <p className="text-xs sm:text-sm text-[#024F5F]">
                             Explore our latest collections and bespoke seasonal couture.
                           </p>
                         </div>
 
                         <Link
                           href="/shop"
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#2B231D] hover:bg-[#4A3525] text-white px-6 py-3 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer shrink-0 active:scale-95"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-6 py-3 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer shrink-0 active:scale-95"
                         >
                           <span>Continue Shopping</span>
                         </Link>
@@ -1303,35 +1290,35 @@ function AuthAndDashboardContent() {
 
                       {/* 5. FOUR TRUST & SERVICE BADGES (BOTTOM ROW) */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 pt-1">
-                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#E8DFD5] shadow-2xs flex items-center gap-2.5 sm:gap-3">
-                          <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[#4A3525] shrink-0 stroke-[1.8]" />
+                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#CFAC64] shadow-2xs flex items-center gap-2.5 sm:gap-3">
+                          <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-[#024F5F] shrink-0 stroke-[1.8]" />
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-[#2B231D] truncate">Free Shipping</p>
-                            <p className="text-[10px] text-[#7A6F66] truncate">Above ₹{shipping.free_threshold.toLocaleString('en-IN')}</p>
+                            <p className="text-xs font-bold text-[#00303A] truncate">Free Shipping</p>
+                            <p className="text-[10px] text-[#024F5F] truncate">Above ₹{shipping.free_threshold.toLocaleString('en-IN')}</p>
                           </div>
                         </div>
 
-                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#E8DFD5] shadow-2xs flex items-center gap-2.5 sm:gap-3">
-                          <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#4A3525] shrink-0 stroke-[1.8]" />
+                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#CFAC64] shadow-2xs flex items-center gap-2.5 sm:gap-3">
+                          <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#024F5F] shrink-0 stroke-[1.8]" />
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-[#2B231D] truncate">100% Secure</p>
-                            <p className="text-[10px] text-[#7A6F66] truncate">Safe &amp; encrypted</p>
+                            <p className="text-xs font-bold text-[#00303A] truncate">100% Secure</p>
+                            <p className="text-[10px] text-[#024F5F] truncate">Safe &amp; encrypted</p>
                           </div>
                         </div>
 
-                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#E8DFD5] shadow-2xs flex items-center gap-2.5 sm:gap-3">
-                          <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-[#4A3525] shrink-0 stroke-[1.8]" />
+                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#CFAC64] shadow-2xs flex items-center gap-2.5 sm:gap-3">
+                          <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-[#024F5F] shrink-0 stroke-[1.8]" />
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-[#2B231D] truncate">Easy Returns</p>
-                            <p className="text-[10px] text-[#7A6F66] truncate">7 days return</p>
+                            <p className="text-xs font-bold text-[#00303A] truncate">Easy Returns</p>
+                            <p className="text-[10px] text-[#024F5F] truncate">7 days return</p>
                           </div>
                         </div>
 
-                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#E8DFD5] shadow-2xs flex items-center gap-2.5 sm:gap-3">
-                          <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-[#4A3525] shrink-0 stroke-[1.8]" />
+                        <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#CFAC64] shadow-2xs flex items-center gap-2.5 sm:gap-3">
+                          <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-[#024F5F] shrink-0 stroke-[1.8]" />
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-[#2B231D] truncate">Need Help?</p>
-                            <p className="text-[10px] text-[#7A6F66] truncate">{supportEmail || 'Contact Support'}</p>
+                            <p className="text-xs font-bold text-[#00303A] truncate">Need Help?</p>
+                            <p className="text-[10px] text-[#024F5F] truncate">{supportEmail || 'Contact Support'}</p>
                           </div>
                         </div>
                       </div>
@@ -1345,19 +1332,19 @@ function AuthAndDashboardContent() {
                 {activeTab === 'orders' && (
                   <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
                     {/* Header & Filter Card */}
-                    <div className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-4 sm:p-7 space-y-4 sm:space-y-5">
+                    <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-7 space-y-4 sm:space-y-5">
                       {/* Top Title & Search / Explore Row */}
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-[#F0EAE1]">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-[#F6F1EC]">
                         <div>
                           <div className="flex items-center gap-2.5">
-                            <h2 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold text-[#2B231D]">
+                            <h2 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold text-[#00303A]">
                               Order History
                             </h2>
-                            <span className="text-xs font-bold bg-[#FAF6F1] text-[#4A3525] border border-[#E5DACD] px-2.5 py-0.5 rounded-full">
+                            <span className="text-xs font-bold bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] px-2.5 py-0.5 rounded-full">
                               {orders.length} {orders.length === 1 ? 'Order' : 'Orders'}
                             </span>
                           </div>
-                          <p className="text-xs sm:text-sm text-[#7A6F66] mt-1">
+                          <p className="text-xs sm:text-sm text-[#024F5F] mt-1">
                             Track, review, and manage invoices for all your bespoke Al Hareer purchases.
                           </p>
                         </div>
@@ -1365,19 +1352,19 @@ function AuthAndDashboardContent() {
                         {/* Search & Shop CTA */}
                         <div className="flex items-center gap-2.5 sm:gap-3">
                           <div className="relative flex-1 sm:w-64">
-                            <Search className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Search className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="text"
                               value={orderSearchQuery}
                               onChange={(e) => setOrderSearchQuery(e.target.value)}
                               placeholder="Search by ID or product..."
-                              className="w-full text-xs pl-9 pr-8 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                              className="w-full text-xs pl-9 pr-8 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                             />
                             {orderSearchQuery && (
                               <button
                                 type="button"
                                 onClick={() => setOrderSearchQuery('')}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7A6F66] hover:text-[#2B231D] p-0.5 cursor-pointer"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#024F5F] hover:text-[#00303A] p-0.5 cursor-pointer"
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>
@@ -1386,7 +1373,7 @@ function AuthAndDashboardContent() {
 
                           <Link
                             href="/shop"
-                            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] text-xs font-semibold rounded-xl border border-[#E5DACD] transition-colors shrink-0"
+                            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] text-xs font-semibold rounded-xl border border-[#CFAC64] transition-colors shrink-0"
                           >
                             <span>Explore Catalog</span>
                           </Link>
@@ -1406,8 +1393,8 @@ function AuthAndDashboardContent() {
                                 onClick={() => setOrderFilter(tab.id)}
                                 className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shrink-0 active:scale-95 ${
                                   isActive
-                                    ? 'bg-[#2B231D] text-white shadow-xs'
-                                    : 'bg-[#FAF6F1] text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#EFE8E0] border border-[#E8DFD5]'
+                                    ? 'bg-[#00303A] text-white shadow-xs'
+                                    : 'bg-[#F6F1EC] text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC] border border-[#CFAC64]'
                                 }`}
                               >
                                 <span>{tab.label}</span>
@@ -1415,7 +1402,7 @@ function AuthAndDashboardContent() {
                                   className={`text-[10px] sm:text-[10.5px] px-1.5 py-0.2 rounded-full font-semibold ${
                                     isActive
                                       ? 'bg-white/20 text-white'
-                                      : 'bg-white text-[#4A3525] border border-[#E5DACD]'
+                                      : 'bg-white text-[#024F5F] border border-[#CFAC64]'
                                   }`}
                                 >
                                   {count}
@@ -1440,21 +1427,21 @@ function AuthAndDashboardContent() {
                           return (
                             <div
                               key={order.id}
-                              className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs hover:border-[#DACDC0] transition-all overflow-hidden"
+                              className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs hover:border-[#CFAC64] transition-all overflow-hidden"
                             >
                               {/* Order Card Top Bar */}
-                              <div className="p-3.5 sm:px-6 sm:py-3.5 bg-[#FAF6F1]/60 border-b border-[#F0EAE1] flex flex-wrap items-center justify-between gap-2.5">
+                              <div className="p-3.5 sm:px-6 sm:py-3.5 bg-[#F6F1EC]/60 border-b border-[#F6F1EC] flex flex-wrap items-center justify-between gap-2.5">
                                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-[#7A6F66]">Order:</span>
-                                    <span className="font-heading font-bold text-[#2B231D]">{order.id}</span>
+                                    <span className="text-[#024F5F]">Order:</span>
+                                    <span className="font-heading font-bold text-[#00303A]">{order.id}</span>
                                   </div>
-                                  <span className="text-[#DACDC0] hidden sm:inline">•</span>
-                                  <div className="flex items-center gap-1.5 text-[#7A6F66]">
+                                  <span className="text-[#CFAC64] hidden sm:inline">•</span>
+                                  <div className="flex items-center gap-1.5 text-[#024F5F]">
                                     <span>Placed on {order.date}</span>
                                   </div>
-                                  <span className="text-[#DACDC0] hidden md:inline">•</span>
-                                  <div className="hidden md:flex items-center gap-1.5 text-[#7A6F66]">
+                                  <span className="text-[#CFAC64] hidden md:inline">•</span>
+                                  <div className="hidden md:flex items-center gap-1.5 text-[#024F5F]">
                                     <span>{order.paymentMethod || 'Online Payment'}</span>
                                   </div>
                                 </div>
@@ -1470,7 +1457,7 @@ function AuthAndDashboardContent() {
                               {/* Order Card Main Content */}
                               <div className="p-3.5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5">
                                 <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
-                                  <div className="relative w-16 h-20 sm:w-20 sm:h-24 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] overflow-hidden shrink-0 shadow-xs">
+                                  <div className="relative w-16 h-20 sm:w-20 sm:h-24 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] overflow-hidden shrink-0 shadow-xs">
                                     <Image
                                       src={displayImage || '/images/your-image-19.jpg'}
                                       alt={displayTitle}
@@ -1481,28 +1468,28 @@ function AuthAndDashboardContent() {
                                   </div>
 
                                   <div className="min-w-0 space-y-1 flex-1">
-                                    <h3 className="font-heading text-xs sm:text-base font-bold text-[#2B231D] truncate leading-tight">
+                                    <h3 className="font-heading text-xs sm:text-base font-bold text-[#00303A] truncate leading-tight">
                                       {displayTitle}
                                     </h3>
 
                                     {order.items && order.items.length > 1 && (
-                                      <p className="text-[11px] sm:text-xs text-[#8B6B52] font-semibold">
+                                      <p className="text-[11px] sm:text-xs text-[#024F5F] font-semibold">
                                         + {order.items.length - 1} more {order.items.length - 1 === 1 ? 'item' : 'items'} in package
                                       </p>
                                     )}
 
-                                    <p className="text-[11px] sm:text-xs text-[#7A6F66] flex items-center gap-1 pt-0.5">
-                                      <MapPin className="w-3 h-3 text-[#8B6B52] shrink-0" />
+                                    <p className="text-[11px] sm:text-xs text-[#024F5F] flex items-center gap-1 pt-0.5">
+                                      <MapPin className="w-3 h-3 text-[#024F5F] shrink-0" />
                                       <span className="truncate">
                                         Deliver to {order.shippingAddress?.fullName || displayName} • {order.shippingAddress?.city || 'Mumbai'}
                                       </span>
                                     </p>
 
                                     <div className="pt-1 flex items-center gap-2.5">
-                                      <span className="font-heading text-sm sm:text-lg font-bold text-[#2B231D]">
+                                      <span className="font-heading text-sm sm:text-lg font-bold text-[#00303A]">
                                         ₹{order.total.toLocaleString('en-IN')}
                                       </span>
-                                      <span className="text-[10px] sm:text-[11px] font-semibold text-[#1E7E34] bg-[#EAF5EC] px-2 py-0.5 rounded-full border border-[#CDE5D1]">
+                                      <span className="text-[10px] sm:text-[11px] font-semibold text-[#024F5F] bg-[#F6F1EC] px-2 py-0.5 rounded-full border border-[#F6F1EC]">
                                         Free Delivery
                                       </span>
                                     </div>
@@ -1510,11 +1497,11 @@ function AuthAndDashboardContent() {
                                 </div>
 
                                 {/* Card Action Buttons */}
-                                <div className="grid grid-cols-2 sm:flex sm:flex-row md:flex-col items-stretch justify-end gap-2 shrink-0 pt-2.5 md:pt-0 border-t md:border-t-0 border-[#F0EAE1]">
+                                <div className="grid grid-cols-2 sm:flex sm:flex-row md:flex-col items-stretch justify-end gap-2 shrink-0 pt-2.5 md:pt-0 border-t md:border-t-0 border-[#F6F1EC]">
                                   <button
                                     type="button"
                                     onClick={() => setSelectedOrder(order)}
-                                    className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                    className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                                   >
                                     <span>View Details</span>
                                   </button>
@@ -1524,7 +1511,7 @@ function AuthAndDashboardContent() {
                                     onClick={() => {
                                       showToast(`📄 Downloading invoice receipt for ${order.id}...`, 'info');
                                     }}
-                                    className="px-3.5 py-2 sm:px-4 sm:py-2 bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] text-xs font-semibold rounded-xl border border-[#E5DACD] transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                    className="px-3.5 py-2 sm:px-4 sm:py-2 bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] text-xs font-semibold rounded-xl border border-[#CFAC64] transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                                   >
                                     <FileText className="w-3.5 h-3.5" />
                                     <span>Invoice</span>
@@ -1534,7 +1521,7 @@ function AuthAndDashboardContent() {
                                     <button
                                       type="button"
                                       onClick={() => handleCancelOrder(order.id)}
-                                      className="col-span-2 sm:col-span-1 px-3 py-1.5 text-[11px] font-semibold text-[#991B1B] hover:bg-[#FEE2E2]/60 rounded-xl transition-colors cursor-pointer text-center active:scale-95"
+                                      className="col-span-2 sm:col-span-1 px-3 py-1.5 text-[11px] font-semibold text-[#024F5F] hover:bg-[#F6F1EC]/60 rounded-xl transition-colors cursor-pointer text-center active:scale-95"
                                     >
                                       Cancel Order
                                     </button>
@@ -1547,19 +1534,19 @@ function AuthAndDashboardContent() {
                       </div>
                     ) : (
                       /* EMPTY STATE (EXACT USER REQUIREMENT) */
-                      <div className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-6 sm:p-14 text-center space-y-4 animate-in fade-in duration-200">
-                        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#8B6B52] shadow-xs mx-auto">
+                      <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-6 sm:p-14 text-center space-y-4 animate-in fade-in duration-200">
+                        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F] shadow-xs mx-auto">
                           <ShoppingBag className="w-7 h-7 sm:w-10 sm:h-10 stroke-[1.5]" />
                         </div>
                         <div>
-                          <h3 className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D]">
+                          <h3 className="font-heading text-lg sm:text-2xl font-bold text-[#00303A]">
                             {orderFilter === 'all' && !orderSearchQuery
                               ? 'No orders placed yet.'
                               : orderSearchQuery
                               ? `No orders matching "${orderSearchQuery}"`
                               : `No ${orderFilter} orders found.`}
                           </h3>
-                          <p className="text-xs sm:text-sm text-[#7A6F66] mt-1.5 max-w-sm mx-auto leading-relaxed">
+                          <p className="text-xs sm:text-sm text-[#024F5F] mt-1.5 max-w-sm mx-auto leading-relaxed">
                             Add items to your cart and checkout to see them here.
                           </p>
                         </div>
@@ -1567,7 +1554,7 @@ function AuthAndDashboardContent() {
                         <div className="pt-2">
                           <Link
                             href="/shop"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#2B231D] hover:bg-[#4A3525] text-white px-7 py-3 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-7 py-3 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
                           >
                             <ShoppingBag className="w-4 h-4" />
                             <span>Start Shopping</span>
@@ -1583,347 +1570,86 @@ function AuthAndDashboardContent() {
                 {/* ------------------------------------------------------------- */}
                 {activeTab === 'track' && (
                   <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
-                    {/* Top Header Card */}
-                    <div className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-4 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                    {/* Header */}
+                    <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                       <div>
-                        <div className="flex items-center gap-2.5">
-                          <h2 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold text-[#2B231D]">
-                            Track Your Shipment
-                          </h2>
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#1E7E34] animate-pulse" />
-                        </div>
-                        <p className="text-xs sm:text-sm text-[#7A6F66] mt-1">
-                          Real-time location, live courier updates, and estimated delivery dates.
+                        <h2 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold text-[#00303A]">
+                          Track Your Orders
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#024F5F] mt-1">
+                          Select an order to see its progress and shipping details.
                         </p>
                       </div>
-
                       <button
                         type="button"
-                        onClick={() => setActiveTab('orders')}
-                        className="px-3.5 py-2 bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] text-xs font-semibold rounded-xl border border-[#E5DACD] transition-colors self-start sm:self-auto flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        onClick={handleRefreshTracking}
+                        disabled={isRefreshing}
+                        className="px-3.5 py-2 bg-[#F6F1EC] text-[#024F5F] text-xs font-semibold rounded-xl border border-[#CFAC64] transition-colors self-start sm:self-auto flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-60"
                       >
-                        <Package className="w-3.5 h-3.5" />
-                        <span>All Orders ({orders.length})</span>
+                        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
                       </button>
                     </div>
 
-                    {/* HERO TRACKING BANNER (EXACT USER MOCKUP SCREENSHOT) */}
-                    <div className="rounded-2xl bg-[#FAF6F1] border border-[#E8DFD5] p-5 sm:p-9 md:p-10 relative overflow-hidden shadow-2xs">
-                      {/* Right Decorative Truck Art */}
-                      <div className="hidden md:flex absolute -right-6 lg:right-6 top-1/2 -translate-y-1/2 items-center justify-center pointer-events-none select-none opacity-80">
-                        <div className="relative w-44 h-44 lg:w-52 lg:h-52 rounded-full bg-[#F3EBE0]/80 flex items-center justify-center">
-                          <div className="absolute left-7 top-1/2 -translate-y-1/2 space-y-1.5 opacity-60">
-                            <div className="w-7 h-1 bg-[#D1C0AF] rounded-full" />
-                            <div className="w-11 h-1 bg-[#D1C0AF] rounded-full" />
-                            <div className="w-6 h-1 bg-[#D1C0AF] rounded-full" />
-                          </div>
-                          <div className="w-20 h-20 text-[#A68F7B] flex items-center justify-center translate-x-2">
-                            <Truck className="w-16 h-16 stroke-[1.4] text-[#A68F7B]" />
-                          </div>
-                        </div>
+                    {orders.length === 0 ? (
+                      <div className="bg-white rounded-2xl border border-[#CFAC64] p-8 text-center space-y-3">
+                        <Package className="w-8 h-8 text-[#CFAC64] mx-auto" />
+                        <p className="text-sm font-semibold text-[#00303A]">No orders to track yet</p>
+                        <Link href="/shop" className="inline-block rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-5 py-2.5 text-xs font-semibold text-white">
+                          Start Shopping
+                        </Link>
                       </div>
-
-                      <div className="max-w-2xl mx-auto text-center relative z-10">
-                        {/* Top Center Isometric Box Badge */}
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border border-[#E5DACD] flex items-center justify-center text-[#4A3525] shadow-xs mx-auto mb-3">
-                          <Package className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.7] text-[#4A3525]" />
-                        </div>
-
-                        <h2 className="font-heading text-xl sm:text-3xl md:text-4xl font-bold text-[#2B231D] tracking-tight">
-                          Track Your Shipment
-                        </h2>
-
-                        <p className="text-xs sm:text-sm text-[#7A6F66] mt-1 font-medium">
-                          Enter your order number to get the latest updates.
-                        </p>
-
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            handleTrackOrderSubmit(e);
-                          }}
-                          className="mt-5 sm:mt-6"
-                        >
-                          <div className="flex flex-col sm:flex-row items-stretch gap-2 sm:gap-2.5 max-w-xl mx-auto">
-                            <div className="relative flex-1">
-                              <Search className="w-4 h-4 text-[#8C7D70] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                              <input
-                                type="text"
-                                value={trackOrderNumber}
-                                onChange={(e) => {
-                                  setTrackOrderNumber(e.target.value);
-                                  if (trackError) setTrackError('');
-                                }}
-                                placeholder="Enter Order # (e.g. #BNF1001)"
-                                className="w-full text-xs sm:text-sm pl-10 pr-9 py-3 sm:py-3.5 rounded-xl bg-white border border-[#DACDC0] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] shadow-2xs transition-all"
-                              />
-                              {trackOrderNumber && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setTrackOrderNumber('');
-                                    setTrackedOrderResult(null);
-                                    setTrackError('');
-                                  }}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A6F66] hover:text-[#2B231D] p-1 cursor-pointer transition-colors"
-                                  title="Clear input"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="submit"
-                                className="flex-1 sm:flex-none bg-[#3B2B1F] hover:bg-[#2B231D] text-white px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 active:scale-95"
-                              >
-                                <span>Track</span>
-                              </button>
-
+                    ) : (
+                      <div className="space-y-3">
+                        {orders.map((o) => {
+                          const isOpen = trackedOrderResult?.id === o.id;
+                          const badge = getStatusBadge(o.status);
+                          return (
+                            <div
+                              key={o.id}
+                              className={`bg-white rounded-2xl border transition-all ${isOpen ? 'border-[#024F5F] shadow-md' : 'border-[#CFAC64] shadow-2xs'}`}
+                            >
                               <button
                                 type="button"
-                                onClick={handleRefreshTracking}
-                                disabled={isRefreshing}
-                                className="bg-white hover:bg-[#FAF6F1] text-[#4A3525] border border-[#DACDC0] px-3.5 sm:px-4 py-3 sm:py-3.5 rounded-xl font-heading text-xs sm:text-sm font-semibold shadow-2xs hover:shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 disabled:opacity-60"
-                                title="Refresh and sync tracking status"
+                                onClick={() => setTrackedOrderResult(isOpen ? null : o)}
+                                className="w-full flex items-center gap-3 sm:gap-4 p-3.5 sm:p-5 text-left cursor-pointer"
                               >
-                                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#8B6B52]' : 'text-[#4A3525]'}`} />
-                                <span className="hidden sm:inline">{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
-                              </button>
-                            </div>
-                          </div>
-
-                          {trackError && (
-                            <p className="text-xs text-[#991B1B] font-semibold mt-2">
-                              {trackError}
-                            </p>
-                          )}
-
-                          <p className="text-[11px] sm:text-xs text-[#8C7D70] text-center mt-2.5">
-                            You can find your order number in the confirmation email.
-                          </p>
-
-                          {orders.length > 0 && (
-                            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-4 pt-3 border-t border-[#E8DFD5]/70">
-                              <span className="text-[11px] text-[#7A6F66] font-medium mr-1">Quick Select:</span>
-                              {orders.map((o) => (
-                                <button
-                                  key={o.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setTrackOrderNumber(o.id);
-                                    setTrackedOrderResult(o);
-                                    setTrackError('');
-                                    showToast(`📦 Tracking loaded for ${o.id}`, 'info');
-                                  }}
-                                  className={`text-[10.5px] sm:text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors cursor-pointer active:scale-95 ${
-                                    trackedOrderResult?.id === o.id
-                                      ? 'bg-[#2B231D] text-white border-[#2B231D]'
-                                      : 'bg-white hover:bg-[#EFE8E0] text-[#4A3525] border-[#DACDC0]'
-                                  }`}
-                                >
-                                  {o.id} ({o.status})
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </form>
-                      </div>
-                    </div>
-
-                    {/* LIVE TRACKING TIMELINE CARD (RENDERED DIRECTLY ON RIGHT SIDE ONLY AFTER TRACKING) */}
-                    {trackedOrderResult && (() => {
-                      const activeTracking = trackedOrderResult;
-                      const badge = getStatusBadge(activeTracking.status);
-                      const steps = getTrackingSteps(activeTracking.status);
-
-                      return (
-                        <div className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-4 sm:p-8 space-y-5 sm:space-y-6 animate-in fade-in duration-200">
-                          {/* Top Status & ID Bar */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-5 border-b border-[#F0EAE1]">
-                            <div>
-                              <div className="flex items-center gap-2.5 sm:gap-3">
-                                <h3 className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D]">
-                                  {activeTracking.id}
-                                </h3>
-                                <span
-                                  className={`text-[11px] sm:text-xs font-bold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border inline-flex items-center gap-1.5 ${badge.bg}`}
-                                >
-                                  {badge.icon}
-                                  <span>{badge.label}</span>
-                                </span>
-                              </div>
-                              <p className="text-xs text-[#7A6F66] mt-1">
-                                Placed on {activeTracking.date} • {activeTracking.paymentMethod || 'Online Payment'}
-                              </p>
-                            </div>
-
-                            <div className="grid grid-cols-3 sm:flex sm:flex-wrap items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={handleRefreshTracking}
-                                disabled={isRefreshing}
-                                className="px-2.5 sm:px-3.5 py-2 bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] text-xs font-semibold rounded-xl border border-[#E5DACD] transition-colors flex items-center justify-center gap-1 cursor-pointer disabled:opacity-60 active:scale-95"
-                                title="Refresh live milestones"
-                              >
-                                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#8B6B52]' : ''}`} />
-                                <span>{isRefreshing ? 'Syncing' : 'Refresh'}</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  showToast(`📄 Downloading shipping slip for ${activeTracking.id}...`, 'info');
-                                }}
-                                className="px-2.5 sm:px-4 py-2 bg-[#FAF6F1] hover:bg-[#EFE8E0] text-[#4A3525] text-xs font-semibold rounded-xl border border-[#E5DACD] transition-colors flex items-center justify-center gap-1 cursor-pointer active:scale-95"
-                              >
-                                <FileText className="w-3.5 h-3.5" />
-                                <span>Slip</span>
-                              </button>
-
-                              <Link
-                                href="/contact"
-                                className="px-2.5 sm:px-4 py-2 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer text-center active:scale-95"
-                              >
-                                Support
-                              </Link>
-                            </div>
-                          </div>
-
-                          {/* Shipment Meta Details Box */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-xl bg-[#FAF6F1] border border-[#E5DACD]">
-                            <div>
-                              <p className="text-[10.5px] sm:text-[11px] text-[#7A6F66] font-medium">Logistics Partner</p>
-                              <p className="text-xs sm:text-sm font-bold text-[#2B231D] mt-0.5">
-                                Royal BlueDart Air Express
-                              </p>
-                            </div>
-
-                            <div>
-                              <p className="text-[10.5px] sm:text-[11px] text-[#7A6F66] font-medium">Tracking Number (AWB)</p>
-                              <p className="text-xs sm:text-sm font-bold text-[#4A3525] mt-0.5 font-mono">
-                                BNF-EXP-88912
-                              </p>
-                            </div>
-
-                            <div>
-                              <p className="text-[10.5px] sm:text-[11px] text-[#7A6F66] font-medium">Current Status</p>
-                              <p className="text-xs sm:text-sm font-bold text-[#1E7E34] mt-0.5">
-                                {activeTracking.status === 'Delivered'
-                                  ? 'Delivered Successfully'
-                                  : activeTracking.status === 'Shipped'
-                                  ? 'In Transit (Arriving in 24–48h)'
-                                  : 'Preparing in Atelier'}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Step Timeline Progress */}
-                          <div className="space-y-4 pt-1 sm:pt-2">
-                            <h4 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D] uppercase tracking-wider">
-                              Live Shipment Milestones
-                            </h4>
-
-                            <div className="relative pl-6 sm:pl-7 space-y-5 sm:space-y-7 before:absolute before:left-2.5 sm:before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E5DACD]">
-                              {steps.map((step: any, idx: number) => (
-                                <div key={idx} className="relative group">
-                                  <div
-                                    className={`absolute -left-6 sm:-left-7 top-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                      step.isCancelled
-                                        ? 'bg-[#FEE2E2] border-[#991B1B] text-[#991B1B]'
-                                        : step.completed
-                                        ? 'bg-[#2B231D] border-[#2B231D] text-white shadow-xs'
-                                        : step.current
-                                        ? 'bg-[#4A3525] border-[#4A3525] text-white ring-3 ring-[#4A3525]/20'
-                                        : 'bg-white border-[#DACDC0] text-transparent'
-                                    }`}
-                                  >
-                                    {step.completed || step.current ? (
-                                      <Check className="w-3 h-3 stroke-[3]" />
-                                    ) : null}
+                                <div className="relative w-12 h-16 sm:w-14 sm:h-18 rounded-lg bg-[#F6F1EC] border border-[#CFAC64] overflow-hidden shrink-0">
+                                  {o.productImage && (
+                                    <Image src={o.productImage} alt={o.productName} fill sizes="56px" className="object-cover object-top" />
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="font-heading text-sm sm:text-base font-bold text-[#00303A]">{o.id}</h3>
+                                    <span className={`text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 ${badge.bg}`}>
+                                      {badge.icon}
+                                      <span>{badge.label}</span>
+                                    </span>
                                   </div>
+                                  <p className="text-xs text-[#024F5F] mt-0.5 truncate">
+                                    {o.productName}
+                                    {o.itemsCount > 1 ? ` +${o.itemsCount - 1} more` : ''}
+                                  </p>
+                                  <p className="text-[11px] text-[#024F5F]/80 mt-0.5">
+                                    {o.date} • ₹{o.total.toLocaleString('en-IN')}
+                                  </p>
+                                </div>
+                                <ChevronDown className={`w-5 h-5 text-[#024F5F] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                              </button>
 
-                                  <div className="space-y-0.5">
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-1">
-                                      <h5
-                                        className={`font-heading text-xs sm:text-sm font-bold ${
-                                          step.isCancelled
-                                            ? 'text-[#991B1B]'
-                                            : step.completed || step.current
-                                            ? 'text-[#2B231D]'
-                                            : 'text-[#A89C8F]'
-                                        }`}
-                                      >
-                                        {step.title}
-                                      </h5>
-                                      <span className="text-[10px] sm:text-[11px] font-medium text-[#7A6F66]">
-                                        {step.date}
-                                      </span>
-                                    </div>
-                                    <p
-                                      className={`text-[11px] sm:text-xs leading-relaxed ${
-                                        step.completed || step.current
-                                          ? 'text-[#7A6F66]'
-                                          : 'text-[#B8ACA0]'
-                                      }`}
-                                    >
-                                      {step.desc}
-                                    </p>
+                              {isOpen && (
+                                <div className="px-3.5 pb-4 sm:px-5 sm:pb-6 pt-1 border-t border-[#F6F1EC] animate-in fade-in duration-200">
+                                  <div className="pt-4">
+                                    <OrderTracking order={o} />
                                   </div>
                                 </div>
-                              ))}
+                              )}
                             </div>
-                          </div>
-
-                          {/* Destination & Ordered Items Row */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-[#F0EAE1]">
-                            {/* Destination Card */}
-                            <div className="p-3.5 sm:p-4 rounded-xl bg-[#FAF6F1]/60 border border-[#E8DFD5] space-y-1.5 sm:space-y-2">
-                              <p className="text-xs font-bold text-[#2B231D] flex items-center gap-1.5">
-                                <MapPin className="w-3.5 h-3.5 text-[#8B6B52]" />
-                                <span>Delivery Destination</span>
-                              </p>
-                              <div className="text-xs text-[#7A6F66] pl-5 space-y-0.5">
-                                <p className="font-bold text-[#2B231D]">
-                                  {activeTracking.shippingAddress?.fullName || displayName}
-                                </p>
-                                <p>
-                                  {activeTracking.shippingAddress?.address || 'Flat 402, Royal Palms Residency'},{' '}
-                                  {activeTracking.shippingAddress?.city || 'Mumbai'} –{' '}
-                                  {activeTracking.shippingAddress?.pinCode || '400001'}
-                                </p>
-                                <p>Phone: {activeTracking.shippingAddress?.phone || '+91 98765 43210'}</p>
-                              </div>
-                            </div>
-
-                            {/* Item Card */}
-                            <div className="p-3.5 sm:p-4 rounded-xl bg-[#FAF6F1]/60 border border-[#E8DFD5] flex items-center gap-3 sm:gap-3.5">
-                              <div className="relative w-12 h-16 sm:w-14 sm:h-18 rounded-lg bg-white border border-[#E5DACD] overflow-hidden shrink-0 shadow-2xs">
-                                <Image
-                                  src={activeTracking.productImage || '/images/your-image-19.jpg'}
-                                  alt={activeTracking.productName}
-                                  fill
-                                  className="object-cover object-top"
-                                />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-[10px] sm:text-[10.5px] font-bold text-[#8B6B52] uppercase">
-                                  Package Contents
-                                </p>
-                                <h5 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D] truncate mt-0.5">
-                                  {activeTracking.productName}
-                                </h5>
-                                <p className="text-xs font-bold text-[#2B231D] mt-1">
-                                  ₹{activeTracking.total.toLocaleString('en-IN')} • 1 Item
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                        </div>
-                      );
-                    })()}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1931,13 +1657,13 @@ function AuthAndDashboardContent() {
                 {/* SUB-TAB C: SAVED ADDRESSES                                    */}
                 {/* ------------------------------------------------------------- */}
                 {activeTab === 'addresses' && (
-                  <div className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-4 sm:p-7 md:p-8 space-y-4 sm:space-y-6 animate-in fade-in duration-200">
-                    <div className="flex items-center justify-between pb-4 border-b border-[#F0EAE1]">
+                  <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-7 md:p-8 space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between pb-4 border-b border-[#F6F1EC]">
                       <div>
-                        <h2 className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D]">
+                        <h2 className="font-heading text-lg sm:text-2xl font-bold text-[#00303A]">
                           Saved Addresses ({addresses.length})
                         </h2>
-                        <p className="text-xs text-[#7A6F66] mt-0.5">
+                        <p className="text-xs text-[#024F5F] mt-0.5">
                           Manage your shipping and delivery destinations.
                         </p>
                       </div>
@@ -1945,7 +1671,7 @@ function AuthAndDashboardContent() {
                       <button
                         type="button"
                         onClick={() => setIsAddAddressOpen(true)}
-                        className="px-3.5 py-2 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        className="px-3.5 py-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
                       >
                         <Plus className="w-4 h-4" />
                         <span>Add New</span>
@@ -1954,17 +1680,17 @@ function AuthAndDashboardContent() {
 
                     {addresses.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center space-y-3">
-                        <div className="w-14 h-14 rounded-full bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525]">
+                        <div className="w-14 h-14 rounded-full bg-[#F6F1EC] border border-[#CFAC64] flex items-center justify-center text-[#024F5F]">
                           <MapPin className="w-6 h-6 stroke-[1.5]" />
                         </div>
                         <div className="space-y-1">
-                          <h4 className="font-heading text-base font-bold text-[#2B231D]">No saved addresses</h4>
-                          <p className="text-xs text-[#7A6F66] max-w-xs">Add a delivery address to make checkout faster.</p>
+                          <h4 className="font-heading text-base font-bold text-[#00303A]">No saved addresses</h4>
+                          <p className="text-xs text-[#024F5F] max-w-xs">Add a delivery address to make checkout faster.</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setIsAddAddressOpen(true)}
-                          className="mt-2 px-5 py-2.5 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
+                          className="mt-2 px-5 py-2.5 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Add Your First Address</span>
@@ -1977,29 +1703,29 @@ function AuthAndDashboardContent() {
                           key={addr.id}
                           className={`p-4 sm:p-5 rounded-xl border relative space-y-2.5 transition-all ${
                             addr.isDefault
-                              ? 'border-[#4A3525] bg-[#FAF6F1]'
-                              : 'border-[#E8DFD5] bg-white hover:border-[#DACDC0]'
+                              ? 'border-[#024F5F] bg-[#F6F1EC]'
+                              : 'border-[#CFAC64] bg-white hover:border-[#CFAC64]'
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-[#FAF6F1] border border-[#DACDC0] text-[#4A3525]">
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-[#F6F1EC] border border-[#CFAC64] text-[#024F5F]">
                               {addr.type}
                             </span>
                             {addr.isDefault && (
-                              <span className="text-[10px] font-bold text-[#1E7E34] bg-[#1E7E34]/10 px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] font-bold text-[#024F5F] bg-[#024F5F]/10 px-2 py-0.5 rounded-full">
                                 Default Address
                               </span>
                             )}
                           </div>
 
                           <div>
-                            <h4 className="font-heading text-sm font-bold text-[#2B231D]">
+                            <h4 className="font-heading text-sm font-bold text-[#00303A]">
                               {addr.name}
                             </h4>
-                            <p className="text-xs text-[#7A6F66] leading-relaxed mt-1">
+                            <p className="text-xs text-[#024F5F] leading-relaxed mt-1">
                               {addr.address}, {addr.city}, {addr.state} – {addr.pinCode}
                             </p>
-                            <p className="text-xs text-[#4A3525] font-semibold mt-1">
+                            <p className="text-xs text-[#024F5F] font-semibold mt-1">
                               Phone: {addr.phone}
                             </p>
                           </div>
@@ -2014,19 +1740,19 @@ function AuthAndDashboardContent() {
                 {/* SUB-TAB F: ACCOUNT SETTINGS                                   */}
                 {/* ------------------------------------------------------------- */}
                 {activeTab === 'settings' && (
-                  <div className="bg-white rounded-2xl border border-[#E8DFD5] shadow-2xs p-4 sm:p-7 md:p-8 space-y-4 sm:space-y-6 animate-in fade-in duration-200">
-                    <div className="pb-4 border-b border-[#F0EAE1]">
-                      <h2 className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D]">
+                  <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-7 md:p-8 space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+                    <div className="pb-4 border-b border-[#F6F1EC]">
+                      <h2 className="font-heading text-lg sm:text-2xl font-bold text-[#00303A]">
                         Account Profile &amp; Preferences
                       </h2>
-                      <p className="text-xs text-[#7A6F66] mt-0.5">
+                      <p className="text-xs text-[#024F5F] mt-0.5">
                         Update your personal credentials and contact settings.
                       </p>
                     </div>
 
                     <form onSubmit={handleSaveSettings} className="space-y-4 max-w-xl">
                       <div>
-                        <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">
+                        <label className="block text-xs font-semibold text-[#00303A] mb-1.5">
                           Full Name
                         </label>
                         <input
@@ -2034,13 +1760,13 @@ function AuthAndDashboardContent() {
                           required
                           value={settingsData.name}
                           onChange={(e) => setSettingsData({ ...settingsData, name: e.target.value })}
-                          className="w-full text-xs sm:text-sm px-3.5 py-3 sm:py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                          className="w-full text-xs sm:text-sm px-3.5 py-3 sm:py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                         />
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">
+                          <label className="block text-xs font-semibold text-[#00303A] mb-1.5">
                             Email Address
                           </label>
                           <input
@@ -2048,19 +1774,19 @@ function AuthAndDashboardContent() {
                             required
                             value={settingsData.email}
                             onChange={(e) => setSettingsData({ ...settingsData, email: e.target.value })}
-                            className="w-full text-xs sm:text-sm px-3.5 py-3 sm:py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                            className="w-full text-xs sm:text-sm px-3.5 py-3 sm:py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">
+                          <label className="block text-xs font-semibold text-[#00303A] mb-1.5">
                             Phone Number
                           </label>
                           <input
                             type="tel"
                             value={settingsData.phone}
                             onChange={(e) => setSettingsData({ ...settingsData, phone: e.target.value })}
-                            className="w-full text-xs sm:text-sm px-3.5 py-3 sm:py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                            className="w-full text-xs sm:text-sm px-3.5 py-3 sm:py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                           />
                         </div>
                       </div>
@@ -2068,7 +1794,7 @@ function AuthAndDashboardContent() {
                       <div className="pt-2">
                         <button
                           type="submit"
-                          className="w-full sm:w-auto px-6 py-3 bg-[#2B231D] hover:bg-[#4A3525] text-white font-heading text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
+                          className="w-full sm:w-auto px-6 py-3 bg-[#00303A] hover:bg-[#CFAC64] text-white font-heading text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
                         >
                           Save Changes
                         </button>
@@ -2085,16 +1811,16 @@ function AuthAndDashboardContent() {
             /* VIEW 2: AUTH CARD (SIGN IN / REGISTER) FOR LOGGED OUT USERS               */
             /* ========================================================================= */
             <div className="flex items-center justify-center py-4 sm:py-10">
-              <div className="w-full max-w-[500px] sm:max-w-[520px] bg-white rounded-2xl border border-[#E8DFD5] shadow-[0_15px_45px_-15px_rgba(43,35,29,0.09)] p-5 sm:p-8 md:p-10 relative z-10 transition-all duration-300">
+              <div className="w-full max-w-[500px] sm:max-w-[520px] bg-white rounded-2xl border border-[#CFAC64] shadow-[0_15px_45px_-15px_rgba(0,48,58,0.09)] p-5 sm:p-8 md:p-10 relative z-10 transition-all duration-300">
                 
                 {/* VIEW A: SIGN IN FORM */}
                 {mode === 'signin' && (
                   <div className="animate-in fade-in duration-300">
                     <div className="mb-5 sm:mb-6">
-                      <h1 className="font-heading text-xl sm:text-3xl font-bold text-[#2B231D]">
+                      <h1 className="font-heading text-xl sm:text-3xl font-bold text-[#00303A]">
                         Sign In
                       </h1>
-                      <p className="text-xs sm:text-sm text-[#7A6F66] mt-1">
+                      <p className="text-xs sm:text-sm text-[#024F5F] mt-1">
                         Welcome back! Please sign in to continue.
                       </p>
                     </div>
@@ -2102,56 +1828,48 @@ function AuthAndDashboardContent() {
                     <form onSubmit={handleSignIn} className="space-y-3.5 sm:space-y-4">
                       {/* Email */}
                       <div className="relative">
-                        <Mail className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Mail className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="email"
                           required
                           value={signInData.email}
                           onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                           placeholder="Email address"
-                          className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                          className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                         />
                       </div>
 
                       {/* Password */}
                       <div className="relative">
-                        <Lock className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Lock className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type={showSignInPassword ? 'text' : 'password'}
                           required
                           value={signInData.password}
                           onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                           placeholder="Password"
-                          className="w-full text-xs sm:text-sm pl-10 pr-11 py-3 sm:py-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                          className="w-full text-xs sm:text-sm pl-10 pr-11 py-3 sm:py-3.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                         />
                         <button
                           type="button"
                           onClick={() => setShowSignInPassword(!showSignInPassword)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7A6F66] hover:text-[#2B231D] p-1 cursor-pointer transition-colors"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#024F5F] hover:text-[#00303A] p-1 cursor-pointer transition-colors"
                         >
                           {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
 
-                      {/* Remember & Forgot */}
-                      <div className="flex items-center justify-between pt-0.5 text-xs sm:text-[13px]">
-                        <label className="flex items-center gap-2 cursor-pointer select-none text-[#4A3525]">
+                      {/* Remember Me */}
+                      <div className="flex items-center pt-0.5 text-xs sm:text-[13px]">
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-[#024F5F]">
                           <input
                             type="checkbox"
                             checked={signInData.rememberMe}
                             onChange={(e) => setSignInData({ ...signInData, rememberMe: e.target.checked })}
-                            className="w-4 h-4 rounded border-[#DACDC0] text-[#4A3525] accent-[#4A3525] cursor-pointer"
+                            className="w-4 h-4 rounded border-[#CFAC64] text-[#024F5F] accent-[#024F5F] cursor-pointer"
                           />
                           <span>Remember me</span>
                         </label>
-
-                        <button
-                          type="button"
-                          onClick={() => setIsForgotOpen(true)}
-                          className="text-[#8B6B52] hover:text-[#4A3525] font-semibold underline underline-offset-2 transition-colors cursor-pointer"
-                        >
-                          Forgot password?
-                        </button>
                       </div>
 
                       {/* Sign In CTA Button */}
@@ -2159,7 +1877,7 @@ function AuthAndDashboardContent() {
                         <button
                           type="submit"
                           disabled={isLoading}
-                          className="w-full bg-[#2B231D] hover:bg-[#4A3525] text-white py-3 sm:py-3.5 px-6 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
+                          className="w-full bg-[#CFAC64] hover:bg-[#CFAC64] text-white py-3 sm:py-3.5 px-6 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
                         >
                           {isLoading ? (
                             <span className="flex items-center gap-2 text-xs font-sans font-medium">
@@ -2175,7 +1893,7 @@ function AuthAndDashboardContent() {
                       </div>
 
                       {/* Switch to Register */}
-                      <div className="text-center pt-2.5 text-xs sm:text-[13px] text-[#7A6F66]">
+                      <div className="text-center pt-2.5 text-xs sm:text-[13px] text-[#024F5F]">
                         <span>Don&apos;t have an account? </span>
                         <button
                           type="button"
@@ -2183,19 +1901,19 @@ function AuthAndDashboardContent() {
                             setMode('register');
                             router.replace('/account?mode=register', { scroll: false });
                           }}
-                          className="font-bold text-[#8B6B52] hover:text-[#4A3525] underline underline-offset-2 transition-colors cursor-pointer"
+                          className="font-bold text-[#024F5F] hover:text-[#024F5F] underline underline-offset-2 transition-colors cursor-pointer"
                         >
                           Create an Account
                         </button>
                       </div>
 
                       {/* Terms */}
-                      <p className="text-[10.5px] sm:text-xs text-[#7A6F66] text-center pt-2 leading-relaxed border-t border-[#F0EAE1]/80 mt-3.5">
+                      <p className="text-[10.5px] sm:text-xs text-[#024F5F] text-center pt-2 leading-relaxed border-t border-[#F6F1EC]/80 mt-3.5">
                         By signing in, you agree to our{' '}
                         <button
                           type="button"
                           onClick={() => setShowTermsModal(true)}
-                          className="text-[#8B6B52] hover:text-[#4A3525] underline font-medium cursor-pointer"
+                          className="text-[#024F5F] hover:text-[#024F5F] underline font-medium cursor-pointer"
                         >
                           Terms of Service
                         </button>{' '}
@@ -2203,7 +1921,7 @@ function AuthAndDashboardContent() {
                         <button
                           type="button"
                           onClick={() => setShowTermsModal(true)}
-                          className="text-[#8B6B52] hover:text-[#4A3525] underline font-medium cursor-pointer"
+                          className="text-[#024F5F] hover:text-[#024F5F] underline font-medium cursor-pointer"
                         >
                           Privacy Policy
                         </button>
@@ -2217,10 +1935,10 @@ function AuthAndDashboardContent() {
                 {mode === 'register' && (
                   <div className="animate-in fade-in duration-300">
                     <div className="mb-5 sm:mb-6">
-                      <h1 className="font-heading text-xl sm:text-3xl font-bold text-[#2B231D]">
+                      <h1 className="font-heading text-xl sm:text-3xl font-bold text-[#00303A]">
                         Create Account
                       </h1>
-                      <p className="text-xs sm:text-sm text-[#7A6F66] mt-1">
+                      <p className="text-xs sm:text-sm text-[#024F5F] mt-1">
                         Join our community and start shopping.
                       </p>
                     </div>
@@ -2229,58 +1947,58 @@ function AuthAndDashboardContent() {
                       {/* Name & Phone */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
                         <div className="relative">
-                          <UserIcon className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <UserIcon className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="text"
                             required
                             value={registerData.fullName}
                             onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
                             placeholder="Full Name"
-                            className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                            className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                           />
                         </div>
 
                         <div className="relative">
-                          <Phone className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <Phone className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="tel"
                             required
                             value={registerData.phone}
                             onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
                             placeholder="Phone Number"
-                            className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                            className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                           />
                         </div>
                       </div>
 
                       {/* Email */}
                       <div className="relative">
-                        <Mail className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Mail className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="email"
                           required
                           value={registerData.email}
                           onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                           placeholder="Email address"
-                          className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                          className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                         />
                       </div>
 
                       {/* Password */}
                       <div className="relative">
-                        <Lock className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Lock className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type={showRegPassword ? 'text' : 'password'}
                           required
                           value={registerData.password}
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           placeholder="Password"
-                          className="w-full text-xs sm:text-sm pl-10 pr-11 py-3 sm:py-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                          className="w-full text-xs sm:text-sm pl-10 pr-11 py-3 sm:py-3.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                         />
                         <button
                           type="button"
                           onClick={() => setShowRegPassword(!showRegPassword)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7A6F66] hover:text-[#2B231D] p-1 cursor-pointer transition-colors"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#024F5F] hover:text-[#00303A] p-1 cursor-pointer transition-colors"
                         >
                           {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -2288,19 +2006,19 @@ function AuthAndDashboardContent() {
 
                       {/* Confirm Password */}
                       <div className="relative">
-                        <Lock className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Lock className="w-4 h-4 text-[#024F5F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           required
                           value={registerData.confirmPassword}
                           onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                           placeholder="Confirm Password"
-                          className="w-full text-xs sm:text-sm pl-10 pr-11 py-3 sm:py-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#4A3525] focus:bg-white transition-all"
+                          className="w-full text-xs sm:text-sm pl-10 pr-11 py-3 sm:py-3.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] placeholder-[#CFAC64] outline-none focus:outline-none ring-0 focus:ring-0 focus:border-[#024F5F] focus:bg-white transition-all"
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7A6F66] hover:text-[#2B231D] p-1 cursor-pointer transition-colors"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#024F5F] hover:text-[#00303A] p-1 cursor-pointer transition-colors"
                         >
                           {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -2308,20 +2026,20 @@ function AuthAndDashboardContent() {
 
                       {/* Terms */}
                       <div className="pt-0.5">
-                        <label className="flex items-start gap-2.5 cursor-pointer select-none text-[11.5px] sm:text-[12.5px] text-[#4A3525] leading-relaxed">
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none text-[11.5px] sm:text-[12.5px] text-[#024F5F] leading-relaxed">
                           <input
                             type="checkbox"
                             required
                             checked={registerData.agreeTerms}
                             onChange={(e) => setRegisterData({ ...registerData, agreeTerms: e.target.checked })}
-                            className="mt-0.5 w-4 h-4 rounded border-[#DACDC0] text-[#4A3525] accent-[#4A3525] cursor-pointer shrink-0"
+                            className="mt-0.5 w-4 h-4 rounded border-[#CFAC64] text-[#024F5F] accent-[#024F5F] cursor-pointer shrink-0"
                           />
                           <span>
                             I agree to the{' '}
                             <button
                               type="button"
                               onClick={() => setShowTermsModal(true)}
-                              className="text-[#8B6B52] hover:text-[#4A3525] underline font-semibold cursor-pointer"
+                              className="text-[#024F5F] hover:text-[#024F5F] underline font-semibold cursor-pointer"
                             >
                               Terms of Service
                             </button>{' '}
@@ -2329,7 +2047,7 @@ function AuthAndDashboardContent() {
                             <button
                               type="button"
                               onClick={() => setShowTermsModal(true)}
-                              className="text-[#8B6B52] hover:text-[#4A3525] underline font-semibold cursor-pointer"
+                              className="text-[#024F5F] hover:text-[#024F5F] underline font-semibold cursor-pointer"
                             >
                               Privacy Policy
                             </button>
@@ -2343,7 +2061,7 @@ function AuthAndDashboardContent() {
                         <button
                           type="submit"
                           disabled={isLoading}
-                          className="w-full bg-[#2B231D] hover:bg-[#4A3525] text-white py-3 sm:py-3.5 px-6 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
+                          className="w-full bg-[#CFAC64] hover:bg-[#CFAC64] text-white py-3 sm:py-3.5 px-6 rounded-xl font-heading text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
                         >
                           {isLoading ? (
                             <span className="flex items-center gap-2 text-xs font-sans font-medium">
@@ -2359,7 +2077,7 @@ function AuthAndDashboardContent() {
                       </div>
 
                       {/* Switch to Sign In */}
-                      <div className="text-center pt-2.5 text-xs sm:text-[13px] text-[#7A6F66]">
+                      <div className="text-center pt-2.5 text-xs sm:text-[13px] text-[#024F5F]">
                         <span>Already have an account? </span>
                         <button
                           type="button"
@@ -2367,7 +2085,7 @@ function AuthAndDashboardContent() {
                             setMode('signin');
                             router.replace('/account?mode=signin', { scroll: false });
                           }}
-                          className="font-bold text-[#8B6B52] hover:text-[#4A3525] underline underline-offset-2 transition-colors cursor-pointer"
+                          className="font-bold text-[#024F5F] hover:text-[#024F5F] underline underline-offset-2 transition-colors cursor-pointer"
                         >
                           Sign In
                         </button>
@@ -2385,22 +2103,22 @@ function AuthAndDashboardContent() {
 
       {/* 3. ORDER DETAILS MODAL */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#2B231D]/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white rounded-2xl border border-[#E8DFD5] shadow-2xl p-4 sm:p-7 relative max-h-[88vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#00303A]/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-[#CFAC64] shadow-2xl p-4 sm:p-7 relative max-h-[88vh] overflow-y-auto">
             <button
               onClick={() => setSelectedOrder(null)}
-              className="absolute top-3.5 right-3.5 p-1.5 text-[#7A6F66] hover:text-[#2B231D] rounded-full hover:bg-[#FAF6F1] transition-colors cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-1.5 text-[#024F5F] hover:text-[#00303A] rounded-full hover:bg-[#F6F1EC] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="pb-3.5 border-b border-[#F0EAE1]">
+            <div className="pb-3.5 border-b border-[#F6F1EC]">
               <div className="flex items-center justify-between pr-8">
                 <div>
-                  <span className="text-[10px] sm:text-[10.5px] font-bold text-[#8B6B52] uppercase tracking-wider">
+                  <span className="text-[10px] sm:text-[10.5px] font-bold text-[#024F5F] uppercase tracking-wider">
                     Order Details
                   </span>
-                  <h3 className="font-heading text-lg sm:text-xl font-bold text-[#2B231D]">
+                  <h3 className="font-heading text-lg sm:text-xl font-bold text-[#00303A]">
                     {selectedOrder.id}
                   </h3>
                 </div>
@@ -2413,7 +2131,7 @@ function AuthAndDashboardContent() {
                   <span>{selectedOrder.status}</span>
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-[#7A6F66] mt-1">
+              <p className="text-[11px] sm:text-xs text-[#024F5F] mt-1">
                 Placed on {selectedOrder.date} • {selectedOrder.paymentMethod || 'Online Payment'}
               </p>
             </div>
@@ -2421,14 +2139,14 @@ function AuthAndDashboardContent() {
             <div className="py-3.5 space-y-3.5">
               {/* Items List */}
               <div className="space-y-2">
-                <p className="text-xs font-bold text-[#2B231D]">Ordered Ensembles:</p>
+                <p className="text-xs font-bold text-[#00303A]">Ordered Ensembles:</p>
                 {selectedOrder.items && Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
                   selectedOrder.items.map((it: any, idx: number) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-[#FAF6F1] border border-[#E5DACD]"
+                      className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-[#F6F1EC] border border-[#CFAC64]"
                     >
-                      <div className="relative w-12 h-16 sm:w-14 sm:h-18 rounded-lg overflow-hidden bg-white shrink-0 border border-[#E5DACD]">
+                      <div className="relative w-12 h-16 sm:w-14 sm:h-18 rounded-lg overflow-hidden bg-white shrink-0 border border-[#CFAC64]">
                         <Image
                           src={it.image || selectedOrder.productImage || '/images/your-image-19.jpg'}
                           alt={it.name}
@@ -2437,21 +2155,21 @@ function AuthAndDashboardContent() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D] truncate">
+                        <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A] truncate">
                           {it.name}
                         </h4>
-                        <p className="text-[10.5px] sm:text-[11px] text-[#7A6F66] mt-0.5">
+                        <p className="text-[10.5px] sm:text-[11px] text-[#024F5F] mt-0.5">
                           {it.size ? `Size: ${it.size}` : ''} {it.color ? `• Color: ${it.color}` : ''} • Qty: {it.qty || 1}
                         </p>
-                        <p className="font-heading text-xs sm:text-sm font-bold text-[#4A3525] mt-1">
+                        <p className="font-heading text-xs sm:text-sm font-bold text-[#024F5F] mt-1">
                           ₹{((it.price || selectedOrder.total) * (it.qty || 1)).toLocaleString('en-IN')}
                         </p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FAF6F1] border border-[#E5DACD]">
-                    <div className="relative w-12 h-16 sm:w-14 sm:h-18 rounded-lg overflow-hidden bg-white shrink-0 border border-[#E5DACD]">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-[#F6F1EC] border border-[#CFAC64]">
+                    <div className="relative w-12 h-16 sm:w-14 sm:h-18 rounded-lg overflow-hidden bg-white shrink-0 border border-[#CFAC64]">
                       <Image
                         src={selectedOrder.productImage}
                         alt={selectedOrder.productName}
@@ -2460,13 +2178,13 @@ function AuthAndDashboardContent() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-heading text-xs sm:text-sm font-bold text-[#2B231D] truncate">
+                      <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A] truncate">
                         {selectedOrder.productName}
                       </h4>
-                      <p className="text-xs text-[#7A6F66] mt-0.5">
+                      <p className="text-xs text-[#024F5F] mt-0.5">
                         Quantity: {selectedOrder.itemsCount || 1}
                       </p>
-                      <p className="font-heading text-xs sm:text-sm font-bold text-[#4A3525] mt-1">
+                      <p className="font-heading text-xs sm:text-sm font-bold text-[#024F5F] mt-1">
                         ₹{selectedOrder.total.toLocaleString('en-IN')}
                       </p>
                     </div>
@@ -2475,31 +2193,31 @@ function AuthAndDashboardContent() {
               </div>
 
               {/* Shipping Address */}
-              <div className="p-3 sm:p-3.5 rounded-xl bg-[#FAF6F1]/60 border border-[#E8DFD5] text-xs space-y-1">
-                <p className="font-bold text-[#2B231D]">Shipping Address:</p>
-                <p className="text-[#7A6F66] font-medium">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-[#F6F1EC]/60 border border-[#CFAC64] text-xs space-y-1">
+                <p className="font-bold text-[#00303A]">Shipping Address:</p>
+                <p className="text-[#024F5F] font-medium">
                   {selectedOrder.shippingAddress?.fullName || displayName}
                 </p>
-                <p className="text-[#7A6F66]">
+                <p className="text-[#024F5F]">
                   {selectedOrder.shippingAddress?.address}, {selectedOrder.shippingAddress?.city},{' '}
                   {selectedOrder.shippingAddress?.state} – {selectedOrder.shippingAddress?.pinCode}
                 </p>
-                <p className="text-[#7A6F66]">
+                <p className="text-[#024F5F]">
                   Phone: {selectedOrder.shippingAddress?.phone || '+91 98765 43210'}
                 </p>
               </div>
 
               {/* Price Breakdown */}
-              <div className="p-3 sm:p-3.5 rounded-xl bg-[#FAF6F1]/40 border border-[#E8DFD5] text-xs space-y-1">
-                <div className="flex justify-between text-[#7A6F66]">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-[#F6F1EC]/40 border border-[#CFAC64] text-xs space-y-1">
+                <div className="flex justify-between text-[#024F5F]">
                   <span>Subtotal</span>
                   <span>₹{selectedOrder.total.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between text-[#7A6F66]">
+                <div className="flex justify-between text-[#024F5F]">
                   <span>Shipping Fee</span>
-                  <span className="text-[#1E7E34] font-semibold">Free Express</span>
+                  <span className="text-[#024F5F] font-semibold">Free Express</span>
                 </div>
-                <div className="flex justify-between font-bold text-[#2B231D] pt-1.5 border-t border-[#E8DFD5]">
+                <div className="flex justify-between font-bold text-[#00303A] pt-1.5 border-t border-[#CFAC64]">
                   <span>Total Amount</span>
                   <span className="font-heading text-sm">₹{selectedOrder.total.toLocaleString('en-IN')}</span>
                 </div>
@@ -2512,7 +2230,7 @@ function AuthAndDashboardContent() {
                 onClick={() => {
                   showToast(`📄 Downloading invoice receipt for ${selectedOrder.id}...`, 'info');
                 }}
-                className="w-full py-2.5 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
+                className="w-full py-2.5 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
               >
                 Download Invoice Receipt
               </button>
@@ -2521,7 +2239,7 @@ function AuthAndDashboardContent() {
                 <button
                   type="button"
                   onClick={() => handleCancelOrder(selectedOrder.id)}
-                  className="w-full py-2 bg-[#FEE2E2] hover:bg-[#FECACA] text-[#991B1B] text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
+                  className="w-full py-2 bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
                 >
                   Cancel Order
                 </button>
@@ -2533,25 +2251,25 @@ function AuthAndDashboardContent() {
 
       {/* 3.5 LIVE SHIPMENT TRACKING MODAL */}
       {isTrackingModalOpen && trackedOrderResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#2B231D]/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-xl bg-white rounded-2xl border border-[#E8DFD5] shadow-2xl p-4 sm:p-7 relative max-h-[88vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#00303A]/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-xl bg-white rounded-2xl border border-[#CFAC64] shadow-2xl p-4 sm:p-7 relative max-h-[88vh] overflow-y-auto">
             <button
               onClick={() => setIsTrackingModalOpen(false)}
-              className="absolute top-3.5 right-3.5 p-1.5 text-[#7A6F66] hover:text-[#2B231D] rounded-full hover:bg-[#FAF6F1] transition-colors cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-1.5 text-[#024F5F] hover:text-[#00303A] rounded-full hover:bg-[#F6F1EC] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Header */}
-            <div className="pb-3.5 border-b border-[#F0EAE1]">
+            <div className="pb-3.5 border-b border-[#F6F1EC]">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-[10.5px] font-bold text-[#8B6B52] uppercase tracking-wider">
+                <span className="text-[10px] sm:text-[10.5px] font-bold text-[#024F5F] uppercase tracking-wider">
                   Live Shipment Tracking
                 </span>
-                <span className="w-2 h-2 rounded-full bg-[#1E7E34] animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-[#024F5F] animate-ping" />
               </div>
               <div className="flex items-center justify-between pr-8 mt-1">
-                <h3 className="font-heading text-lg sm:text-2xl font-bold text-[#2B231D]">
+                <h3 className="font-heading text-lg sm:text-2xl font-bold text-[#00303A]">
                   {trackedOrderResult.id}
                 </h3>
                 <span
@@ -2563,104 +2281,20 @@ function AuthAndDashboardContent() {
                   <span>{trackedOrderResult.status}</span>
                 </span>
               </div>
-              <p className="text-xs text-[#7A6F66] mt-0.5">
-                Ensemble: <strong className="text-[#2B231D] font-heading">{trackedOrderResult.productName}</strong>
+              <p className="text-xs text-[#024F5F] mt-0.5">
+                <strong className="text-[#00303A] font-heading">{trackedOrderResult.productName}</strong>
               </p>
             </div>
 
-            {/* Courier & AWB Info Card */}
-            <div className="my-3.5 grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 sm:p-3.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-xs">
-              <div>
-                <p className="text-[#7A6F66] text-[10.5px] sm:text-[11px]">Courier Partner</p>
-                <p className="font-bold text-[#2B231D] mt-0.5 text-xs">Royal BlueDart Express</p>
-              </div>
-              <div>
-                <p className="text-[#7A6F66] text-[10.5px] sm:text-[11px]">Tracking Number</p>
-                <p className="font-bold text-[#4A3525] mt-0.5 font-mono text-xs">BNF-EXP-88912</p>
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <p className="text-[#7A6F66] text-[10.5px] sm:text-[11px]">Estimated Delivery</p>
-                <p className="font-bold text-[#1E7E34] mt-0.5 text-xs">Within 24–48 Hours</p>
-              </div>
-            </div>
-
-            {/* Visual Step Timeline */}
-            <div className="py-2 space-y-3.5">
-              <h4 className="font-heading text-xs font-bold text-[#2B231D] uppercase tracking-wider">
-                Shipment Progress
-              </h4>
-
-              <div className="relative pl-5 sm:pl-6 space-y-4 sm:space-y-6 before:absolute before:left-2 sm:before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E5DACD]">
-                {getTrackingSteps(trackedOrderResult.status).map((step: any, idx: number) => (
-                  <div key={idx} className="relative group">
-                    {/* Circle Dot on Timeline */}
-                    <div
-                      className={`absolute -left-5 sm:-left-6 top-0.5 w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        step.isCancelled
-                          ? 'bg-[#FEE2E2] border-[#991B1B] text-[#991B1B]'
-                          : step.completed
-                          ? 'bg-[#2B231D] border-[#2B231D] text-white shadow-xs'
-                          : step.current
-                          ? 'bg-[#4A3525] border-[#4A3525] text-white ring-3 ring-[#4A3525]/20'
-                          : 'bg-white border-[#DACDC0] text-transparent'
-                      }`}
-                    >
-                      {step.completed || step.current ? (
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      ) : null}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between gap-2">
-                        <h5
-                          className={`font-heading text-xs sm:text-sm font-bold ${
-                            step.isCancelled
-                              ? 'text-[#991B1B]'
-                              : step.completed || step.current
-                              ? 'text-[#2B231D]'
-                              : 'text-[#A89C8F]'
-                          }`}
-                        >
-                          {step.title}
-                        </h5>
-                        <span className="text-[10px] sm:text-[11px] font-medium text-[#7A6F66]">
-                          {step.date}
-                        </span>
-                      </div>
-                      <p
-                        className={`text-[11px] sm:text-xs mt-0.5 leading-relaxed ${
-                          step.completed || step.current
-                            ? 'text-[#7A6F66]'
-                            : 'text-[#B8ACA0]'
-                        }`}
-                      >
-                        {step.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Destination Address Preview */}
-            <div className="mt-3.5 p-3 rounded-xl bg-[#FAF6F1]/60 border border-[#E8DFD5] text-xs space-y-1">
-              <p className="font-bold text-[#2B231D] flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#8B6B52]" />
-                <span>Delivery Destination:</span>
-              </p>
-              <p className="text-[#7A6F66] pl-5 text-[11px] sm:text-xs">
-                {trackedOrderResult.shippingAddress?.fullName || displayName} •{' '}
-                {trackedOrderResult.shippingAddress?.address || 'Royal Palms Residency'},{' '}
-                {trackedOrderResult.shippingAddress?.city || 'Mumbai'} (
-                {trackedOrderResult.shippingAddress?.pinCode || '400001'})
-              </p>
+            <div className="pt-4">
+              <OrderTracking order={trackedOrderResult} />
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2.5 pt-3.5 mt-2 border-t border-[#F0EAE1]">
+            <div className="flex gap-2.5 pt-3.5 mt-2 border-t border-[#F6F1EC]">
               <Link
                 href="/contact"
-                className="flex-1 py-2.5 px-3 rounded-xl border border-[#DACDC0] text-[#4A3525] hover:bg-[#FAF6F1] text-xs font-semibold text-center transition-colors active:scale-95"
+                className="flex-1 py-2.5 px-3 rounded-xl border border-[#CFAC64] text-[#024F5F] hover:bg-[#F6F1EC] text-xs font-semibold text-center transition-colors active:scale-95"
               >
                 Support
               </Link>
@@ -2671,7 +2305,7 @@ function AuthAndDashboardContent() {
                   setIsTrackingModalOpen(false);
                   showToast(`📄 Tracking slip generated for ${trackedOrderResult.id}`, 'info');
                 }}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-[#2B231D] hover:bg-[#4A3525] text-white text-xs font-bold font-heading text-center shadow-xs transition-colors cursor-pointer active:scale-95"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-[#00303A] hover:bg-[#024F5F] text-white text-xs font-bold font-heading text-center shadow-xs transition-colors cursor-pointer active:scale-95"
               >
                 Download Slip
               </button>
@@ -2682,102 +2316,102 @@ function AuthAndDashboardContent() {
 
       {/* 4. ADD ADDRESS MODAL */}
       {isAddAddressOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#2B231D]/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white rounded-2xl border border-[#E8DFD5] shadow-2xl p-4.5 sm:p-7 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#00303A]/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-[#CFAC64] shadow-2xl p-4.5 sm:p-7 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsAddAddressOpen(false)}
-              className="absolute top-3.5 right-3.5 p-1.5 text-[#7A6F66] hover:text-[#2B231D] rounded-full hover:bg-[#FAF6F1] transition-colors cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-1.5 text-[#024F5F] hover:text-[#00303A] rounded-full hover:bg-[#F6F1EC] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="font-heading text-base sm:text-lg font-bold text-[#2B231D] pb-3 border-b border-[#F0EAE1]">
+            <h3 className="font-heading text-base sm:text-lg font-bold text-[#00303A] pb-3 border-b border-[#F6F1EC]">
               Add New Address
             </h3>
 
             <form onSubmit={handleAddAddress} className="space-y-3 pt-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#2B231D] mb-1">Full Name</label>
+                <label className="block text-xs font-semibold text-[#00303A] mb-1">Full Name</label>
                 <input
                   type="text"
                   required
                   value={newAddressForm.name}
                   onChange={(e) => setNewAddressForm({ ...newAddressForm, name: e.target.value })}
-                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:border-[#024F5F]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2B231D] mb-1">Phone Number</label>
+                <label className="block text-xs font-semibold text-[#00303A] mb-1">Phone Number</label>
                 <input
                   type="tel"
                   required
                   value={newAddressForm.phone}
                   onChange={(e) => setNewAddressForm({ ...newAddressForm, phone: e.target.value })}
-                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:border-[#024F5F]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2B231D] mb-1">Street Address</label>
+                <label className="block text-xs font-semibold text-[#00303A] mb-1">Street Address</label>
                 <input
                   type="text"
                   required
                   value={newAddressForm.address}
                   onChange={(e) => setNewAddressForm({ ...newAddressForm, address: e.target.value })}
                   placeholder="House, street, landmark"
-                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:border-[#024F5F]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2B231D] mb-1">Apartment, Suite, etc. (Optional)</label>
+                <label className="block text-xs font-semibold text-[#00303A] mb-1">Apartment, Suite, etc. (Optional)</label>
                 <input
                   type="text"
                   value={newAddressForm.addressLine2}
                   onChange={(e) => setNewAddressForm({ ...newAddressForm, addressLine2: e.target.value })}
                   placeholder="Flat / floor / building name"
-                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:border-[#024F5F]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-semibold text-[#2B231D] mb-1">City</label>
+                  <label className="block text-xs font-semibold text-[#00303A] mb-1">City</label>
                   <input
                     type="text"
                     required
                     value={newAddressForm.city}
                     onChange={(e) => setNewAddressForm({ ...newAddressForm, city: e.target.value })}
-                    className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                    className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:border-[#024F5F]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#2B231D] mb-1">State</label>
+                  <label className="block text-xs font-semibold text-[#00303A] mb-1">State</label>
                   <input
                     type="text"
                     required
                     value={newAddressForm.state}
                     onChange={(e) => setNewAddressForm({ ...newAddressForm, state: e.target.value })}
-                    className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                    className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:border-[#024F5F]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2B231D] mb-1">PIN Code</label>
+                <label className="block text-xs font-semibold text-[#00303A] mb-1">PIN Code</label>
                 <input
                   type="text"
                   required
                   maxLength={6}
                   value={newAddressForm.pinCode}
                   onChange={(e) => setNewAddressForm({ ...newAddressForm, pinCode: e.target.value })}
-                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] outline-none focus:border-[#4A3525]"
+                  className="w-full text-xs px-3 py-2.5 rounded-xl bg-[#F6F1EC] border border-[#CFAC64] text-[#00303A] outline-none focus:border-[#024F5F]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2B231D] mb-1.5">Address Type</label>
+                <label className="block text-xs font-semibold text-[#00303A] mb-1.5">Address Type</label>
                 <div className="flex gap-2">
                   {['Home', 'Office', 'Other'].map((t) => (
                     <button
@@ -2786,8 +2420,8 @@ function AuthAndDashboardContent() {
                       onClick={() => setNewAddressForm({ ...newAddressForm, type: t })}
                       className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors ${
                         newAddressForm.type === t
-                          ? 'bg-[#4A3525] text-white border-[#4A3525]'
-                          : 'bg-[#FAF6F1] text-[#7A6F66] border-[#E5DACD] hover:bg-[#F0EAE1]'
+                          ? 'bg-[#024F5F] text-white border-[#024F5F]'
+                          : 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64] hover:bg-[#F6F1EC]'
                       }`}
                     >
                       {t}
@@ -2801,22 +2435,22 @@ function AuthAndDashboardContent() {
                   type="checkbox"
                   checked={newAddressForm.setAsDefault}
                   onChange={(e) => setNewAddressForm({ ...newAddressForm, setAsDefault: e.target.checked })}
-                  className="h-4 w-4 accent-[#4A3525]"
+                  className="h-4 w-4 accent-[#024F5F]"
                 />
-                <span className="text-xs font-medium text-[#2B231D]">Set as default address</span>
+                <span className="text-xs font-medium text-[#00303A]">Set as default address</span>
               </label>
 
               <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsAddAddressOpen(false)}
-                  className="flex-1 py-2.5 px-3 border border-[#DACDC0] text-xs font-semibold text-[#7A6F66] rounded-xl hover:bg-[#FAF6F1] transition-colors active:scale-95"
+                  className="flex-1 py-2.5 px-3 border border-[#CFAC64] text-xs font-semibold text-[#024F5F] rounded-xl hover:bg-[#F6F1EC] transition-colors active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 px-3 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors active:scale-95"
+                  className="flex-1 py-2.5 px-3 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl shadow-xs transition-colors active:scale-95"
                 >
                   Save Address
                 </button>
@@ -2826,107 +2460,43 @@ function AuthAndDashboardContent() {
         </div>
       )}
 
-      {/* 5. FORGOT PASSWORD MODAL */}
-      {isForgotOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#2B231D]/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white rounded-2xl border border-[#E8DFD5] shadow-2xl p-5 sm:p-7 relative">
-            <button
-              onClick={() => setIsForgotOpen(false)}
-              className="absolute top-3.5 right-3.5 p-1.5 text-[#7A6F66] hover:text-[#2B231D] rounded-full hover:bg-[#FAF6F1] transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="text-center pb-3.5">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#FAF6F1] border border-[#E5DACD] flex items-center justify-center text-[#4A3525] mx-auto mb-2.5">
-                <Lock className="w-5 h-5 sm:w-6 sm:h-6 stroke-[1.8]" />
-              </div>
-              <h3 className="font-heading text-lg sm:text-xl font-bold text-[#2B231D]">
-                Reset Your Password
-              </h3>
-              <p className="text-xs text-[#7A6F66] mt-1 max-w-xs mx-auto">
-                Enter your registered email address and we&apos;ll send you a link to reset your password.
-              </p>
-            </div>
-
-            {forgotSubmitted ? (
-              <div className="p-3.5 sm:p-4 bg-[#EAF5EC] border border-[#CDE5D1] rounded-xl text-center space-y-1">
-                <CheckCircle2 className="w-6 h-6 text-[#1E7E34] mx-auto" />
-                <p className="text-xs font-bold text-[#1E7E34]">Reset Link Sent!</p>
-                <p className="text-[11px] text-[#4A3525]">Check your email inbox for password reset instructions.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotSubmit} className="space-y-3.5">
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="email"
-                    required
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full text-xs sm:text-sm pl-10 pr-4 py-3 rounded-xl bg-[#FAF6F1] border border-[#E5DACD] text-[#2B231D] placeholder-[#A89C8F] outline-none focus:outline-none focus:border-[#4A3525] focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div className="flex gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setIsForgotOpen(false)}
-                    className="flex-1 py-2.5 px-3 rounded-xl border border-[#DACDC0] text-[#7A6F66] hover:text-[#2B231D] hover:bg-[#FAF6F1] text-xs font-semibold transition-colors cursor-pointer active:scale-95"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#2B231D] hover:bg-[#4A3525] text-white text-xs font-bold font-heading transition-colors cursor-pointer shadow-xs active:scale-95"
-                  >
-                    Send Reset Link
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* 7. TERMS OF SERVICE MODAL */}
       {showTermsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#2B231D]/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white rounded-2xl border border-[#E8DFD5] shadow-2xl p-5 sm:p-8 relative max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#00303A]/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-[#CFAC64] shadow-2xl p-5 sm:p-8 relative max-h-[85vh] overflow-y-auto">
             <button
               onClick={() => setShowTermsModal(false)}
-              className="absolute top-3.5 right-3.5 p-1.5 text-[#7A6F66] hover:text-[#2B231D] rounded-full hover:bg-[#FAF6F1] transition-colors cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-1.5 text-[#024F5F] hover:text-[#00303A] rounded-full hover:bg-[#F6F1EC] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-2 mb-3.5">
-              <ShieldCheck className="w-5 h-5 text-[#8B6B52]" />
-              <h3 className="font-heading text-base sm:text-xl font-bold text-[#2B231D]">
+              <ShieldCheck className="w-5 h-5 text-[#024F5F]" />
+              <h3 className="font-heading text-base sm:text-xl font-bold text-[#00303A]">
                 Terms of Service &amp; Privacy Policy
               </h3>
             </div>
 
-            <div className="space-y-2.5 text-xs text-[#7A6F66] leading-relaxed">
+            <div className="space-y-2.5 text-xs text-[#024F5F] leading-relaxed">
               <p>
-                <strong className="text-[#2B231D]">1. Welcome to Al Hareer:</strong> By accessing and using our website, you agree to comply with and be bound by these terms regarding luxury heritage shopping, bespoke tailoring, and order processing.
+                <strong className="text-[#00303A]">1. Welcome to Al Hareer:</strong> By accessing and using our website, you agree to comply with and be bound by these terms regarding luxury heritage shopping, bespoke tailoring, and order processing.
               </p>
               <p>
-                <strong className="text-[#2B231D]">2. Data Privacy:</strong> We strictly protect your privacy. Your personal information, contact credentials, and delivery addresses are encrypted and never shared with unauthorized third parties.
+                <strong className="text-[#00303A]">2. Data Privacy:</strong> We strictly protect your privacy. Your personal information, contact credentials, and delivery addresses are encrypted and never shared with unauthorized third parties.
               </p>
               <p>
-                <strong className="text-[#2B231D]">3. Order &amp; Delivery:</strong> Orders are verified before dispatch. Standard delivery arrives within 3–5 business days, and Express Delivery arrives in 1–2 business days.
+                <strong className="text-[#00303A]">3. Order &amp; Delivery:</strong> Orders are verified before dispatch. Standard delivery arrives within 3–5 business days, and Express Delivery arrives in 1–2 business days.
               </p>
               <p>
-                <strong className="text-[#2B231D]">4. 7-Day Hassle-Free Returns:</strong> Items in original condition with intact brand tags may be returned or exchanged within 7 days of delivery.
+                <strong className="text-[#00303A]">4. 7-Day Hassle-Free Returns:</strong> Items in original condition with intact brand tags may be returned or exchanged within 7 days of delivery.
               </p>
             </div>
 
             <button
               type="button"
               onClick={() => setShowTermsModal(false)}
-              className="w-full mt-5 py-2.5 bg-[#4A3525] hover:bg-[#36261A] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
+              className="w-full mt-5 py-2.5 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
             >
               I Understand &amp; Agree
             </button>
@@ -2944,7 +2514,7 @@ export default function AccountPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FAF6F0] flex items-center justify-center text-[#4A3525] font-heading">
+        <div className="min-h-screen bg-[#F6F1EC] flex items-center justify-center text-[#024F5F] font-heading">
           Loading your royal profile...
         </div>
       }

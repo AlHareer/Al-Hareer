@@ -34,8 +34,8 @@ export default function AdminLoginPage() {
 
         <form action={formAction} className="relative space-y-4">
           {state?.error && (
-            <div className="rounded-xl border border-red-300 bg-red-50 p-3.5 text-sm text-red-700 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
+            <div className="rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3.5 text-sm text-[#024F5F] flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#024F5F] shrink-0" />
               {state.error}
             </div>
           )}
@@ -72,7 +72,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white py-3.5 rounded-xl font-semibold text-sm tracking-wide shadow-luxury transition-all disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white py-3.5 rounded-xl font-semibold text-sm tracking-wide shadow-luxury transition-all disabled:opacity-60"
           >
             {pending ? (
               <span className="inline-flex items-center gap-2">

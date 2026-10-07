@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Image from 'next/image';
@@ -14,11 +14,11 @@ export default function ShopByOccasion({ occasions, settings }: { occasions: Occ
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Top Header Badge / Line */}
         <div className="flex items-center justify-center gap-3 mb-2">
-          <span className="w-6 sm:w-10 h-[1.5px] bg-[#C6B09B]/70" />
+          <span className="w-6 sm:w-10 h-[1.5px] bg-[#CFAC64]/70" />
           <span className="text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-brand-600 uppercase">
 FOR EVERY OCCASION
           </span>
-          <span className="w-6 sm:w-10 h-[1.5px] bg-[#C6B09B]/70" />
+          <span className="w-6 sm:w-10 h-[1.5px] bg-[#CFAC64]/70" />
         </div>
 
         {/* Section Heading */}
@@ -54,8 +54,8 @@ FOR EVERY OCCASION
 
                 {/* Floating Bottom Gold Badge */}
                 <div className="absolute bottom-2.5 left-2 right-2 sm:bottom-3 sm:left-2.5 sm:right-2.5">
-                  <div className="w-full py-1.5 sm:py-2 px-2 rounded-[5px] bg-[#1F1813]/80 backdrop-blur-md border border-[#D4AF37]/50 text-center shadow-md transition-all duration-300 group-hover:bg-[#1F1813]/95 group-hover:border-[#D4AF37]/90">
-                    <span className="block text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-[#F5E6BE] truncate">
+                  <div className="w-full py-1.5 sm:py-2 px-2 rounded-[5px] bg-[#00303A]/80 backdrop-blur-md border border-[#CFAC64]/50 text-center shadow-md transition-all duration-300 group-hover:bg-[#00303A]/95 group-hover:border-[#CFAC64]/90">
+                    <span className="block text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-[#F6F1EC] truncate">
                       {occasion.tag}
                     </span>
                   </div>

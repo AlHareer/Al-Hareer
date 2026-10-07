@@ -1,4 +1,4 @@
-import { Product } from '@/types';
+﻿import { Product } from '@/types';
 
 // Base 8 primary products exactly matching the mockup screenshot
 const PRIMARY_PRODUCTS: Product[] = [
@@ -79,7 +79,7 @@ const PRIMARY_PRODUCTS: Product[] = [
     tag: 'POPULAR',
     colors: [
       { name: 'Warm Beige', hex: '#D2B48C', image: '/images/shopby/wedding.jpg' },
-      { name: 'Classic Ivory', hex: '#FAF6F0', image: '/images/your-image-19.jpg' },
+      { name: 'Classic Ivory', hex: '#F8F3EB', image: '/images/your-image-19.jpg' },
       { name: 'Midnight Black', hex: '#111111', image: '/images/your-image-16.jpg' },
     ],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
@@ -202,7 +202,7 @@ const PRIMARY_PRODUCTS: Product[] = [
     tag: 'BESTSELLER',
     colors: [
       { name: 'Sage Green', hex: '#2E5A44', image: '/images/your-image-15.jpg' },
-      { name: 'Soft Cream', hex: '#FAF6F0', image: '/images/your-image-19.jpg' },
+      { name: 'Soft Cream', hex: '#F8F3EB', image: '/images/your-image-19.jpg' },
       { name: 'Midnight Black', hex: '#111111', image: '/images/your-image-16.jpg' },
     ],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
@@ -502,7 +502,7 @@ const EXTRA_ACCESSORIES: Product[] = [
     productType: 'Accessories',
     tag: 'TRENDING',
     colors: [
-      { name: 'Gold', hex: '#D4AF37', image: '/images/your-image-22.jpg' },
+      { name: 'Gold', hex: '#C9A040', image: '/images/your-image-22.jpg' },
     ],
     sizes: ['Standard'],
     description: 'Vintage-inspired brooch crafted in brass alloy with ruby crystal stone centerpiece.',

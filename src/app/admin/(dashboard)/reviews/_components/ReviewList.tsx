@@ -94,7 +94,7 @@ export default function ReviewList({ reviews }: { reviews: Review[] }) {
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                         r.is_approved
-                          ? 'bg-green-50 text-green-700 border-green-200'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
                           : 'bg-gold-light/50 text-gold-dark border-gold/40'
                       }`}
                     >
@@ -116,7 +116,7 @@ export default function ReviewList({ reviews }: { reviews: Review[] }) {
                     <button
                       onClick={() => handleApprove(r.id)}
                       disabled={pending}
-                      className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3.5 py-2 text-xs font-semibold text-green-700 transition-colors hover:bg-green-100"
+                      className="flex items-center gap-1.5 rounded-lg border border-[#CFAC64] bg-[#F6F1EC] px-3.5 py-2 text-xs font-semibold text-[#024F5F] transition-colors hover:bg-[#F6F1EC]"
                     >
                       <Check className="h-3.5 w-3.5" /> Approve
                     </button>
@@ -126,7 +126,7 @@ export default function ReviewList({ reviews }: { reviews: Review[] }) {
                     disabled={pending}
                     title={confirmingId === r.id ? 'Click again to confirm' : 'Delete Review'}
                     className={`rounded-lg p-2 transition-all ${
-                      confirmingId === r.id ? 'text-red-600 bg-red-50' : 'text-muted hover:text-red-500 hover:bg-red-50'
+                      confirmingId === r.id ? 'text-[#024F5F] bg-[#F6F1EC]' : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
                     }`}
                   >
                     <Trash2 className="h-4 w-4" />

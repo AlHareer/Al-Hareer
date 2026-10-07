@@ -76,8 +76,8 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
 
         {/* Status Alerts */}
         {state?.error && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm font-semibold text-red-700">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+          <div className="flex items-center gap-2 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3.5 text-xs sm:text-sm font-semibold text-[#024F5F]">
+            <AlertCircle className="h-4 w-4 shrink-0 text-[#024F5F]" />
             <span>{state.error}</span>
           </div>
         )}
@@ -172,7 +172,7 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
             onClick={() => setIsActive((prev) => !prev)}
             className={`flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all cursor-pointer ${
               isActive
-                ? 'border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50/70'
+                ? 'border-[#CFAC64] bg-[#F6F1EC]/40 hover:bg-[#F6F1EC]/70'
                 : 'border-cream-300 bg-cream-50/40 hover:bg-cream-100/60'
             }`}
           >
@@ -184,8 +184,8 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                     isActive
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                      : 'bg-amber-100 text-amber-800 border border-amber-200'
+                      ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]'
+                      : 'bg-[#F6F1EC] text-[#B08F4F] border border-[#CFAC64]'
                   }`}
                 >
                   {isActive ? 'Live on Storefront' : 'Draft'}
@@ -200,7 +200,7 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
 
             <span
               className={`relative flex h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-                isActive ? 'bg-emerald-600' : 'bg-cream-400'
+                isActive ? 'bg-[#024F5F]' : 'bg-cream-400'
               }`}
             >
               <span
@@ -222,7 +222,7 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
             onClick={() => setShowOnHome((prev) => !prev)}
             className={`flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all cursor-pointer ${
               showOnHome
-                ? 'border-blue-300 bg-blue-50/40 hover:bg-blue-50/70'
+                ? 'border-[#CFAC64] bg-[#F6F1EC]/40 hover:bg-[#F6F1EC]/70'
                 : 'border-cream-300 bg-cream-50/40 hover:bg-cream-100/60'
             }`}
           >
@@ -232,7 +232,7 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
                   {showOnHome ? 'Shown on Homepage' : 'Not on Homepage'}
                 </span>
                 {showOnHome && (
-                  <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
+                  <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]">
                     Homepage
                   </span>
                 )}
@@ -245,7 +245,7 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
             </div>
             <span
               className={`relative flex h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-                showOnHome ? 'bg-blue-600' : 'bg-cream-400'
+                showOnHome ? 'bg-[#024F5F]' : 'bg-cream-400'
               }`}
             >
               <span
@@ -262,7 +262,7 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
           <button
             type="submit"
             disabled={pending || (isOther && !customCategory.trim())}
-            className="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-60 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-60 cursor-pointer"
           >
             {pending ? (
               <>
@@ -303,8 +303,8 @@ export default function FaqForm({ faq, categories = [] }: { faq?: Faq; categorie
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 isActive
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  : 'bg-amber-50 text-amber-800 border border-amber-200'
+                  ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]'
+                  : 'bg-[#F6F1EC] text-[#B08F4F] border border-[#CFAC64]'
               }`}
             >
               {isActive ? 'Live' : 'Hidden'}

@@ -32,19 +32,19 @@ export default async function AdminFaqsPage() {
       label: 'Published & Live',
       value: activeCount,
       icon: CheckCircle2,
-      accent: 'bg-emerald-500/10 text-emerald-700 border-emerald-200/60',
+      accent: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
     },
     {
       label: 'Draft / Hidden',
       value: hiddenCount,
       icon: EyeOff,
-      accent: 'bg-amber-500/10 text-amber-700 border-amber-200/60',
+      accent: 'bg-[#CFAC64]/10 text-[#B08F4F] border-[#CFAC64]/60',
     },
     {
       label: 'Categories',
       value: categoriesCount,
       icon: FolderTree,
-      accent: 'bg-blue-500/10 text-blue-700 border-blue-200/60',
+      accent: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
     },
   ];
 
@@ -81,7 +81,7 @@ export default async function AdminFaqsPage() {
 
             <Link
               href="/admin/faqs/new"
-              className="inline-flex items-center justify-center gap-1.5 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4" /> New FAQ
             </Link>

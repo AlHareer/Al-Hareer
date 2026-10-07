@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useTransition, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -178,14 +178,14 @@ export default function AnnouncementManager({ announcements }: { announcements: 
 
           <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
             liveCount > 0
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              ? 'bg-[#F6F1EC] border-[#CFAC64] text-[#024F5F]'
               : 'bg-cream-100 border-cream-200 text-muted'
           }`}>
             {liveCount > 0 ? (
               <>
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#024F5F] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#024F5F]"></span>
                 </span>
                 <span>{liveCount} Live on Storefront</span>
               </>
@@ -197,13 +197,13 @@ export default function AnnouncementManager({ announcements }: { announcements: 
 
         {/* Realistic Mock Storefront Top Bar with Live Animated Marquee */}
         {liveCount > 0 ? (
-          <div className="relative overflow-hidden rounded-xl border border-[#D4AF37]/35 bg-gradient-to-r from-[#120D09] via-[#211710] to-[#120D09] py-2.5 shadow-md select-none text-[#FAF6F0]">
+          <div className="relative overflow-hidden rounded-xl border border-[#CFAC64]/35 bg-gradient-to-r from-[#00303A] via-[#00303A] to-[#00303A] py-2.5 shadow-md select-none text-[#F6F1EC]">
             {/* Ambient Center Glow */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(212,175,55,0.1)_0%,_transparent_75%)] pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(207,172,100,0.1)_0%,_transparent_75%)] pointer-events-none" />
 
             {/* Left and Right Fade Masks */}
-            <div className="absolute left-0 inset-y-0 w-8 sm:w-16 bg-gradient-to-r from-[#120D09] via-[#120D09]/95 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 inset-y-0 w-8 sm:w-16 bg-gradient-to-l from-[#120D09] via-[#120D09]/95 to-transparent z-10 pointer-events-none" />
+            <div className="absolute left-0 inset-y-0 w-8 sm:w-16 bg-gradient-to-r from-[#00303A] via-[#00303A]/95 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 inset-y-0 w-8 sm:w-16 bg-gradient-to-l from-[#00303A] via-[#00303A]/95 to-transparent z-10 pointer-events-none" />
 
             <div className="w-full overflow-hidden flex">
               <div className="animate-marquee-infinite flex items-center hover:[animation-play-state:paused] cursor-default">
@@ -212,10 +212,10 @@ export default function AnnouncementManager({ announcements }: { announcements: 
                     {liveAnnouncements.map((item, idx) => (
                       <div key={`${setIdx}-${idx}`} className="flex items-center shrink-0">
                         <div className="flex items-center gap-3 mx-4 sm:mx-8">
-                          <span className="inline-flex items-center justify-center text-[#D4AF37] select-none text-xs drop-shadow-[0_0_8px_rgba(212,175,55,0.85)]">
+                          <span className="inline-flex items-center justify-center text-[#CFAC64] select-none text-xs drop-shadow-[0_0_8px_rgba(207,172,100,0.85)]">
                             ✦
                           </span>
-                          <span className="font-heading text-[11px] sm:text-[12px] font-medium tracking-[0.2em] uppercase text-[#F5EDE4] whitespace-nowrap">
+                          <span className="font-heading text-[11px] sm:text-[12px] font-medium tracking-[0.2em] uppercase text-[#F6F1EC] whitespace-nowrap">
                             {item.message}
                           </span>
                         </div>
@@ -249,18 +249,18 @@ export default function AnnouncementManager({ announcements }: { announcements: 
         </div>
 
         {/* Active Live */}
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-2xs flex items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100/80 border border-emerald-200 text-emerald-700">
+        <div className="rounded-2xl border border-[#CFAC64] bg-[#F6F1EC]/50 p-4 shadow-2xs flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F6F1EC]/80 border border-[#CFAC64] text-[#024F5F]">
             <Radio className="h-5 w-5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-heading text-xl font-bold text-emerald-900 leading-tight">{liveCount}</p>
-              <span className="inline-flex rounded-full bg-emerald-200/70 px-2 py-0.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+              <p className="font-heading text-xl font-bold text-[#024F5F] leading-tight">{liveCount}</p>
+              <span className="inline-flex rounded-full bg-[#F6F1EC]/70 px-2 py-0.5 text-[10px] font-bold text-[#024F5F] uppercase tracking-wider">
                 Live
               </span>
             </div>
-            <p className="text-xs font-semibold text-emerald-800/80">Active on Storefront</p>
+            <p className="text-xs font-semibold text-[#024F5F]/80">Active on Storefront</p>
           </div>
         </div>
 
@@ -305,7 +305,7 @@ export default function AnnouncementManager({ announcements }: { announcements: 
             <button
               type="submit"
               disabled={pending || !newMessage.trim()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-50 transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-50 transition-all cursor-pointer shrink-0"
             >
               {pending ? (
                 <>
@@ -322,8 +322,8 @@ export default function AnnouncementManager({ announcements }: { announcements: 
           </div>
 
           {addError && (
-            <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
-              <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+            <div className="flex items-center gap-2 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3 text-xs font-semibold text-[#024F5F]">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#024F5F]" />
               <span>{addError}</span>
             </div>
           )}
@@ -479,7 +479,7 @@ export default function AnnouncementManager({ announcements }: { announcements: 
                         type="button"
                         onClick={() => handleSaveEdit(a.id)}
                         disabled={pending || !editMessage.trim()}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-luxury transition-all disabled:opacity-50 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-4 py-2 text-xs font-semibold text-white shadow-luxury transition-all disabled:opacity-50 cursor-pointer"
                       >
                         {pending ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -501,7 +501,7 @@ export default function AnnouncementManager({ announcements }: { announcements: 
                   </div>
 
                   {editError && (
-                    <p className="text-xs font-semibold text-red-600 flex items-center gap-1">
+                    <p className="text-xs font-semibold text-[#024F5F] flex items-center gap-1">
                       <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                       <span>{editError}</span>
                     </p>
@@ -515,7 +515,7 @@ export default function AnnouncementManager({ announcements }: { announcements: 
                 key={a.id}
                 className={`rounded-2xl border transition-all p-4 sm:p-5 shadow-2xs hover:shadow-luxury ${
                   a.is_active
-                    ? 'border-emerald-200/90 bg-white ring-1 ring-emerald-500/10'
+                    ? 'border-[#CFAC64]/90 bg-white ring-1 ring-[#CFAC64]/10'
                     : 'border-cream-200/80 bg-white opacity-80 hover:opacity-100'
                 }`}
               >
@@ -524,8 +524,8 @@ export default function AnnouncementManager({ announcements }: { announcements: 
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
                       {a.is_active ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F6F1EC] border border-[#CFAC64] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#024F5F]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#024F5F]"></span>
                           <span>Live on Store</span>
                         </span>
                       ) : (
@@ -552,7 +552,7 @@ export default function AnnouncementManager({ announcements }: { announcements: 
                         disabled={pending || isToggling}
                         onClick={() => handleToggle(a.id, a.is_active)}
                         className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50 ${
-                          a.is_active ? 'bg-emerald-600' : 'bg-cream-300'
+                          a.is_active ? 'bg-[#024F5F]' : 'bg-cream-300'
                         }`}
                         title={a.is_active ? 'Click to deactivate' : 'Click to activate on storefront'}
                       >
@@ -587,8 +587,8 @@ export default function AnnouncementManager({ announcements }: { announcements: 
                       disabled={pending}
                       className={`rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
                         isConfirmingDelete
-                          ? 'bg-red-600 text-white shadow-md animate-pulse'
-                          : 'border border-cream-200 bg-cream-50/60 text-muted hover:text-red-600 hover:bg-red-50 hover:border-red-200'
+                          ? 'bg-[#024F5F] text-white shadow-md animate-pulse'
+                          : 'border border-cream-200 bg-cream-50/60 text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC] hover:border-[#CFAC64]'
                       }`}
                       title={isConfirmingDelete ? 'Click again to permanently delete' : 'Delete announcement'}
                     >

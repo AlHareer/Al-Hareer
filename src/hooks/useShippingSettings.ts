@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { getShippingSettings } from '@/actions/admin/shipping';
 import type { ShippingSettings } from '@/actions/admin/shipping';
 
-// Sensible display defaults while the DB fetch is in-flight
-const FALLBACK: ShippingSettings = { flat_rate: 0, free_threshold: 999, cod_charge: 49 };
+// While the DB fetch is in flight nothing is assumed: zeros mean "not loaded / not set",
+// and the UI hides free-shipping / COD-fee text instead of flashing invented numbers.
+const FALLBACK: ShippingSettings = { flat_rate: 0, free_threshold: 0, cod_charge: 0 };
 
 // Module-level cache so multiple components on the same page share one fetch
 let _cached: ShippingSettings | null = null;

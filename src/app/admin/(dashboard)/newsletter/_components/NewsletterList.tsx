@@ -124,14 +124,14 @@ export default function NewsletterList({ subscribers }: { subscribers: Subscribe
             className="inline-flex items-center gap-1.5 rounded-xl border border-cream-300 bg-white px-3.5 py-2 text-xs font-semibold text-brand-700 hover:bg-cream-50 hover:border-brand-400 transition-all shadow-2xs cursor-pointer"
             title="Copy all filtered emails separated by comma"
           >
-            {copiedAll ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-muted" />}
+            {copiedAll ? <Check className="h-3.5 w-3.5 text-[#024F5F]" /> : <Copy className="h-3.5 w-3.5 text-muted" />}
             <span>{copiedAll ? 'Copied All!' : 'Copy All'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-luxury hover:shadow-luxury-hover transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-4 py-2 text-xs font-semibold text-white shadow-luxury hover:shadow-luxury-hover transition-all cursor-pointer"
             title="Download subscribers list as CSV"
           >
             <Download className="h-3.5 w-3.5" />
@@ -189,7 +189,7 @@ export default function NewsletterList({ subscribers }: { subscribers: Subscribe
                       title="Copy email address"
                     >
                       {copiedId === s.id ? (
-                        <Check className="h-3 w-3 text-emerald-600" />
+                        <Check className="h-3 w-3 text-[#024F5F]" />
                       ) : (
                         <Copy className="h-3 w-3 text-muted" />
                       )}
@@ -203,8 +203,8 @@ export default function NewsletterList({ subscribers }: { subscribers: Subscribe
                       title={confirmingId === s.id ? 'Click again to confirm delete' : 'Delete subscriber'}
                       className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                         confirmingId === s.id
-                          ? 'bg-red-50 text-red-700 border border-red-200'
-                          : 'text-muted hover:text-red-600 hover:bg-red-50'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]'
+                          : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
                       }`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

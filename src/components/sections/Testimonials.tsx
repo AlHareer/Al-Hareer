@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Image from 'next/image';
@@ -17,11 +17,11 @@ export default function Testimonials({ testimonials }: { testimonials: Testimoni
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-cream-300/80">
           <div className="text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-              <span className="w-6 h-[1.5px] bg-[#655B53]" />
-              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#655B53]">
+              <span className="w-6 h-[1.5px] bg-[#024F5F]" />
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#024F5F]">
                 REVIEWS &amp; STORIES
               </span>
-              <span className="w-6 h-[1.5px] bg-[#655B53] md:hidden" />
+              <span className="w-6 h-[1.5px] bg-[#024F5F] md:hidden" />
             </div>
             <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-brand-700">
               What Our Customers Say
@@ -33,9 +33,9 @@ export default function Testimonials({ testimonials }: { testimonials: Testimoni
 
           {/* Social Proof Badge */}
           <div className="flex items-center gap-3 bg-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-full border border-cream-300 shadow-sm self-center md:self-end">
-            <div className="flex text-amber-400 gap-0.5">
+            <div className="flex text-[#CFAC64] gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                <Star key={i} className="w-4 h-4 fill-[#CFAC64] text-[#CFAC64]" />
               ))}
             </div>
             <span className="text-xs sm:text-sm font-bold text-brand-700">4.9 / 5.0</span>
@@ -62,14 +62,14 @@ export default function Testimonials({ testimonials }: { testimonials: Testimoni
           {marqueeList.map((review, idx) => (
             <div
               key={`${review.id}-${idx}`}
-              className="w-[280px] sm:w-[340px] md:w-[380px] p-5 sm:p-7 rounded-[5px] bg-white border border-cream-300/90 shadow-[0_4px_20px_rgba(43,35,29,0.04)] hover:shadow-luxury-hover hover:border-gold/50 transition-all duration-300 flex flex-col justify-between flex-shrink-0 group relative select-none"
+              className="w-[280px] sm:w-[340px] md:w-[380px] p-5 sm:p-7 rounded-[5px] bg-white border border-cream-300/90 shadow-[0_4px_20px_rgba(0,48,58,0.04)] hover:shadow-luxury-hover hover:border-gold/50 transition-all duration-300 flex flex-col justify-between flex-shrink-0 group relative select-none"
             >
               {/* Card Top: Rating Stars & Verified Pill */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <div className="flex text-amber-400 gap-1">
+                  <div className="flex text-[#CFAC64] gap-1">
                     {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} className="w-3.5 sm:w-4 h-3.5 sm:h-4 fill-amber-400 text-amber-400" />
+                      <Star key={i} className="w-3.5 sm:w-4 h-3.5 sm:h-4 fill-[#CFAC64] text-[#CFAC64]" />
                     ))}
                   </div>
                   <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-brand-500 bg-cream-100 px-2.5 py-0.5 rounded-full border border-cream-200">

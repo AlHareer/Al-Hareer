@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -46,7 +46,14 @@ const TAB_CONFIG: {
     label: 'Top Banner',
     desc: 'Main title & arch header',
     icon: Megaphone,
-    fields: ['story_hero_eyebrow', 'story_hero_title', 'story_hero_subtitle', 'story_hero_image'],
+    fields: [
+      'story_hero_eyebrow',
+      'story_hero_title',
+      'story_hero_subtitle',
+      'story_hero_calligraphy_line1',
+      'story_hero_calligraphy_line2',
+      'story_hero_image',
+    ],
   },
   {
     id: 'ch1',
@@ -62,7 +69,9 @@ const TAB_CONFIG: {
       'story_ch1_quote',
       'story_ch1_quote_attribution',
       'story_ch1_image1',
+      'story_ch1_image1_caption',
       'story_ch1_image2',
+      'story_ch1_image2_caption',
     ],
   },
   {
@@ -109,7 +118,7 @@ const TAB_CONFIG: {
     label: 'Footer Banner',
     desc: 'Bottom call to action',
     icon: ArrowRight,
-    fields: ['story_cta_heading', 'story_cta_subtitle'],
+    fields: ['story_cta_heading', 'story_cta_subtitle', 'story_cta_button1_text', 'story_cta_button2_text'],
   },
 ];
 
@@ -207,13 +216,13 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
           <div className="flex items-center gap-2">
             <span
               className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                dirtyCount > 0 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+                dirtyCount > 0 ? 'bg-[#CFAC64] animate-pulse' : 'bg-[#024F5F]'
               }`}
             />
             <p className="text-xs sm:text-sm text-brand-700 font-medium">
               {dirtyCount > 0 ? (
                 <span>
-                  <strong className="text-amber-700">{dirtyCount} unsaved</strong> changes
+                  <strong className="text-[#B08F4F]">{dirtyCount} unsaved</strong> changes
                 </span>
               ) : (
                 <span className="text-muted text-xs">All chapters in sync</span>
@@ -241,18 +250,18 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
             <span
               className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl truncate ${
                 saved.success
-                  ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                  : 'text-red-700 bg-red-50 border border-red-200'
+                  ? 'text-[#024F5F] bg-[#F6F1EC] border border-[#CFAC64]'
+                  : 'text-[#024F5F] bg-[#F6F1EC] border border-[#CFAC64]'
               }`}
             >
               {saved.success ? (
                 <>
-                  <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                  <Check className="h-3.5 w-3.5 text-[#024F5F] shrink-0" />
                   <span>Saved!</span>
                 </>
               ) : (
                 <>
-                  <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />
+                  <AlertCircle className="h-3.5 w-3.5 text-[#024F5F] shrink-0" />
                   <span>{saved.error}</span>
                 </>
               )}
@@ -313,7 +322,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
                 {/* Unsaved Dot */}
                 {isDirty && (
                   <span
-                    className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white"
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#CFAC64] ring-2 ring-white"
                     title="Unsaved changes"
                   />
                 )}
@@ -354,7 +363,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
             >
               {isDirty && (
                 <span
-                  className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-white"
+                  className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#CFAC64] ring-2 ring-white"
                   title="Unsaved changes in this tab"
                 />
               )}
@@ -379,7 +388,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
               <span className={`text-xs font-bold leading-tight ${isActive ? 'text-white' : 'text-brand-700'}`}>
                 {tab.label}
               </span>
-              <span className={`text-[10px] truncate max-w-full mt-0.5 ${isActive ? 'text-stone-300' : 'text-muted'}`}>
+              <span className={`text-[10px] truncate max-w-full mt-0.5 ${isActive ? 'text-white/70' : 'text-muted'}`}>
                 {tab.desc}
               </span>
             </button>
@@ -436,6 +445,27 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
+            <div>
+              <label className={labelClass}>Calligraphy — Line 1</label>
+              <input
+                value={values.story_hero_calligraphy_line1 ?? ''}
+                onChange={(e) => handleChange('story_hero_calligraphy_line1', e.target.value)}
+                placeholder="Wear"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Calligraphy — Line 2</label>
+              <input
+                value={values.story_hero_calligraphy_line2 ?? ''}
+                onChange={(e) => handleChange('story_hero_calligraphy_line2', e.target.value)}
+                placeholder="Your Legacy"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
           <div className="pt-3 border-t border-cream-200/60">
             <label className={labelClass}>Hero Background Image</label>
             <p className="text-[11px] text-muted mb-2">
@@ -450,7 +480,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
           </div>
 
           {/* Banner Mini Preview */}
-          <div className="rounded-xl p-4 sm:p-5 bg-[#FAF6F0] border border-cream-300 space-y-1">
+          <div className="rounded-xl p-4 sm:p-5 bg-[#F6F1EC] border border-cream-300 space-y-1">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-gold">
               {values.story_hero_eyebrow || 'OUR STORY'}
             </span>
@@ -470,7 +500,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
           <div className="flex items-center justify-between pb-3 border-b border-cream-200/60">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-mono font-bold tracking-widest text-[#B08F4F] bg-[#F6F1EC] border border-[#CFAC64] px-2 py-0.5 rounded-full">
                   CHAPTER 01
                 </span>
                 <h3 className="font-heading text-base sm:text-lg font-bold text-brand-700">
@@ -521,7 +551,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
           </div>
 
           {/* Pull-Quote with Live Storefront Preview */}
-          <div className="p-3.5 sm:p-5 rounded-2xl bg-[#FAF6F1] border border-cream-300 space-y-3 sm:space-y-4">
+          <div className="p-3.5 sm:p-5 rounded-2xl bg-[#F6F1EC] border border-cream-300 space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-700">
               <Quote className="h-4 w-4 text-gold shrink-0" />
               <span>Featured Pull-Quote Callout</span>
@@ -573,6 +603,12 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
                   folder="story"
                   multiple={false}
                 />
+                <input
+                  value={values.story_ch1_image1_caption ?? ''}
+                  onChange={(e) => handleChange('story_ch1_image1_caption', e.target.value)}
+                  placeholder="Generational Weft"
+                  className={`${inputClass} mt-2`}
+                />
               </div>
               <div>
                 <label className={labelClass}>Right Portrait Image</label>
@@ -582,6 +618,12 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
                   onChange={(v) => handleChange('story_ch1_image2', typeof v === 'string' ? v : '')}
                   folder="story"
                   multiple={false}
+                />
+                <input
+                  value={values.story_ch1_image2_caption ?? ''}
+                  onChange={(e) => handleChange('story_ch1_image2_caption', e.target.value)}
+                  placeholder="Modern Tailoring"
+                  className={`${inputClass} mt-2`}
                 />
               </div>
             </div>
@@ -736,7 +778,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
           <div className="flex items-center justify-between pb-3 border-b border-cream-200/60">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-mono font-bold tracking-widest text-[#024F5F] bg-[#F6F1EC] border border-[#CFAC64] px-2 py-0.5 rounded-full">
                   CHAPTER 03
                 </span>
                 <h3 className="font-heading text-base sm:text-lg font-bold text-brand-700">
@@ -789,7 +831,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
                   className="p-3.5 sm:p-4 rounded-xl bg-cream-50/50 border border-cream-200/90 space-y-3 hover:border-gold/40 transition-all shadow-xs"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-200">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold text-[#024F5F] bg-[#F6F1EC] border border-[#CFAC64]">
                       <Milestone className="h-3 w-3" />
                       Milestone {idx + 1}
                     </span>
@@ -848,7 +890,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
           <div className="flex items-center justify-between pb-3 border-b border-cream-200/60">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-mono font-bold tracking-widest text-[#024F5F] bg-[#F6F1EC] border border-[#CFAC64] px-2 py-0.5 rounded-full">
                   CHAPTER 04
                 </span>
                 <h3 className="font-heading text-base sm:text-lg font-bold text-brand-700">
@@ -976,19 +1018,37 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
                 className={inputClass}
               />
             </div>
+            <div>
+              <label className={labelClass}>Button 1 Label</label>
+              <input
+                value={values.story_cta_button1_text ?? ''}
+                onChange={(e) => handleChange('story_cta_button1_text', e.target.value)}
+                placeholder="Explore The Catalog"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Button 2 Label</label>
+              <input
+                value={values.story_cta_button2_text ?? ''}
+                onChange={(e) => handleChange('story_cta_button2_text', e.target.value)}
+                placeholder="About Our Atelier"
+                className={inputClass}
+              />
+            </div>
           </div>
 
           {/* Mini Preview of CTA */}
-          <div className="rounded-xl p-4 sm:p-5 bg-[#120D09] text-white flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#D4AF37]/30 shadow-md text-center sm:text-left">
+          <div className="rounded-xl p-4 sm:p-5 bg-[#00303A] text-white flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#CFAC64]/30 shadow-md text-center sm:text-left">
             <div>
-              <h4 className="font-heading text-base sm:text-lg font-bold text-[#FAF6F0]">
+              <h4 className="font-heading text-base sm:text-lg font-bold text-[#F6F1EC]">
                 {values.story_cta_heading || 'Shop Our Collection'}
               </h4>
-              <p className="text-xs text-stone-300 mt-0.5">
+              <p className="text-xs text-white/70 mt-0.5">
                 {values.story_cta_subtitle || 'Handmade kurtas, kurta sets, and waistcoats.'}
               </p>
             </div>
-            <span className="w-full sm:w-auto text-center px-4 py-2 rounded-xl text-xs font-semibold text-[#120D09] bg-gradient-to-r from-[#D4AF37] to-[#E6CA65] shadow-xs pointer-events-none whitespace-nowrap">
+            <span className="w-full sm:w-auto text-center px-4 py-2 rounded-xl text-xs font-semibold text-[#00303A] bg-gradient-to-r from-[#CFAC64] to-[#CFAC64] shadow-xs pointer-events-none whitespace-nowrap">
               Shop Now &rarr;
             </span>
           </div>
@@ -1031,7 +1091,7 @@ export default function StorySettingsForm({ settings }: { settings: SiteSettings
           type="button"
           onClick={handleSave}
           disabled={pending}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition-all disabled:opacity-60 active:scale-95"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#CFAC64] hover:bg-[#B08F4F] shadow-sm transition-all disabled:opacity-60 active:scale-95"
         >
           {pending ? (
             <>

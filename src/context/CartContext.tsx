@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, Product } from '@/types';
+import { getVariantPricing } from '@/lib/products';
 
 interface CartContextType {
   cart: CartItem[];
@@ -59,7 +60,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         next[existingIndex].quantity += quantity;
         return next;
       }
-      return [...prev, { product, selectedColor, selectedSize, quantity }];
+      // Store the product priced for the exact size + color chosen, so cart,
+      // checkout and the saved order all charge that variant's price.
+      const { price, originalPrice } = getVariantPricing(product, selectedSize, selectedColor);
+      return [...prev, { product: { ...product, price, originalPrice }, selectedColor, selectedSize, quantity }];
     });
     setIsCartOpen(true);
   };

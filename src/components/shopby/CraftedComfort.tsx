@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Image from 'next/image';
@@ -18,15 +18,15 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch">
           
           {/* Block 1: Left Text & Features Column (Desktop: col-span-4 / col-span-5) */}
-          <div className="md:col-span-2 lg:col-span-4 xl:col-span-4 flex flex-col justify-between bg-[#FAF6F0] rounded-[5px] p-6 sm:p-8 xl:p-9 border border-cream-300/100 shadow-lg relative overflow-hidden">
+          <div className="md:col-span-2 lg:col-span-4 xl:col-span-4 flex flex-col justify-between bg-[#F6F1EC] rounded-[5px] p-6 sm:p-8 xl:p-9 border border-cream-300/100 shadow-lg relative overflow-hidden">
             
             {/* Subtle background curved line / circle watermark on left */}
-            <div className="absolute -left-20 top-1/4 w-56 h-56 rounded-full border-[1.5px] border-[#D3C4AF]/30 pointer-events-none -z-0" />
+            <div className="absolute -left-20 top-1/4 w-56 h-56 rounded-full border-[1.5px] border-[#024F5F]/30 pointer-events-none -z-0" />
             
             <div className="relative z-10 space-y-4">
               {/* Overline */}
               <div className="flex items-center gap-2.5">
-                <span className="w-5 h-[1.5px] bg-[#8B6B52]" />
+                <span className="w-5 h-[1.5px] bg-[#024F5F]" />
                 <span className="text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-brand-600 uppercase">
                   COMFORT FIRST
                 </span>
@@ -53,7 +53,7 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
               <div className="pt-2">
                 <a
                   href="/#shop"
-                  className="inline-flex items-center gap-2.5 px-6 py-3 rounded-lg bg-[#3E2B1E] text-white font-medium text-sm transition-all duration-300 hover:bg-brand-700 hover:shadow-luxury group cursor-pointer"
+                  className="inline-flex items-center gap-2.5 px-6 py-3 rounded-lg bg-[#CFAC64] text-white font-medium text-sm transition-all duration-300 hover:bg-[#B08F4F] hover:shadow-luxury group cursor-pointer"
                 >
                   <span>Explore Now</span>
                 </a>
@@ -65,7 +65,7 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
               
               {/* Feature 1: Natural Fabrics */}
               <div className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-2.5">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#EFE8E0] border border-cream-300/80 flex items-center justify-center shrink-0 text-brand-600">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#F6F1EC] border border-cream-300/80 flex items-center justify-center shrink-0 text-brand-600">
                   <Leaf className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
@@ -80,7 +80,7 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
 
               {/* Feature 2: Tailored Fit */}
               <div className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-2.5 border-l border-cream-300/80 pl-2 sm:pl-3">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#EFE8E0] border border-cream-300/80 flex items-center justify-center shrink-0 text-brand-600">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#F6F1EC] border border-cream-300/80 flex items-center justify-center shrink-0 text-brand-600">
                   <Scissors className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
@@ -95,7 +95,7 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
 
               {/* Feature 3: Timeless Designs */}
               <div className="flex flex-col sm:flex-row items-center sm:items-center text-center sm:text-left gap-1.5 sm:gap-2.5 border-l border-cream-300/80 pl-2 sm:pl-3">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#EFE8E0] border border-cream-300/80 flex items-center justify-center shrink-0 text-brand-600">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#F6F1EC] border border-cream-300/80 flex items-center justify-center shrink-0 text-brand-600">
                   <Layers className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
@@ -123,7 +123,7 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
 
             {/* Bottom-left dark frosted glass capsule badge */}
             <div className="absolute bottom-6 left-4 z-10">
-              <div className="py-2.5 px-3.5 rounded-[5px] bg-black/60 backdrop-blur-md border border-white/20 text-white/95 shadow-md flex flex-col items-start select-none">
+              <div className="py-2.5 px-3.5 rounded-[5px] bg-[#00303A]/60 backdrop-blur-md border border-white/20 text-white/95 shadow-md flex flex-col items-start select-none">
                 <span className="w-4 h-[1px] bg-white/70 mb-1.5" />
                 <span className="text-[8.5px] sm:text-[9.5px] uppercase font-bold tracking-[0.2em] leading-tight text-white/90">
                   WEAR TRADITION
@@ -147,7 +147,7 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
 
             {/* Top-Right Floating Circular Stamp */}
             <div className="flex justify-end relative z-10">
-              <div className="w-22 h-22 sm:w-26 sm:h-26 md:w-28 md:h-28 rounded-full bg-[#FAF6F0]/95 backdrop-blur-md border border-[#E2D7C7] p-2.5 sm:p-3 flex flex-col items-center justify-center text-center shadow-lg select-none">
+              <div className="w-22 h-22 sm:w-26 sm:h-26 md:w-28 md:h-28 rounded-full bg-[#F6F1EC]/95 backdrop-blur-md border border-[#CFAC64] p-2.5 sm:p-3 flex flex-col items-center justify-center text-center shadow-lg select-none">
                 <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-700 mb-1" />
                 <span className="text-[7.5px] sm:text-[8.5px] uppercase tracking-wider font-bold text-brand-800 leading-tight">
                   TRADITION<br />MEETS<br />MODERN COMFORT
@@ -160,7 +160,7 @@ export default function CraftedComfort({ settings }: { settings: ContentSettings
             <div className="relative z-10 mt-auto pt-4">
               <a
                 href="#about"
-                className="w-full flex items-center justify-between gap-3 sm:gap-4 bg-[#FAF6F0]/95 backdrop-blur-md rounded-[5px] py-3 px-4 sm:px-6 border border-[#E2D7C7]/90 shadow-luxury hover:bg-white hover:border-[#D4AF37]/60 transition-all duration-300 group/pill"
+                className="w-full flex items-center justify-between gap-3 sm:gap-4 bg-[#F6F1EC]/95 backdrop-blur-md rounded-[5px] py-3 px-4 sm:px-6 border border-[#CFAC64]/90 shadow-luxury hover:bg-white hover:border-[#CFAC64]/60 transition-all duration-300 group/pill"
               >
                 {/* Left: Handloom Excellence */}
                 <div className="flex items-center gap-2 shrink-0">

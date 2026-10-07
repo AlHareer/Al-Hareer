@@ -1,15 +1,16 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { createProduct, updateProduct, type ProductFormState } from '@/actions/admin/products';
-import ImageUploader from '@/components/admin/ImageUploader';
 import VideoUploader from '@/components/admin/VideoUploader';
-import VariantsEditor, { type VariantRow, emptyVariant } from './VariantsEditor';
+import { type VariantRow, emptyVariant } from './VariantsEditor';
+import ColorStockManager from './ColorStockManager';
 import ColorImageMapper, { type ColorRow, type GalleryImage } from './ColorImageMapper';
 import FaqsEditor, { type FaqRow } from './FaqsEditor';
 import {
   ArrowLeft,
+  ArrowRight,
   ExternalLink,
   Loader2,
   CheckCircle2,
@@ -17,10 +18,7 @@ import {
   Sparkles,
   Layers,
   Image as ImageIcon,
-  Sliders,
-  HelpCircle,
-  Globe,
-  Tag,
+  Rocket,
   Check,
 } from 'lucide-react';
 
@@ -37,7 +35,7 @@ function slugPreview(text: string) {
     .replace(/(^-|-$)/g, '');
 }
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; parent_id?: string | null };
 type ProductImageRow = { id: string; image_url: string; sort_order: number; variant_name: string | null; color: string | null };
 type ProductVariantRow = {
   id: string;
@@ -49,6 +47,7 @@ type ProductVariantRow = {
   stock_quantity: number;
   is_active: boolean;
 };
+type SizeChartRow = { size: string; chest?: string; shoulder?: string; length?: string; sleeve?: string };
 type ProductFaqRow = { id: string; question: string; answer: string; display_order: number };
 
 type ProductRecord = {
@@ -116,15 +115,25 @@ function SwitchToggle({
   );
 }
 
+const STEPS = [
+  { id: 'basic', label: 'Basic Info', icon: Sparkles, desc: 'Name, description & category' },
+  { id: 'inventory', label: 'Sizes, Colors & Stock', icon: Layers, desc: 'Sizes, color swatches, price & stock' },
+  { id: 'media', label: 'Media & Details', icon: ImageIcon, desc: 'Photos, swatches, video & specs' },
+  { id: 'publish', label: 'Publish & SEO', icon: Rocket, desc: 'Visibility, thumbnail & search preview' },
+] as const;
+type StepId = (typeof STEPS)[number]['id'];
+
 export default function ProductForm({ product, categories }: { product?: ProductRecord; categories: Category[] }) {
   const isEditing = !!product;
   const action = isEditing ? updateProduct : createProduct;
   const [state, formAction, pending] = useActionState<ProductFormState, FormData>(action, {});
 
+  const [step, setStep] = useState<StepId>('basic');
+  const stepIndex = STEPS.findIndex((s) => s.id === step);
+
   const [name, setName] = useState(product?.name ?? '');
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
   const [isFeatured, setIsFeatured] = useState(product?.is_featured ?? false);
-  const [featuredImage, setFeaturedImage] = useState<string | null>(product?.featured_image_url ?? null);
   const [videoUrl, setVideoUrl] = useState<string | null>(product?.video_url ?? null);
 
   const [colors, setColors] = useState<ColorRow[]>(product?.colors ?? []);
@@ -149,17 +158,94 @@ export default function ProductForm({ product, categories }: { product?: Product
       : [emptyVariant('Standard')]
   );
 
+  // The Sizes & Inventory table (VariantsEditor) is the single source of
+  // truth for "which colors does this product have" — Color Swatches below
+  // just attaches a hex + photo to each name that shows up here, so the two
+  // can never drift apart or require the same name to be typed twice.
+  const variantColorNames = useMemo(
+    () => Array.from(new Set(variants.map((v) => v.color.trim()).filter(Boolean))),
+    [variants]
+  );
+  // name -> hex, taken from the variant rows (the hex picked in the color
+  // manager). Saved both on each variant (color_hex) and on products.colors.
+  const variantColorHex = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const v of variants) {
+      const n = v.color.trim();
+      if (n && v.color_hex && !map[n]) map[n] = v.color_hex;
+    }
+    return map;
+  }, [variants]);
+  const colorSyncKey = variantColorNames.map((n) => `${n}:${variantColorHex[n] ?? ''}`).join('|');
+  useEffect(() => {
+    setColors((prev) => {
+      const next = variantColorNames.map((name) => {
+        const existing = prev.find((c) => c.name === name);
+        const hex = variantColorHex[name] || existing?.hex || '#CFAC64';
+        return existing ? { ...existing, hex } : { name, hex, image: null, images: [] };
+      });
+      const same =
+        next.length === prev.length &&
+        next.every((c, i) => prev[i]?.name === c.name && prev[i]?.hex === c.hex);
+      return same ? prev : next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colorSyncKey]);
+
+  // The main thumbnail is simply the gallery's first (cover) photo — no
+  // separate upload. Falls back to the first color's first photo, then to
+  // whatever was already saved on an existing product.
+  const featuredImage =
+    gallery.slice().sort((a, b) => a.sort_order - b.sort_order)[0]?.image_url ||
+    colors.find((c) => c.images?.length)?.images?.[0] ||
+    product?.featured_image_url ||
+    null;
+
+  // Every text/select field lives in state (not in the DOM) so nothing is
+  // lost when a step unmounts; the hidden inputs below always submit them.
+  const [fields, setFields] = useState({
+    short_description: product?.short_description ?? '',
+    description: product?.description ?? '',
+    category_id: product?.category_id ?? '',
+    badge: product?.badge ?? '',
+    fabric: product?.fabric ?? '',
+    color: product?.color ?? '',
+    fit_type: product?.fit_type ?? '',
+    occasion: product?.occasion ?? '',
+    care_instructions: product?.care_instructions ?? '',
+  });
+  const setField = (key: keyof typeof fields, value: string) => setFields((f) => ({ ...f, [key]: value }));
+
   const [faqs, setFaqs] = useState<FaqRow[]>(
     product?.product_faqs?.slice().sort((a, b) => a.display_order - b.display_order).map((f) => ({ question: f.question, answer: f.answer })) ?? []
   );
 
-  const [details, setDetails] = useState<Record<string, string>>(product?.details ?? {});
+  const [details, setDetails] = useState<Record<string, string>>(() => {
+    const { sizeChart: _sizeChart, ...rest } = (product?.details ?? {}) as Record<string, unknown>;
+    return rest as Record<string, string>;
+  });
+  const [sizeChart, setSizeChart] = useState<SizeChartRow[]>(
+    (((product?.details ?? {}) as { sizeChart?: SizeChartRow[] }).sizeChart) ?? []
+  );
+  const chartSizes = useMemo(
+    () => Array.from(new Set(variants.map((v) => v.variant_name.trim()).filter(Boolean))),
+    [variants]
+  );
+  const setChartCell = (size: string, key: keyof Omit<SizeChartRow, 'size'>, value: string) => {
+    setSizeChart((prev) => {
+      const exists = prev.some((r) => r.size === size);
+      return exists ? prev.map((r) => (r.size === size ? { ...r, [key]: value } : r)) : [...prev, { size, [key]: value }];
+    });
+  };
 
   // SEO live preview helpers
   const [seoTitle, setSeoTitle] = useState(product?.seo_title ?? '');
   const [seoDesc, setSeoDesc] = useState(product?.seo_description ?? '');
 
   const liveSlug = isEditing ? product.slug : slugPreview(name) || 'product-slug';
+
+  const goNext = () => stepIndex < STEPS.length - 1 && setStep(STEPS[stepIndex + 1].id);
+  const goPrev = () => stepIndex > 0 && setStep(STEPS[stepIndex - 1].id);
 
   return (
     <form action={formAction} className="space-y-6 max-w-full">
@@ -168,10 +254,29 @@ export default function ProductForm({ product, categories }: { product?: Product
       <input type="hidden" name="video_url" value={videoUrl || ''} />
       <input type="hidden" name="is_active" value={isActive ? 'on' : 'off'} />
       <input type="hidden" name="is_featured" value={isFeatured ? 'on' : 'off'} />
-      <input type="hidden" name="details_json" value={JSON.stringify(details)} />
+      <input type="hidden" name="name" value={name} />
+      <input type="hidden" name="seo_title" value={seoTitle} />
+      <input type="hidden" name="seo_description" value={seoDesc} />
+      {(Object.keys(fields) as (keyof typeof fields)[]).map((k) => (
+        <input key={k} type="hidden" name={k} value={fields[k]} />
+      ))}
+      <input
+        type="hidden"
+        name="details_json"
+        value={JSON.stringify({
+          ...details,
+          sizeChart: sizeChart.filter((r) => chartSizes.includes(r.size) && (r.chest || r.shoulder || r.length || r.sleeve)),
+        })}
+      />
+      {/* Centralized here (rather than inside each step's own component) so a
+          step that isn't currently shown still submits its data. */}
+      <input type="hidden" name="variants_json" value={JSON.stringify(variants)} />
+      <input type="hidden" name="colors_json" value={JSON.stringify(colors.filter((c) => variantColorNames.includes(c.name)))} />
+      <input type="hidden" name="images_json" value={JSON.stringify(gallery)} />
+      <input type="hidden" name="faqs_json" value={JSON.stringify(faqs)} />
 
       {/* Top Header & Quick Action Bar */}
-      <div className="sticky top-0 z-20 -mx-4 -mt-2 px-4 py-3 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-cream-200/80 transition-all sm:mx-0 sm:mt-0 sm:px-0 sm:py-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0">
+      <div className="sticky top-0 z-30 -mx-4 -mt-2 px-4 py-3 bg-[#F6F1EC] border-b border-cream-200 shadow-sm transition-all sm:mx-0 sm:mt-0 sm:top-2 sm:rounded-2xl sm:border sm:px-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Link
@@ -195,7 +300,7 @@ export default function ProductForm({ product, categories }: { product?: Product
                 </h1>
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                    isActive ? 'bg-green-100 text-green-800' : 'bg-cream-200 text-muted'
+                    isActive ? 'bg-[#F6F1EC] text-[#024F5F]' : 'bg-cream-200 text-muted'
                   }`}
                 >
                   {isActive ? <CheckCircle2 className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
@@ -220,7 +325,7 @@ export default function ProductForm({ product, categories }: { product?: Product
             <button
               type="submit"
               disabled={pending}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
             >
               {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               <span>{pending ? 'Saving...' : isEditing ? 'Save Changes' : 'Publish Product'}</span>
@@ -231,17 +336,50 @@ export default function ProductForm({ product, categories }: { product?: Product
 
       {/* Error alert */}
       {state?.error && (
-        <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-4 text-xs sm:text-sm font-semibold text-red-700 shadow-2xs">
-          <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-4 text-xs sm:text-sm font-semibold text-[#024F5F] shadow-2xs">
+          <span className="h-2 w-2 rounded-full bg-[#024F5F] shrink-0" />
           <span>{state.error}</span>
         </div>
       )}
 
-      {/* 2-Column Responsive Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column (Main Content) - 8 cols */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* Section 1: General Details */}
+      {/* Step Progress Tracker — click any step to jump straight to it; all
+          steps' data is always part of the form, so nothing is lost by
+          saving from a step other than the one you filled in last. */}
+      <div className="flex items-center gap-1.5 sm:gap-2 bg-white border border-cream-200/80 p-2 sm:p-2.5 rounded-2xl shadow-2xs overflow-x-auto no-scrollbar">
+        {STEPS.map((s, i) => {
+          const Icon = s.icon;
+          const isActiveStep = step === s.id;
+          const isDone = i < stepIndex;
+          return (
+            <button
+              type="button"
+              key={s.id}
+              onClick={() => setStep(s.id)}
+              className={`flex shrink-0 items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                isActiveStep
+                  ? 'bg-brand-700 text-white shadow-sm'
+                  : isDone
+                    ? 'bg-[#F6F1EC] text-[#024F5F]'
+                    : 'text-muted hover:bg-cream-100'
+              }`}
+            >
+              <span
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                  isActiveStep ? 'bg-white/20 text-white' : isDone ? 'bg-[#024F5F] text-white' : 'bg-cream-200 text-muted'
+                }`}
+              >
+                {isDone ? <Check className="h-3 w-3" /> : i + 1}
+              </span>
+              <span className="hidden sm:inline">{s.label}</span>
+              <Icon className="h-3.5 w-3.5 sm:hidden" />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* STEP 1: BASIC INFO */}
+      {step === 'basic' && (
+        <div className="space-y-6">
           <div className={cardClass}>
             <div className="flex items-center gap-2 border-b border-cream-200 pb-3">
               <Sparkles className="h-4 w-4 text-brand-600" />
@@ -253,11 +391,10 @@ export default function ProductForm({ product, categories }: { product?: Product
 
             <div>
               <label className={labelClass}>
-                Product Name <span className="text-red-500">*</span>
+                Product Name <span className="text-[#024F5F]">*</span>
               </label>
               <input
                 required
-                name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Imperial Ivory Embroidered Sherwani"
@@ -272,9 +409,9 @@ export default function ProductForm({ product, categories }: { product?: Product
             <div>
               <label className={labelClass}>Short Summary</label>
               <textarea
-                name="short_description"
                 rows={2}
-                defaultValue={product?.short_description ?? ''}
+                value={fields.short_description}
+                onChange={(e) => setField('short_description', e.target.value)}
                 placeholder="A brief 1-2 sentence hook shown on product cards and quick search..."
                 className={inputClass}
               />
@@ -283,28 +420,86 @@ export default function ProductForm({ product, categories }: { product?: Product
             <div>
               <label className={labelClass}>Full Description</label>
               <textarea
-                name="description"
                 rows={6}
-                defaultValue={product?.description ?? ''}
+                value={fields.description}
+                onChange={(e) => setField('description', e.target.value)}
                 placeholder="Complete description covering royal craftsmanship, fabric richness, fit silhouette, and occasion styling notes..."
                 className={inputClass}
               />
             </div>
           </div>
 
-          {/* Section 2: Sizes, Stock & Pricing (Variants) */}
           <div className={cardClass}>
-            <div className="flex items-center gap-2 border-b border-cream-200 pb-3">
-              <Layers className="h-4 w-4 text-brand-600" />
+            <div className="border-b border-cream-200 pb-3">
+              <h3 className="font-heading text-sm font-bold text-brand-700">Categorization</h3>
+              <p className="text-[11px] text-muted mt-0.5">Organize into collections and add a merchandise badge.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <h2 className="font-heading text-sm sm:text-base font-bold text-brand-700">Sizes &amp; Inventory</h2>
-                <p className="text-xs text-muted">Define sizes, individual inventory counts, and selling prices.</p>
+                <label className={labelClass}>Collection / Category</label>
+                <select value={fields.category_id} onChange={(e) => setField('category_id', e.target.value)} className={inputClass}>
+                  <option value="">Select a category</option>
+                  {categories
+                    .filter((c) => !c.parent_id)
+                    .map((parent) => {
+                      const children = categories.filter((c) => c.parent_id === parent.id);
+                      if (children.length === 0) {
+                        return (
+                          <option key={parent.id} value={parent.id}>
+                            {parent.name}
+                          </option>
+                        );
+                      }
+                      return (
+                        <optgroup key={parent.id} label={parent.name}>
+                          <option value={parent.id}>{parent.name} — General</option>
+                          {children.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              {child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    })}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Merchandise Badge</label>
+                <input
+                  value={fields.badge}
+                onChange={(e) => setField('badge', e.target.value)}
+                  placeholder="e.g. BESTSELLER, NEW ARRIVAL"
+                  className={inputClass}
+                />
+                <p className="mt-1 text-[11px] text-muted">Displays as a golden corner tag on the store card.</p>
               </div>
             </div>
-            <VariantsEditor variants={variants} onChange={setVariants} />
           </div>
+        </div>
+      )}
 
-          {/* Section 3: Photo Gallery & Swatches */}
+      {/* STEP 2: SIZES, COLORS & STOCK — the core mapping table, full width
+          and uncluttered so it isn't competing with unrelated sections. */}
+      {step === 'inventory' && (
+        <div className={cardClass}>
+          <div className="flex items-center gap-2 border-b border-cream-200 pb-3">
+            <Layers className="h-4 w-4 text-brand-600" />
+            <div>
+              <h2 className="font-heading text-sm sm:text-base font-bold text-brand-700">Sizes, Colors &amp; Stock</h2>
+              <p className="text-xs text-muted">
+                Pick sizes, add color swatches (hex saved with each color), then set price &amp; stock per size for every
+                color. Colors added here carry through to the photo mapping in the next step.
+              </p>
+            </div>
+          </div>
+          <ColorStockManager variants={variants} onChange={setVariants} />
+        </div>
+      )}
+
+      {/* STEP 3: MEDIA & DETAILS */}
+      {step === 'media' && (
+        <div className="space-y-6">
           <div className={cardClass}>
             <div className="flex items-center gap-2 border-b border-cream-200 pb-3">
               <ImageIcon className="h-4 w-4 text-brand-600" />
@@ -315,6 +510,7 @@ export default function ProductForm({ product, categories }: { product?: Product
             </div>
 
             <ColorImageMapper
+              colorNames={variantColorNames}
               colors={colors}
               onColorsChange={setColors}
               images={gallery}
@@ -332,10 +528,9 @@ export default function ProductForm({ product, categories }: { product?: Product
             </div>
           </div>
 
-          {/* Section 4: Specifications & Details */}
           <div className={cardClass}>
             <div className="flex items-center gap-2 border-b border-cream-200 pb-3">
-              <Sliders className="h-4 w-4 text-brand-600" />
+              <Sparkles className="h-4 w-4 text-brand-600" />
               <div>
                 <h2 className="font-heading text-sm sm:text-base font-bold text-brand-700">Specifications &amp; Craft Details</h2>
                 <p className="text-xs text-muted">Fabric composition, fit, care instructions, and set components.</p>
@@ -346,8 +541,8 @@ export default function ProductForm({ product, categories }: { product?: Product
               <div>
                 <label className={labelClass}>Primary Fabric</label>
                 <input
-                  name="fabric"
-                  defaultValue={product?.fabric ?? ''}
+                  value={fields.fabric}
+                onChange={(e) => setField('fabric', e.target.value)}
                   placeholder="e.g. Pure Silk, Chanderi, Cotton"
                   className={inputClass}
                 />
@@ -356,8 +551,8 @@ export default function ProductForm({ product, categories }: { product?: Product
               <div>
                 <label className={labelClass}>Primary Color</label>
                 <input
-                  name="color"
-                  defaultValue={product?.color ?? ''}
+                  value={fields.color}
+                onChange={(e) => setField('color', e.target.value)}
                   placeholder="e.g. Ivory White, Midnight Blue"
                   className={inputClass}
                 />
@@ -366,8 +561,8 @@ export default function ProductForm({ product, categories }: { product?: Product
               <div>
                 <label className={labelClass}>Fit Silhouette</label>
                 <input
-                  name="fit_type"
-                  defaultValue={product?.fit_type ?? ''}
+                  value={fields.fit_type}
+                onChange={(e) => setField('fit_type', e.target.value)}
                   placeholder="e.g. Tailored Fit, Regular Fit, Slim"
                   className={inputClass}
                 />
@@ -376,8 +571,8 @@ export default function ProductForm({ product, categories }: { product?: Product
               <div>
                 <label className={labelClass}>Occasion</label>
                 <input
-                  name="occasion"
-                  defaultValue={product?.occasion ?? ''}
+                  value={fields.occasion}
+                onChange={(e) => setField('occasion', e.target.value)}
                   placeholder="e.g. Wedding, Festive, Haldi, Mehendi"
                   className={inputClass}
                 />
@@ -403,11 +598,55 @@ export default function ProductForm({ product, categories }: { product?: Product
                 />
               </div>
 
+              <div className="sm:col-span-2 space-y-2">
+                <label className={labelClass}>Size Chart (optional)</label>
+                <p className="text-[11px] text-muted -mt-1">
+                  Measurements in inches for each size. Leave blank to hide the Size Guide on the product page.
+                </p>
+                {chartSizes.length === 0 ? (
+                  <p className="text-xs text-muted">Add sizes in the Sizes, Colors &amp; Stock step first.</p>
+                ) : (
+                  <div className="overflow-x-auto rounded-xl border border-cream-200 bg-white">
+                    <table className="w-full text-xs text-left min-w-[480px]">
+                      <thead className="bg-cream-100/80 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-cream-200">
+                        <tr>
+                          <th className="py-2 px-3 w-24">Size</th>
+                          <th className="py-2 px-3">Chest</th>
+                          <th className="py-2 px-3">Shoulder</th>
+                          <th className="py-2 px-3">Length</th>
+                          <th className="py-2 px-3">Sleeve</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-cream-200">
+                        {chartSizes.map((size) => {
+                          const row = sizeChart.find((r) => r.size === size) ?? { size };
+                          return (
+                            <tr key={size}>
+                              <td className="py-2 px-3 font-bold text-brand-700">{size}</td>
+                              {(['chest', 'shoulder', 'length', 'sleeve'] as const).map((col) => (
+                                <td key={col} className="py-2 px-3">
+                                  <input
+                                    value={row[col] ?? ''}
+                                    onChange={(e) => setChartCell(size, col, e.target.value)}
+                                    placeholder='e.g. 40"'
+                                    className={inputClass}
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
               <div className="sm:col-span-2">
                 <label className={labelClass}>Care Instructions</label>
                 <input
-                  name="care_instructions"
-                  defaultValue={product?.care_instructions ?? ''}
+                  value={fields.care_instructions}
+                onChange={(e) => setField('care_instructions', e.target.value)}
                   placeholder="e.g. Dry clean recommended. Do not bleach. Cool iron."
                   className={inputClass}
                 />
@@ -415,10 +654,9 @@ export default function ProductForm({ product, categories }: { product?: Product
             </div>
           </div>
 
-          {/* Section 5: FAQs */}
           <div className={cardClass}>
             <div className="flex items-center gap-2 border-b border-cream-200 pb-3">
-              <HelpCircle className="h-4 w-4 text-brand-600" />
+              <Sparkles className="h-4 w-4 text-brand-600" />
               <div>
                 <h2 className="font-heading text-sm sm:text-base font-bold text-brand-700">Frequently Asked Questions</h2>
                 <p className="text-xs text-muted">Customer questions displayed on this product's page.</p>
@@ -427,102 +665,41 @@ export default function ProductForm({ product, categories }: { product?: Product
             <FaqsEditor faqs={faqs} onChange={setFaqs} />
           </div>
         </div>
+      )}
 
-        {/* Right Column (Sidebar) - 4 cols */}
-        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-6">
-          {/* Card 1: Visibility & Publishing */}
-          <div className={cardClass}>
-            <div className="border-b border-cream-200 pb-3">
-              <h3 className="font-heading text-sm font-bold text-brand-700">Publishing Status</h3>
-              <p className="text-[11px] text-muted mt-0.5">Control product availability across your store.</p>
-            </div>
-
-            <div className="space-y-2.5">
-              <SwitchToggle
-                label="Product Active"
-                description={isActive ? 'Visible to customers and open for orders' : 'Hidden as draft from visitors'}
-                checked={isActive}
-                onToggle={() => setIsActive((v) => !v)}
-              />
-
-              <SwitchToggle
-                label="Featured on Homepage"
-                description={isFeatured ? 'Displayed in curated home showcase' : 'Not pinned to homepage'}
-                checked={isFeatured}
-                onToggle={() => setIsFeatured((v) => !v)}
-              />
-
-            </div>
-          </div>
-
-          {/* Card 2: Primary Thumbnail */}
-          <div className={cardClass}>
-            <div className="border-b border-cream-200 pb-3">
-              <h3 className="font-heading text-sm font-bold text-brand-700">Main Featured Image</h3>
-              <p className="text-[11px] text-muted mt-0.5">Primary thumbnail shown on collection cards &amp; cart.</p>
-            </div>
-
-            <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-cream-200 bg-cream-50/40">
-              <ImageUploader
-                value={featuredImage}
-                onChange={(v) => setFeaturedImage(v as string | null)}
-                folder="/al-hareer/products"
-                previewClassName="h-44 w-44 rounded-xl shadow-xs"
-              />
-              <p className="text-[11px] text-muted mt-2 text-center">
-                Recommended: 3:4 portrait ratio (e.g. 1200 x 1600px)
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3: Organization & Tags */}
-          <div className={cardClass}>
-            <div className="border-b border-cream-200 pb-3">
-              <div className="flex items-center gap-1.5">
-                <Tag className="h-3.5 w-3.5 text-brand-600" />
-                <h3 className="font-heading text-sm font-bold text-brand-700">Categorization</h3>
+      {/* STEP 4: PUBLISH & SEO */}
+      {step === 'publish' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="space-y-6">
+            <div className={cardClass}>
+              <div className="border-b border-cream-200 pb-3">
+                <h3 className="font-heading text-sm font-bold text-brand-700">Publishing Status</h3>
+                <p className="text-[11px] text-muted mt-0.5">Control product availability across your store.</p>
               </div>
-              <p className="text-[11px] text-muted mt-0.5">Organize into collections and product types.</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className={labelClass}>Collection / Category</label>
-                <select name="category_id" defaultValue={product?.category_id ?? ''} className={inputClass}>
-                  <option value="">Select a category</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className={labelClass}>Merchandise Badge</label>
-                <input
-                  name="badge"
-                  defaultValue={product?.badge ?? ''}
-                  placeholder="e.g. BESTSELLER, NEW ARRIVAL"
-                  className={inputClass}
+              <div className="space-y-2.5">
+                <SwitchToggle
+                  label="Product Active"
+                  description={isActive ? 'Visible to customers and open for orders' : 'Hidden as draft from visitors'}
+                  checked={isActive}
+                  onToggle={() => setIsActive((v) => !v)}
                 />
-                <p className="mt-1 text-[11px] text-muted">Displays as a golden corner tag on the store card.</p>
+                <SwitchToggle
+                  label="Featured on Homepage"
+                  description={isFeatured ? 'Displayed in curated home showcase' : 'Not pinned to homepage'}
+                  checked={isFeatured}
+                  onToggle={() => setIsFeatured((v) => !v)}
+                />
               </div>
             </div>
           </div>
 
-          {/* Card 4: Search Engine Optimization (SEO) */}
           <div className={cardClass}>
             <div className="border-b border-cream-200 pb-3">
-              <div className="flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5 text-brand-600" />
-                <h3 className="font-heading text-sm font-bold text-brand-700">Search Engine Preview</h3>
-              </div>
+              <h3 className="font-heading text-sm font-bold text-brand-700">Search Engine Preview</h3>
               <p className="text-[11px] text-muted mt-0.5">How this appears on Google and WhatsApp shares.</p>
             </div>
 
             <div className="space-y-3.5">
-              {/* Google Snippet Preview Box */}
               <div className="rounded-xl border border-cream-200 bg-cream-50/60 p-3 text-xs space-y-1">
                 <p className="text-[11px] text-muted truncate">
                   alhareer.com › product › {liveSlug}
@@ -538,12 +715,11 @@ export default function ProductForm({ product, categories }: { product?: Product
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-brand-700">Meta Title</label>
-                  <span className={`text-[10px] ${seoTitle.length > 60 ? 'text-red-500 font-bold' : 'text-muted'}`}>
+                  <span className={`text-[10px] ${seoTitle.length > 60 ? 'text-[#024F5F] font-bold' : 'text-muted'}`}>
                     {seoTitle.length}/60
                   </span>
                 </div>
                 <input
-                  name="seo_title"
                   maxLength={70}
                   value={seoTitle}
                   onChange={(e) => setSeoTitle(e.target.value)}
@@ -555,12 +731,11 @@ export default function ProductForm({ product, categories }: { product?: Product
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-brand-700">Meta Description</label>
-                  <span className={`text-[10px] ${seoDesc.length > 160 ? 'text-red-500 font-bold' : 'text-muted'}`}>
+                  <span className={`text-[10px] ${seoDesc.length > 160 ? 'text-[#024F5F] font-bold' : 'text-muted'}`}>
                     {seoDesc.length}/160
                   </span>
                 </div>
                 <textarea
-                  name="seo_description"
                   rows={2}
                   maxLength={170}
                   value={seoDesc}
@@ -572,25 +747,48 @@ export default function ProductForm({ product, categories }: { product?: Product
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Bottom Save Action Footer */}
-      <div className="flex items-center gap-3 border-t border-cream-200 pt-6 pb-12">
+      {/* Step Navigation Footer */}
+      <div className="flex items-center justify-between gap-3 border-t border-cream-200 pt-6 pb-12">
         <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 px-8 py-3 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
+          type="button"
+          onClick={goPrev}
+          disabled={stepIndex === 0}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-cream-300 bg-white px-5 py-3 text-xs sm:text-sm font-semibold text-brand-700 hover:bg-cream-100 transition-colors shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-          <span>{pending ? 'Saving Product...' : isEditing ? 'Save Changes' : 'Create Product'}</span>
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back</span>
         </button>
 
-        <Link
-          href="/admin/products"
-          className="rounded-xl border border-cream-300 bg-white px-5 py-3 text-xs sm:text-sm font-semibold text-brand-700 hover:bg-cream-100 transition-colors shadow-2xs"
-        >
-          Cancel
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/products"
+            className="rounded-xl border border-cream-300 bg-white px-5 py-3 text-xs sm:text-sm font-semibold text-brand-700 hover:bg-cream-100 transition-colors shadow-2xs"
+          >
+            Cancel
+          </Link>
+
+          {stepIndex < STEPS.length - 1 ? (
+            <button
+              type="button"
+              onClick={goNext}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-700 hover:bg-brand-800 px-6 py-3 text-xs sm:text-sm font-semibold text-white shadow-luxury transition-all cursor-pointer"
+            >
+              <span>Next: {STEPS[stepIndex + 1].label}</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={pending}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-8 py-3 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
+            >
+              {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+              <span>{pending ? 'Saving Product...' : isEditing ? 'Save Changes' : 'Create Product'}</span>
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );

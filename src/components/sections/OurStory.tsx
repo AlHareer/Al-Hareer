@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Image from 'next/image';
@@ -18,15 +18,15 @@ export default function OurStory({ settings }: { settings: ContentSettings }) {
           {/* Center Story Content (First on mobile, Center on desktop) */}
           <div className="w-full lg:col-span-4 lg:order-2 text-center space-y-5 sm:space-y-6 px-2 sm:px-6 py-2 sm:py-4 max-w-lg mx-auto">
             <div className="w-11 h-11 sm:w-12 sm:h-12 mx-auto rounded-full bg-cream-200 border border-cream-300 flex items-center justify-center text-brand-500 shadow-sm">
-              <Feather className="w-5 h-5 text-[#4A3525]" />
+              <Feather className="w-5 h-5 text-[#024F5F]" />
             </div>
 
             <div className="flex items-center justify-center gap-3">
-              <span className="w-6 h-[1.5px] bg-[#655B53]" />
-              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#655B53]">
+              <span className="w-6 h-[1.5px] bg-[#024F5F]" />
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#024F5F]">
                 OUR STORY
               </span>
-              <span className="w-6 h-[1.5px] bg-[#655B53]" />
+              <span className="w-6 h-[1.5px] bg-[#024F5F]" />
             </div>
 
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-[40px] font-bold text-brand-700 leading-tight">
@@ -65,7 +65,7 @@ export default function OurStory({ settings }: { settings: ContentSettings }) {
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#00303A]/40 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 text-white text-[10px] sm:text-xs font-medium tracking-wider uppercase opacity-90">
                 Crafted by Hand
               </div>
@@ -80,7 +80,7 @@ export default function OurStory({ settings }: { settings: ContentSettings }) {
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#00303A]/40 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 text-white text-[10px] sm:text-xs font-medium tracking-wider uppercase opacity-90">
                 Modern Silhouette
               </div>

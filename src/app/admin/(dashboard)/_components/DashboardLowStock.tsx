@@ -12,7 +12,7 @@ export default function DashboardLowStock({ lowStockItems, totalCount }: Dashboa
     <div className="rounded-2xl border border-cream-300 bg-white p-4 sm:p-6 shadow-2xs">
       <div className="flex items-center justify-between border-b border-cream-200 pb-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600 border border-rose-200 shrink-0">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] shrink-0">
             <AlertTriangle className="h-4 w-4" />
           </div>
           <div>
@@ -35,7 +35,7 @@ export default function DashboardLowStock({ lowStockItems, totalCount }: Dashboa
       <div className="mt-3.5">
         {lowStockItems.length === 0 ? (
           <div className="py-6 text-center">
-            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-600 mb-1.5">
+            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#F6F1EC] text-[#024F5F] mb-1.5">
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <p className="text-xs font-bold text-brand-700">All products in stock</p>
@@ -71,8 +71,8 @@ export default function DashboardLowStock({ lowStockItems, totalCount }: Dashboa
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-bold border ${
                         isCriticallyLow
-                          ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
-                          : 'bg-amber-50 text-amber-800 border-amber-300'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64] animate-pulse'
+                          : 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
                       }`}
                     >
                       {item.stock_quantity === 0 ? 'Out of stock' : `${item.stock_quantity} left`}

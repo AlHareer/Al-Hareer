@@ -256,14 +256,14 @@ export default function CategoryList({ categories }: CategoryListProps) {
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border backdrop-blur-md shadow-xs ${
                       cat.is_active
-                        ? 'bg-green-500/90 text-white border-green-400'
-                        : 'bg-stone-800/80 text-cream-200 border-stone-600'
+                        ? 'bg-[#024F5F]/90 text-white border-[#CFAC64]'
+                        : 'bg-[#F6F1EC]/80 text-cream-200 border-[#CFAC64]'
                     }`}
                   >
                     {cat.is_active ? 'Active' : 'Hidden'}
                   </span>
 
-                  <span className="rounded-full bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white border border-white/20">
+                  <span className="rounded-full bg-[#00303A]/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white border border-white/20">
                     Order #{cat.sort_order}
                   </span>
 
@@ -308,13 +308,13 @@ export default function CategoryList({ categories }: CategoryListProps) {
                       title="Copy Storefront Link"
                     >
                       {copiedSlug === cat.slug ? (
-                        <Check className="h-3.5 w-3.5 text-green-600" />
+                        <Check className="h-3.5 w-3.5 text-[#024F5F]" />
                       ) : (
                         <Copy className="h-3.5 w-3.5" />
                       )}
                     </button>
                     {copiedSlug === cat.slug && (
-                      <span className="text-[10px] text-green-700 font-semibold animate-fade-in">
+                      <span className="text-[10px] text-[#024F5F] font-semibold animate-fade-in">
                         Copied!
                       </span>
                     )}
@@ -347,12 +347,12 @@ export default function CategoryList({ categories }: CategoryListProps) {
                       disabled={togglingId === cat.id}
                       className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
                         cat.is_active
-                          ? 'border-green-200 bg-green-50 text-green-800 hover:bg-green-100'
+                          ? 'border-[#CFAC64] bg-[#F6F1EC] text-[#024F5F] hover:bg-[#F6F1EC]'
                           : 'border-cream-300 bg-cream-100 text-muted hover:text-brand-700'
                       }`}
                       title={cat.is_active ? 'Click to hide category' : 'Click to activate category'}
                     >
-                      {cat.is_active ? <Eye className="h-3.5 w-3.5 text-green-600" /> : <EyeOff className="h-3.5 w-3.5" />}
+                      {cat.is_active ? <Eye className="h-3.5 w-3.5 text-[#024F5F]" /> : <EyeOff className="h-3.5 w-3.5" />}
                       <span className="hidden sm:inline">{cat.is_active ? 'Active' : 'Hidden'}</span>
                     </button>
                   </div>
@@ -373,8 +373,8 @@ export default function CategoryList({ categories }: CategoryListProps) {
                       disabled={deletingId === cat.id}
                       className={`rounded-lg p-2 transition-all ${
                         confirmDeleteId === cat.id
-                          ? 'bg-rose-50 text-rose-600 font-bold text-xs px-2.5'
-                          : 'text-muted hover:bg-rose-50 hover:text-rose-600'
+                          ? 'bg-[#F6F1EC] text-[#024F5F] font-bold text-xs px-2.5'
+                          : 'text-muted hover:bg-[#F6F1EC] hover:text-[#024F5F]'
                       }`}
                       title={confirmDeleteId === cat.id ? 'Click again to confirm delete' : 'Delete category'}
                     >
@@ -414,7 +414,7 @@ export default function CategoryList({ categories }: CategoryListProps) {
 
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-bold border shrink-0 ${
-                      cat.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-cream-100 text-muted border-cream-300'
+                      cat.is_active ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]' : 'bg-cream-100 text-muted border-cream-300'
                     }`}
                   >
                     {cat.is_active ? 'Active' : 'Hidden'}
@@ -445,7 +445,7 @@ export default function CategoryList({ categories }: CategoryListProps) {
                     <button
                       type="button"
                       onClick={() => handleDelete(cat.id)}
-                      className="p-1 text-muted hover:text-rose-600"
+                      className="p-1 text-muted hover:text-[#024F5F]"
                       title="Delete"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -499,7 +499,7 @@ export default function CategoryList({ categories }: CategoryListProps) {
                           className="text-muted hover:text-brand-700 transition-colors"
                           title="Copy Link"
                         >
-                          {copiedSlug === cat.slug ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+                          {copiedSlug === cat.slug ? <Check className="h-3 w-3 text-[#024F5F]" /> : <Copy className="h-3 w-3" />}
                         </button>
                       </div>
                     </td>
@@ -508,7 +508,7 @@ export default function CategoryList({ categories }: CategoryListProps) {
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold border ${
                           cat.product_count === 0
-                            ? 'bg-amber-50 text-amber-800 border-amber-300'
+                            ? 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
                             : 'bg-cream-100 text-brand-700 border-cream-300'
                         }`}
                       >
@@ -522,12 +522,12 @@ export default function CategoryList({ categories }: CategoryListProps) {
                         onClick={() => handleToggleStatus(cat.id, cat.is_active)}
                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border transition-all ${
                           cat.is_active
-                            ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                            ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64] hover:bg-[#F6F1EC]'
                             : 'bg-cream-100 text-muted border-cream-300 hover:bg-cream-200'
                         }`}
                         title="Click to toggle status"
                       >
-                        {cat.is_active ? <Eye className="h-3 w-3 text-green-600" /> : <EyeOff className="h-3 w-3" />}
+                        {cat.is_active ? <Eye className="h-3 w-3 text-[#024F5F]" /> : <EyeOff className="h-3 w-3" />}
                         <span>{cat.is_active ? 'Active' : 'Hidden'}</span>
                       </button>
                       {cat.show_on_homepage && (
@@ -565,8 +565,8 @@ export default function CategoryList({ categories }: CategoryListProps) {
                           disabled={deletingId === cat.id}
                           className={`rounded-lg p-2 transition-all ${
                             confirmDeleteId === cat.id
-                              ? 'bg-rose-50 text-rose-600 font-bold text-xs px-2'
-                              : 'text-muted hover:text-rose-500 hover:bg-rose-50'
+                              ? 'bg-[#F6F1EC] text-[#024F5F] font-bold text-xs px-2'
+                              : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
                           }`}
                           title={confirmDeleteId === cat.id ? 'Click again to confirm delete' : 'Delete'}
                         >

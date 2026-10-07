@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
@@ -73,11 +73,11 @@ export default function MomentsSection({ settings }: { settings: ContentSettings
           {/* Left Text */}
           <div className="lg:col-span-4 space-y-5 sm:space-y-6 text-center lg:text-left">
             <div className="flex items-center justify-center lg:justify-start gap-3">
-              <span className="w-6 h-[1.5px] bg-[#655B53]" />
-              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#655B53]">
+              <span className="w-6 h-[1.5px] bg-[#024F5F]" />
+              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-[#024F5F]">
                 EMOTIONS &amp; MEMORIES
               </span>
-              <span className="w-6 h-[1.5px] bg-[#655B53] lg:hidden" />
+              <span className="w-6 h-[1.5px] bg-[#024F5F] lg:hidden" />
             </div>
 
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-[42px] font-bold text-brand-700 leading-tight">

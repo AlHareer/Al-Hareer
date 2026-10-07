@@ -41,9 +41,9 @@ export default function ProductRow({ product }: { product: Product }) {
   };
 
   const stockBadgeClass = product.outOfStock
-    ? 'bg-red-50 text-red-700 border-red-200'
+    ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]'
     : product.lowStock
-      ? 'bg-amber-50 text-amber-700 border-amber-200'
+      ? 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]'
       : 'bg-cream-100 text-brand-700 border-cream-300';
 
   const priceLabel =
@@ -73,7 +73,7 @@ export default function ProductRow({ product }: { product: Product }) {
       <td className="py-3.5 pr-4">
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold uppercase border ${
-            product.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-cream-100 text-muted border-cream-300'
+            product.is_active ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]' : 'bg-cream-100 text-muted border-cream-300'
           }`}
         >
           {product.is_active ? 'Active' : 'Hidden'}
@@ -92,7 +92,7 @@ export default function ProductRow({ product }: { product: Product }) {
             onClick={handleDelete}
             disabled={pending}
             className={`rounded-lg p-2 transition-all ${
-              confirming ? 'text-red-600 bg-red-50' : 'text-muted hover:text-red-500 hover:bg-red-50'
+              confirming ? 'text-[#024F5F] bg-[#F6F1EC]' : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
             }`}
             title={confirming ? 'Click again to confirm' : 'Delete'}
           >

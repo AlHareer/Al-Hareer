@@ -50,7 +50,7 @@ export default function DashboardKpiCards({ stats }: DashboardKpiCardsProps) {
           <div className="mt-2.5 sm:mt-3 flex items-center justify-between border-t border-cream-200 pt-2 text-[11px] text-muted">
             <span className="truncate">This month: <strong className="text-brand-700 font-semibold">₹{stats.revenueThisMonth.toLocaleString('en-IN')}</strong></span>
             {stats.revenueToday > 0 && (
-              <span className="text-green-700 font-semibold bg-green-50 px-1.5 py-0.5 rounded text-[10px] shrink-0 ml-1">
+              <span className="text-[#024F5F] font-semibold bg-[#F6F1EC] px-1.5 py-0.5 rounded text-[10px] shrink-0 ml-1">
                 +₹{stats.revenueToday.toLocaleString('en-IN')} today
               </span>
             )}
@@ -64,7 +64,7 @@ export default function DashboardKpiCards({ stats }: DashboardKpiCardsProps) {
             <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-brand-500/10 text-brand-500 border border-brand-500/20 shrink-0">
               <ShoppingCart className="h-5 w-5" />
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-blue-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F1EC] px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#024F5F]">
               {stats.processingOrders} pending
             </span>
           </div>
@@ -77,7 +77,7 @@ export default function DashboardKpiCards({ stats }: DashboardKpiCardsProps) {
           </div>
 
           <div className="mt-2.5 sm:mt-3 flex items-center justify-between border-t border-cream-200 pt-2 text-[11px] text-muted">
-            <span className="flex items-center gap-1 text-green-700 font-medium truncate">
+            <span className="flex items-center gap-1 text-[#024F5F] font-medium truncate">
               <CheckCircle2 className="h-3 w-3 shrink-0" /> {stats.deliveredOrders + stats.shippedOrders} completed
             </span>
             <span className="text-brand-600 font-semibold shrink-0 ml-1">{fulfillmentRate}% fulfilled</span>
@@ -85,13 +85,13 @@ export default function DashboardKpiCards({ stats }: DashboardKpiCardsProps) {
         </div>
 
         {/* 3. Average Order Value */}
-        <div className="group relative overflow-hidden rounded-2xl border border-cream-300 bg-white p-4 sm:p-5 shadow-2xs transition-all duration-300 hover:border-emerald-300 hover:shadow-luxury">
-          <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-emerald-500/5 transition-all duration-300 group-hover:scale-110" />
+        <div className="group relative overflow-hidden rounded-2xl border border-cream-300 bg-white p-4 sm:p-5 shadow-2xs transition-all duration-300 hover:border-[#CFAC64] hover:shadow-luxury">
+          <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-[#024F5F]/5 transition-all duration-300 group-hover:scale-110" />
           <div className="flex items-center justify-between">
-            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] shrink-0">
               <TrendingUp className="h-5 w-5" />
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-emerald-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F1EC] px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#024F5F]">
               Average
             </span>
           </div>
@@ -116,11 +116,11 @@ export default function DashboardKpiCards({ stats }: DashboardKpiCardsProps) {
               <Package className="h-5 w-5 text-brand-500" />
             </div>
             {stats.lowStockCount > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-rose-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F1EC] px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#024F5F]">
                 <AlertTriangle className="h-3 w-3 shrink-0" /> {stats.lowStockCount} low stock
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-green-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F1EC] px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#024F5F]">
                 In Stock
               </span>
             )}

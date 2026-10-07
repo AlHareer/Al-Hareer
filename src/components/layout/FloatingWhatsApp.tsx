@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -53,7 +53,7 @@ export default function FloatingWhatsApp() {
         <button
           type="button"
           onClick={scrollToTop}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#FAF6F1] hover:bg-[#2B231D] text-[#4A3525] hover:text-white border border-[#E5DACD] shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer group animate-in fade-in zoom-in duration-300"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#F6F1EC] hover:bg-[#B08F4F] text-[#024F5F] hover:text-white border border-[#CFAC64] shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer group animate-in fade-in zoom-in duration-300"
           aria-label="Scroll back to top"
         >
           <ArrowUp className="w-5 h-5 stroke-[2.2] group-hover:-translate-y-0.5 transition-transform" />
@@ -63,7 +63,7 @@ export default function FloatingWhatsApp() {
       {/* 2. DIRECT CALL BUTTON */}
       <a
         href={`tel:+91${digits}`}
-        className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#2B231D] hover:bg-[#4A3525] text-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer border border-[#DACDC0]/30"
+        className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#CFAC64] hover:bg-[#CFAC64] text-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer border border-[#CFAC64]/30"
         aria-label="Call Al Hareer Customer Care"
       >
         <Phone className="w-5 h-5 stroke-[2] group-hover:rotate-12 transition-transform" />
@@ -88,7 +88,7 @@ export default function FloatingWhatsApp() {
             fillRule="evenodd"
             clipRule="evenodd"
             d="M16 31C23.732 31 30 24.732 30 17C30 9.26801 23.732 3 16 3C8.26801 3 2 9.26801 2 17C2 19.5109 2.661 21.8674 3.81847 23.905L2 31L9.31486 29.3038C11.3014 30.3854 13.5789 31 16 31ZM16 28.8462C22.5425 28.8462 27.8462 23.5425 27.8462 17C27.8462 10.4576 22.5425 5.15385 16 5.15385C9.45755 5.15385 4.15385 10.4576 4.15385 17C4.15385 19.5261 4.9445 21.8675 6.29184 23.7902L5.23077 27.7692L9.27993 26.7569C11.1894 28.0746 13.5046 28.8462 16 28.8462Z"
-            fill="#BFC8D0"
+            fill="#CFAC64"
           />
           <path
             d="M28 16C28 22.6274 22.6274 28 16 28C13.4722 28 11.1269 27.2184 9.19266 25.8837L5.09091 26.9091L6.16576 22.8784C4.80092 20.9307 4 18.5589 4 16C4 9.37258 9.37258 4 16 4C22.6274 4 28 9.37258 28 16Z"
@@ -113,8 +113,8 @@ export default function FloatingWhatsApp() {
               y2="28"
               gradientUnits="userSpaceOnUse"
             >
-              <stop stopColor="#5BD066" />
-              <stop offset="1" stopColor="#27B43E" />
+              <stop stopColor="#024F5F" />
+              <stop offset="1" stopColor="#024F5F" />
             </linearGradient>
           </defs>
         </svg>

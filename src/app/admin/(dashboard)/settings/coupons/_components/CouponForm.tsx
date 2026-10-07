@@ -35,8 +35,8 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
       <input type="hidden" name="is_active" value={isActive ? 'on' : 'off'} />
 
       {state?.error && (
-        <div className="flex items-center gap-2.5 rounded-2xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-800 shadow-xs">
-          <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-2xl border border-[#CFAC64] bg-[#F6F1EC]/90 p-4 text-sm text-[#024F5F] shadow-xs">
+          <span className="h-2 w-2 rounded-full bg-[#024F5F] shrink-0" />
           <span>{state.error}</span>
         </div>
       )}
@@ -53,7 +53,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
         {/* Coupon Code Input */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-brand-700">
-            Coupon Code <span className="text-red-500">*</span>
+            Coupon Code <span className="text-[#024F5F]">*</span>
           </label>
           <div className="relative">
             <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
@@ -63,7 +63,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s+/g, ''))}
               placeholder="e.g. WELCOME10"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-cream-200 bg-cream-50/40 text-base sm:text-sm font-mono font-bold uppercase tracking-wider text-brand-700 placeholder:text-muted placeholder:normal-case placeholder:font-sans focus:bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-cream-200 bg-cream-50/40 text-base sm:text-sm font-mono font-bold uppercase tracking-wider text-brand-700 placeholder:text-muted placeholder:normal-case placeholder:font-sans placeholder:font-normal focus:bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20 transition-all"
             />
           </div>
           <p className="text-[11px] text-muted">
@@ -74,7 +74,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
         {/* Discount Type Selector */}
         <div className="space-y-1.5 pt-1">
           <label className="text-xs font-semibold text-brand-700 block">
-            Discount Type <span className="text-red-500">*</span>
+            Discount Type <span className="text-[#024F5F]">*</span>
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -89,7 +89,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
               <Percent className={`h-4 w-4 ${type === 'percent' ? 'text-gold' : 'text-muted'}`} />
               <div>
                 <span className="text-xs font-bold block">Percentage Off</span>
-                <span className={`text-[10px] block ${type === 'percent' ? 'text-stone-300' : 'text-muted'}`}>
+                <span className={`text-[10px] block ${type === 'percent' ? 'text-white' : 'text-muted'}`}>
                   e.g. 10% or 15%
                 </span>
               </div>
@@ -107,7 +107,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
               <IndianRupee className={`h-4 w-4 ${type === 'flat' ? 'text-gold' : 'text-muted'}`} />
               <div>
                 <span className="text-xs font-bold block">Flat Amount Off</span>
-                <span className={`text-[10px] block ${type === 'flat' ? 'text-stone-300' : 'text-muted'}`}>
+                <span className={`text-[10px] block ${type === 'flat' ? 'text-white' : 'text-muted'}`}>
                   e.g. ₹500 discount
                 </span>
               </div>
@@ -120,7 +120,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
           <div>
             <label className="mb-1 block text-xs font-semibold text-brand-700">
               {type === 'percent' ? 'Discount Percentage (%)' : 'Discount Amount (₹)'}{' '}
-              <span className="text-red-500">*</span>
+              <span className="text-[#024F5F]">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted text-xs font-bold">
@@ -206,7 +206,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
             <div className="flex items-center gap-2.5">
               <div
                 className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                  isActive ? 'bg-emerald-100/80 text-emerald-700' : 'bg-cream-200/70 text-muted'
+                  isActive ? 'bg-[#F6F1EC]/80 text-[#024F5F]' : 'bg-cream-200/70 text-muted'
                 }`}
               >
                 {isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -219,13 +219,13 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
                       isActive
-                        ? 'bg-emerald-100/80 text-emerald-800'
-                        : 'bg-stone-200/70 text-stone-600'
+                        ? 'bg-[#F6F1EC]/80 text-[#024F5F]'
+                        : 'bg-[#F6F1EC]/70 text-[#024F5F]'
                     }`}
                   >
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${
-                        isActive ? 'bg-emerald-600 animate-pulse' : 'bg-stone-400'
+                        isActive ? 'bg-[#024F5F] animate-pulse' : 'bg-[#F6F1EC]'
                       }`}
                     />
                     {isActive ? 'Live at Checkout' : 'Disabled'}
@@ -245,7 +245,7 @@ export default function CouponForm({ coupon }: { coupon?: Coupon }) {
               aria-checked={isActive}
               onClick={() => setIsActive((v) => !v)}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-                isActive ? 'bg-emerald-600' : 'bg-stone-300'
+                isActive ? 'bg-[#024F5F]' : 'bg-[#F6F1EC]'
               }`}
             >
               <span

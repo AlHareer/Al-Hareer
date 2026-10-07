@@ -12,7 +12,7 @@
 
 export type SiteSettingMeta = {
   value: string;
-  category: 'home' | 'about' | 'story';
+  category: 'home' | 'about' | 'story' | 'shop' | 'faq' | 'wishlist';
   description: string;
 };
 
@@ -121,6 +121,46 @@ export const HOME_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
     value: 'Monday – Saturday: 10:00 AM – 7:00 PM IST',
     category: 'home',
     description: 'Contact section — business hours',
+  },
+  product_shipping_returns: {
+    value:
+      'Dispatched within 24-48 hours.\nStandard delivery in 3-5 business days across India.\nExpress next-day delivery available in select metro cities.\nHassle-free 7-day exchange and returns from delivery date.',
+    category: 'home',
+    description: 'Product page "Shipping & Returns" tab — one point per line (leave empty to hide the tab)',
+  },
+  policy_shipping: {
+    value:
+      '## Dispatch\nOrders are packed and dispatched within 24-48 hours of being placed.\n\n## Delivery\nStandard delivery takes 3-5 business days across India. Express delivery is available in select cities.\n\n## Shipping charges\nShipping is free above the order value shown at checkout. Cash on Delivery may carry a small handling fee, shown before you pay.\n\n## Tracking\nOnce your order ships, courier details and a tracking number appear under Track Order in your account.',
+    category: 'home',
+    description: 'Policy page — Shipping & Handling (## for headings, blank line between paragraphs; leave empty to hide the page)',
+  },
+  policy_returns: {
+    value:
+      '## Returns & exchanges\nIf something is not right, you can request a return or exchange within 7 days of delivery.\n\n## Condition\nItems must be unworn, unwashed and have their original tags.\n\n## How to start\nContact us from the Contact page with your order number and we will arrange the pickup.\n\n## Refunds\nRefunds are issued to the original payment method once the returned item is received and checked.',
+    category: 'home',
+    description: 'Policy page — Returns & Exchanges (leave empty to hide the page)',
+  },
+  policy_privacy: {
+    value:
+      '## Information we collect\nWe collect the details you give us when you create an account, place an order or contact us: your name, email, phone number and delivery address.\n\n## How we use it\nYour information is used only to process orders, deliver them, provide support and (if you opt in) send updates.\n\n## Sharing\nWe share details only with the courier and payment providers needed to fulfil your order. We do not sell your data.\n\n## Your choices\nYou can update or delete your saved details from your account, or contact us to have them removed.',
+    category: 'home',
+    description: 'Policy page — Privacy Policy (leave empty to hide the page)',
+  },
+  policy_terms: {
+    value:
+      '## Using this website\nBy browsing or buying from this website you agree to these terms.\n\n## Orders & pricing\nAll prices are in Indian Rupees. We may cancel an order if a product is unavailable or a price was listed in error, and will refund any payment made.\n\n## Payments\nPayments are processed by our payment partners. Cash on Delivery is available where shown at checkout.\n\n## Products\nColors may look slightly different on screen than in person.\n\n## Changes\nWe may update these terms from time to time; the version on this page is the one that applies.',
+    category: 'home',
+    description: 'Policy page — Terms of Service (leave empty to hide the page)',
+  },
+  home_contact_calligraphy_line1: {
+    value: 'Tradition',
+    category: 'home',
+    description: 'Contact page hero — script calligraphy, line 1',
+  },
+  home_contact_calligraphy_line2: {
+    value: 'In Style',
+    category: 'home',
+    description: 'Contact page hero — script calligraphy, line 2',
   },
 
   // Newsletter
@@ -263,6 +303,16 @@ export const ABOUT_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
     category: 'about',
     description: 'Top intro banner — subtitle',
   },
+  about_hero_calligraphy_line1: {
+    value: 'Tradition',
+    category: 'about',
+    description: 'Top intro banner — script calligraphy, line 1',
+  },
+  about_hero_calligraphy_line2: {
+    value: 'In Style',
+    category: 'about',
+    description: 'Top intro banner — script calligraphy, line 2',
+  },
 
   // "Our Four Pillars" section
   about_pillars_eyebrow: {
@@ -387,6 +437,8 @@ export const STORY_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
   story_hero_eyebrow: { value: 'OUR STORY', category: 'story', description: 'Top banner — eyebrow tag text' },
   story_hero_title: { value: 'Our Story', category: 'story', description: 'Top banner — main title' },
   story_hero_subtitle: { value: 'Rooted in Tradition. Styled for Today.', category: 'story', description: 'Top banner — subtitle' },
+  story_hero_calligraphy_line1: { value: 'Wear', category: 'story', description: 'Top banner — script calligraphy, line 1' },
+  story_hero_calligraphy_line2: { value: 'Your Legacy', category: 'story', description: 'Top banner — script calligraphy, line 2' },
 
   story_ch1_eyebrow: { value: 'CHAPTER ONE', category: 'story', description: 'Chapter 1 — eyebrow tag text' },
   story_ch1_heading: {
@@ -511,16 +563,61 @@ export const STORY_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
     category: 'story',
     description: 'Bottom CTA banner — subtitle',
   },
+  story_cta_button1_text: { value: 'Explore The Catalog', category: 'story', description: 'Bottom CTA banner — first button label' },
+  story_cta_button2_text: { value: 'About Our Atelier', category: 'story', description: 'Bottom CTA banner — second button label' },
 
   // Images — uploaded via admin (empty = use built-in fallback image)
   story_hero_image: { value: '', category: 'story', description: 'Top hero banner — arch background image URL' },
   story_ch1_image1: { value: '', category: 'story', description: 'Chapter 1 — left portrait image URL' },
+  story_ch1_image1_caption: { value: 'Generational Weft', category: 'story', description: 'Chapter 1 — left portrait caption' },
   story_ch1_image2: { value: '', category: 'story', description: 'Chapter 1 — right portrait image URL' },
+  story_ch1_image2_caption: { value: 'Modern Tailoring', category: 'story', description: 'Chapter 1 — right portrait caption' },
   story_ch2_image: { value: '', category: 'story', description: 'Chapter 2 — featured weaver portrait image URL' },
+};
+
+/**
+ * Shop, FAQ, and Wishlist pages — each page's top hero banner only (the
+ * matching eyebrow/title/subtitle/script-calligraphy block seen on every
+ * other page's hero). No admin form exists for these yet; edit via the
+ * site_settings table directly until one is built.
+ */
+export const SHOP_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
+  shop_hero_eyebrow: { value: 'OUR COLLECTION', category: 'shop', description: 'Top hero banner — eyebrow tag text' },
+  shop_hero_title: { value: 'Shop', category: 'shop', description: 'Top hero banner — main title' },
+  shop_hero_subtitle: { value: 'Tradition Looks Better On You', category: 'shop', description: 'Top hero banner — subtitle' },
+  shop_hero_calligraphy_line1: { value: 'Wear', category: 'shop', description: 'Top hero banner — script calligraphy, line 1' },
+  shop_hero_calligraphy_line2: { value: 'Your Story', category: 'shop', description: 'Top hero banner — script calligraphy, line 2' },
+};
+
+export const FAQ_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
+  faq_hero_eyebrow: { value: 'HELP & CONCIERGE DESK', category: 'faq', description: 'Top hero banner — eyebrow tag text' },
+  faq_hero_title: { value: 'Frequently Asked Questions', category: 'faq', description: 'Top hero banner — main title' },
+  faq_hero_subtitle: {
+    value: 'Everything you need to know about our tailoring, shipping, custom fits, and heritage fabrics.',
+    category: 'faq',
+    description: 'Top hero banner — subtitle',
+  },
+  faq_hero_calligraphy_line1: { value: 'Tradition', category: 'faq', description: 'Top hero banner — script calligraphy, line 1' },
+  faq_hero_calligraphy_line2: { value: 'In Style', category: 'faq', description: 'Top hero banner — script calligraphy, line 2' },
+};
+
+export const WISHLIST_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
+  wishlist_hero_eyebrow: { value: 'SAVED ATELIER EDITS', category: 'wishlist', description: 'Top hero banner — eyebrow tag text' },
+  wishlist_hero_title: { value: 'My Saved Wishlist', category: 'wishlist', description: 'Top hero banner — main title' },
+  wishlist_hero_empty_subtitle: {
+    value: 'Curate and save your favorite royal kurtas, nehru jackets, and accessories.',
+    category: 'wishlist',
+    description: 'Top hero banner — subtitle shown when the wishlist is empty (a non-empty wishlist shows a live item count instead)',
+  },
+  wishlist_hero_calligraphy_line1: { value: 'Tradition', category: 'wishlist', description: 'Top hero banner — script calligraphy, line 1' },
+  wishlist_hero_calligraphy_line2: { value: 'In Style', category: 'wishlist', description: 'Top hero banner — script calligraphy, line 2' },
 };
 
 export const ALL_SETTINGS_DEFAULTS: SiteSettingsDefaults = {
   ...HOME_SETTINGS_DEFAULTS,
   ...ABOUT_SETTINGS_DEFAULTS,
   ...STORY_SETTINGS_DEFAULTS,
+  ...SHOP_SETTINGS_DEFAULTS,
+  ...FAQ_SETTINGS_DEFAULTS,
+  ...WISHLIST_SETTINGS_DEFAULTS,
 };

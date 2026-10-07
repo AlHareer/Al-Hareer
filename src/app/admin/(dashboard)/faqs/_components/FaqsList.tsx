@@ -92,7 +92,7 @@ export default function FaqsList({ faqs }: { faqs: Faq[] }) {
         </p>
         <Link
           href="/admin/faqs/new"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white px-5 py-2 text-xs font-semibold shadow-sm transition-all mt-2"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-5 py-2 text-xs font-semibold shadow-sm transition-all mt-2"
         >
           <Plus className="h-4 w-4" /> Create First FAQ
         </Link>
@@ -127,7 +127,7 @@ export default function FaqsList({ faqs }: { faqs: Faq[] }) {
           onClick={() => setActiveTab('home')}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
             activeTab === 'home'
-              ? 'bg-blue-600 text-white shadow-sm'
+              ? 'bg-[#024F5F] text-white shadow-sm'
               : 'text-muted hover:text-brand-700'
           }`}
         >
@@ -142,12 +142,12 @@ export default function FaqsList({ faqs }: { faqs: Faq[] }) {
       {/* Homepage Tab Content */}
       {activeTab === 'home' && (
         <div className="space-y-3">
-          <div className="rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-3 text-xs text-blue-800">
+          <div className="rounded-xl border border-[#CFAC64] bg-[#F6F1EC]/50 px-4 py-3 text-xs text-[#024F5F]">
             <span className="font-bold">Homepage FAQs:</span> These {homeFaqs.length} questions appear in the FAQ preview section on the homepage. Toggle &quot;On Home&quot; button on any FAQ to add/remove it from homepage.
           </div>
           {homeFaqs.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-blue-200 bg-white p-10 text-center space-y-2">
-              <Home className="h-8 w-8 text-blue-300 mx-auto" />
+            <div className="rounded-2xl border border-dashed border-[#CFAC64] bg-white p-10 text-center space-y-2">
+              <Home className="h-8 w-8 text-[#024F5F] mx-auto" />
               <p className="font-heading text-sm font-bold text-brand-700">No FAQs on Homepage Yet</p>
               <p className="text-xs text-muted">Click the &quot;Home&quot; button on any FAQ below to feature it on the homepage.</p>
             </div>
@@ -225,7 +225,7 @@ export default function FaqsList({ faqs }: { faqs: Faq[] }) {
                 setStatusFilter('all');
                 setSearchQuery('');
               }}
-              className="rounded-xl border border-cream-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-muted hover:text-red-600 hover:bg-red-50 transition-all shadow-2xs"
+              className="rounded-xl border border-cream-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC] transition-all shadow-2xs"
               title="Reset all filters"
             >
               Reset
@@ -287,7 +287,7 @@ export default function FaqsList({ faqs }: { faqs: Faq[] }) {
               setStatusFilter('all');
               setSearchQuery('');
             }}
-            className="inline-flex items-center gap-1 rounded-xl bg-cream-100 border border-cream-300 px-3.5 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-500 hover:text-white transition-all mt-2"
+            className="inline-flex items-center gap-1 rounded-xl bg-cream-100 border border-cream-300 px-3.5 py-1.5 text-xs font-semibold text-brand-700 hover:bg-[#B08F4F] hover:text-white transition-all mt-2"
           >
             Clear Filters
           </button>

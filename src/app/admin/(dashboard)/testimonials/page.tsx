@@ -35,13 +35,13 @@ export default async function AdminTestimonialsPage() {
       label: 'Average Rating',
       value: `${avgRating} ★`,
       icon: Star,
-      accent: 'bg-amber-500/10 text-amber-700 border-amber-200/60',
+      accent: 'bg-[#CFAC64]/10 text-[#B08F4F] border-[#CFAC64]/60',
     },
     {
       label: 'Published & Live',
       value: activeCount,
       icon: CheckCircle2,
-      accent: 'bg-emerald-500/10 text-emerald-700 border-emerald-200/60',
+      accent: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
     },
     {
       label: 'Draft / Hidden',
@@ -82,9 +82,9 @@ export default async function AdminTestimonialsPage() {
             </Link>
             <Link
               href="/admin/testimonials/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-brand-600 via-brand-500 to-brand-600 hover:from-brand-700 hover:to-brand-600 shadow-sm transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-brand-600 via-brand-500 to-brand-600 hover:from-brand-700 hover:to-brand-600 shadow-sm transition-all active:scale-[0.98] whitespace-nowrap"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 shrink-0" />
               <span>New Testimonial</span>
             </Link>
           </div>

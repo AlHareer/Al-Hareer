@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { Search, X, ShoppingBag } from 'lucide-react';
 import { useUI } from '@/context/UIContext';
@@ -11,14 +11,26 @@ export default function SearchModal() {
   const { isSearchOpen, setIsSearchOpen, openQuickView } = useUI();
   const [query, setQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  // Real products shown while the box is empty; also the source of example hints.
+  const [suggested, setSuggested] = useState<Product[]>([]);
 
   useEffect(() => {
     if (!isSearchOpen) return;
     const timeout = setTimeout(() => {
-      searchProducts(query).then(setFilteredProducts).catch(() => setFilteredProducts([]));
+      searchProducts(query)
+        .then((results) => {
+          setFilteredProducts(results);
+          if (!query.trim()) setSuggested(results);
+        })
+        .catch(() => setFilteredProducts([]));
     }, 200);
     return () => clearTimeout(timeout);
   }, [query, isSearchOpen]);
+
+  const hints = useMemo(
+    () => Array.from(new Set(suggested.map((p) => p.fabric).filter(Boolean))).slice(0, 4),
+    [suggested]
+  );
 
   if (!isSearchOpen) return null;
 
@@ -37,7 +49,7 @@ export default function SearchModal() {
           <Search className="w-5 h-5 text-brand-500 flex-shrink-0" />
           <input
             type="text"
-            placeholder="Search kurtas, pajamas, fabrics, colors..."
+            placeholder="Search products..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
@@ -66,15 +78,23 @@ export default function SearchModal() {
             <span>
               {query.trim()
                 ? `Results for "${query}" (${filteredProducts.length})`
-                : 'Suggested Styles'}
+                : 'Suggested Products'}
             </span>
             <span>Click any item for details</span>
           </div>
 
           {filteredProducts.length === 0 ? (
             <div className="text-center py-10 space-y-2">
-              <p className="text-sm text-brand-700 font-medium">No traditional outfits matched your query.</p>
-              <p className="text-xs text-muted">Try searching &ldquo;Silk&rdquo;, &ldquo;White&rdquo;, &ldquo;Festive&rdquo;, or &ldquo;Linen&rdquo;</p>
+              <p className="text-sm text-brand-700 font-medium">
+                {query.trim() ? `No products matched "${query.trim()}".` : 'No products to show yet.'}
+              </p>
+              {query.trim() && hints.length > 0 && (
+                <p className="text-xs text-muted">
+                  Try searching {hints.map((h, i) => (
+                    <span key={h}>{i > 0 && ', '}&ldquo;{h}&rdquo;</span>
+                  ))}
+                </p>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-1">

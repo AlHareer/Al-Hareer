@@ -14,9 +14,9 @@ export default async function AdminProductsPage() {
 
   const stats = [
     { label: 'Total Products', value: products.length, icon: Package, color: 'text-brand-500 bg-brand-500/10' },
-    { label: 'Active', value: activeCount, icon: CheckCircle2, color: 'text-green-600 bg-green-50' },
-    { label: 'Low Stock', value: lowStockCount, icon: AlertTriangle, color: 'text-amber-700 bg-amber-50' },
-    { label: 'Out of Stock', value: outOfStockCount, icon: PackageX, color: 'text-rose-600 bg-rose-50' },
+    { label: 'Active', value: activeCount, icon: CheckCircle2, color: 'text-[#024F5F] bg-[#F6F1EC]' },
+    { label: 'Low Stock', value: lowStockCount, icon: AlertTriangle, color: 'text-[#B08F4F] bg-[#F6F1EC]' },
+    { label: 'Out of Stock', value: outOfStockCount, icon: PackageX, color: 'text-[#024F5F] bg-[#F6F1EC]' },
   ];
 
   return (
@@ -32,7 +32,7 @@ export default async function AdminProductsPage() {
 
         <Link
           href="/admin/products/new"
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white px-4 py-2.5 text-xs sm:text-sm font-semibold shadow-luxury transition-all hover:shadow-luxury-hover shrink-0"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-4 py-2.5 text-xs sm:text-sm font-semibold shadow-luxury transition-all hover:shadow-luxury-hover shrink-0"
         >
           <Plus className="h-4 w-4" />
           <span>New Product</span>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useUI } from '@/context/UIContext';
 import type { ContentSettings } from '@/lib/siteSettings';
+import { getColorStartPrice } from '@/lib/products';
 
 export default function FeaturedCollection({ products, settings }: { products: Product[]; settings: ContentSettings }) {
   const [selectedColors, setSelectedColors] = useState<{ [productId: string]: { name: string; image: string } }>({});
@@ -56,6 +57,7 @@ export default function FeaturedCollection({ products, settings }: { products: P
           {displayedProducts.map((product) => {
             const currentSelectedColor = selectedColors[product.id]?.name || product.colors[0]?.name;
             const currentImage = selectedColors[product.id]?.image || product.image;
+            const cardPrice = getColorStartPrice(product, currentSelectedColor);
             const isWishlisted = isInWishlist(product.id);
 
             return (
@@ -65,7 +67,7 @@ export default function FeaturedCollection({ products, settings }: { products: P
               >
                 {/* Product Image Container */}
                 <div className="relative aspect-[4/4.8] lg:aspect-[4/4.1] bg-cream-200 overflow-hidden">
-                  <Link href={`/product/${product.id}`} className="block w-full h-full">
+                  <Link href={currentSelectedColor ? `/product/${product.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${product.id}`} className="block w-full h-full">
                     <Image
                       src={currentImage}
                       alt={product.name}
@@ -90,12 +92,12 @@ export default function FeaturedCollection({ products, settings }: { products: P
                     }}
                     className={`absolute top-2 right-2 sm:top-2.5 sm:right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all shadow-md z-10 ${
                       isWishlisted
-                        ? 'bg-white text-red-500 fill-red-500'
-                        : 'bg-white/90 text-brand-700 hover:text-red-500 hover:bg-white'
+                        ? 'bg-white text-[#024F5F] fill-[#024F5F]'
+                        : 'bg-white/90 text-brand-700 hover:text-[#024F5F] hover:bg-white'
                     }`}
                     aria-label="Toggle Wishlist"
                   >
-                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isWishlisted ? 'fill-red-500' : ''}`} />
+                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isWishlisted ? 'fill-[#024F5F]' : ''}`} />
                   </button>
 
                   {/* Always Active Quick View & Add to Cart Buttons */}
@@ -112,7 +114,7 @@ export default function FeaturedCollection({ products, settings }: { products: P
                     </button>
                     <button
                       onClick={(e) => handleQuickAdd(product, e)}
-                      className="bg-brand-500 hover:bg-brand-600 active:scale-95 text-white p-1.5 sm:p-2 rounded-[4px] shadow-md transition-all flex items-center justify-center cursor-pointer"
+                      className="bg-[#CFAC64] hover:bg-[#B08F4F] active:scale-95 text-white p-1.5 sm:p-2 rounded-[4px] shadow-md transition-all flex items-center justify-center cursor-pointer"
                       title="Add to Cart"
                       aria-label="Add to Cart"
                     >
@@ -126,15 +128,15 @@ export default function FeaturedCollection({ products, settings }: { products: P
                   <div>
                     {/* Stars */}
                     {product.reviewCount > 0 && (
-                      <div className="flex items-center gap-1 sm:gap-1.5 text-amber-500 text-xs mb-1">
+                      <div className="flex items-center gap-1 sm:gap-1.5 text-[#B08F4F] text-xs mb-1">
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
                               className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
                                 i < Math.floor(product.rating)
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'text-amber-300'
+                                  ? 'fill-[#CFAC64] text-[#CFAC64]'
+                                  : 'text-[#B08F4F]'
                               }`}
                             />
                           ))}
@@ -146,7 +148,7 @@ export default function FeaturedCollection({ products, settings }: { products: P
                     )}
 
                     <Link
-                      href={`/product/${product.id}`}
+                      href={currentSelectedColor ? `/product/${product.id}?color=${encodeURIComponent(currentSelectedColor)}` : `/product/${product.id}`}
                       className="font-heading text-sm sm:text-base md:text-lg font-bold text-brand-700 line-clamp-1 hover:text-brand-500 transition-colors block"
                     >
                       {product.name}
@@ -161,11 +163,11 @@ export default function FeaturedCollection({ products, settings }: { products: P
                     {/* Price */}
                     <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="font-heading text-base sm:text-lg md:text-xl font-bold text-brand-700">
-                        ₹{product.price}
+                        ₹{cardPrice.price}
                       </span>
-                      {product.originalPrice && (
+                      {cardPrice.originalPrice && (
                         <span className="text-[10px] sm:text-xs text-muted line-through">
-                          ₹{product.originalPrice}
+                          ₹{cardPrice.originalPrice}
                         </span>
                       )}
                     </div>
@@ -198,7 +200,7 @@ export default function FeaturedCollection({ products, settings }: { products: P
         <div className="text-center mt-10 sm:mt-12">
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#4A3525] hover:bg-[#36261A] text-white font-semibold text-sm sm:text-base tracking-wide transition-all duration-300 shadow-sm hover:shadow-luxury group cursor-pointer w-full max-w-[320px] justify-center mx-auto"
+            className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#CFAC64] hover:bg-[#B08F4F] text-white font-semibold text-sm sm:text-base tracking-wide transition-all duration-300 shadow-sm hover:shadow-luxury group cursor-pointer w-full max-w-[320px] justify-center mx-auto"
           >
             <span>Shop Now</span>
           </Link>

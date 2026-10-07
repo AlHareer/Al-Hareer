@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -7,6 +7,7 @@ import { X, Star, ShoppingBag, Heart, ShieldCheck, Minus, Plus } from 'lucide-re
 import { useUI } from '@/context/UIContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { getVariantImage } from '@/lib/products';
 
 export default function ProductQuickViewModal() {
   const { quickViewProduct, closeQuickView, showToast } = useUI();
@@ -16,20 +17,16 @@ export default function ProductQuickViewModal() {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
-  const [previewImage, setPreviewImage] = useState<string>('');
 
   if (!quickViewProduct) return null;
 
   const activeColor = selectedColor || quickViewProduct.colors[0]?.name || 'Standard';
   const activeSize = selectedSize || quickViewProduct.sizes[0] || 'M';
-  const currentImage = previewImage || quickViewProduct.image;
+  const currentImage = getVariantImage(quickViewProduct, activeSize, activeColor);
   const isWishlisted = isInWishlist(quickViewProduct.id);
 
-  const handleColorChange = (colorName: string, imageSrc?: string) => {
+  const handleColorChange = (colorName: string) => {
     setSelectedColor(colorName);
-    if (imageSrc) {
-      setPreviewImage(imageSrc);
-    }
   };
 
   const handleAddToCart = () => {
@@ -51,12 +48,12 @@ export default function ProductQuickViewModal() {
       />
 
       {/* Modal Dialog (Compact & Mobile-Optimized Bottom Sheet / Popup) */}
-      <div className="relative bg-[#FAF6F0] rounded-t-2xl sm:rounded-xl shadow-2xl max-w-xl md:max-w-2xl w-full max-h-[90vh] sm:max-h-[85vh] overflow-y-auto no-scrollbar border border-cream-300 z-10 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200">
+      <div className="relative bg-[#F6F1EC] rounded-t-2xl sm:rounded-xl shadow-2xl max-w-xl md:max-w-2xl w-full max-h-[90vh] sm:max-h-[85vh] overflow-y-auto no-scrollbar border border-cream-300 z-10 animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-200">
         
         {/* Floating Close Button */}
         <button
           onClick={closeQuickView}
-          className="absolute top-3 right-3 z-30 w-7 h-7 sm:w-8 sm:h-8 bg-black/50 hover:bg-black/75 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-colors cursor-pointer shadow-md"
+          className="absolute top-3 right-3 z-30 w-7 h-7 sm:w-8 sm:h-8 bg-[#00303A]/50 hover:bg-[#00303A]/75 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-colors cursor-pointer shadow-md"
           aria-label="Close modal"
         >
           <X className="w-4 h-4" />
@@ -77,7 +74,7 @@ export default function ProductQuickViewModal() {
 
             {/* Tag Badge */}
             {quickViewProduct.tag && (
-              <span className="absolute top-2.5 left-2.5 bg-[#3E2B1E] text-[#E0EFE6] text-[8.5px] sm:text-[9.5px] font-semibold px-2 py-0.5 rounded-[4px] shadow-sm uppercase tracking-wider pointer-events-none">
+              <span className="absolute top-2.5 left-2.5 bg-[#00303A] text-[#F6F1EC] text-[8.5px] sm:text-[9.5px] font-semibold px-2 py-0.5 rounded-[4px] shadow-sm uppercase tracking-wider pointer-events-none">
                 {quickViewProduct.tag}
               </span>
             )}
@@ -105,14 +102,14 @@ export default function ProductQuickViewModal() {
               <div className="flex items-center gap-2 pt-0.5">
                 {quickViewProduct.reviewCount > 0 && (
                   <>
-                    <div className="flex text-amber-500">
+                    <div className="flex text-[#B08F4F]">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           className={`w-3 h-3 ${
                             i < Math.floor(quickViewProduct.rating)
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-amber-300'
+                              ? 'fill-[#CFAC64] text-[#CFAC64]'
+                              : 'text-[#B08F4F]'
                           }`}
                         />
                       ))}
@@ -125,7 +122,7 @@ export default function ProductQuickViewModal() {
                     </span>
                   </>
                 )}
-                <span className="ml-auto text-[9.5px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">
+                <span className="ml-auto text-[9.5px] font-bold text-[#024F5F] bg-[#F6F1EC]/90 px-1.5 py-0.5 rounded">
                   In Stock
                 </span>
               </div>
@@ -157,7 +154,7 @@ export default function ProductQuickViewModal() {
                   {quickViewProduct.colors.map((c) => (
                     <button
                       key={c.name}
-                      onClick={() => handleColorChange(c.name, c.image)}
+                      onClick={() => handleColorChange(c.name)}
                       className={`w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full border p-0.5 transition-all flex items-center justify-center cursor-pointer ${
                         activeColor === c.name
                           ? 'border-brand-700 scale-110 shadow-sm'
@@ -166,7 +163,7 @@ export default function ProductQuickViewModal() {
                       title={c.name}
                     >
                       <span
-                        className="w-full h-full rounded-full border border-black/10 shadow-inner"
+                        className="w-full h-full rounded-full border border-[#00303A]/10 shadow-inner"
                         style={{ backgroundColor: c.hex }}
                       />
                     </button>
@@ -186,7 +183,7 @@ export default function ProductQuickViewModal() {
                       onClick={() => setSelectedSize(s)}
                       className={`min-w-[30px] h-7 px-1.5 text-[11px] font-bold rounded-[4px] border transition-all cursor-pointer ${
                         activeSize === s
-                          ? 'bg-[#3E2B1E] text-white border-[#3E2B1E] shadow-sm'
+                          ? 'bg-[#00303A] text-white border-[#00303A] shadow-sm'
                           : 'bg-white text-brand-700 border-cream-300 hover:border-brand-500'
                       }`}
                     >
@@ -224,7 +221,7 @@ export default function ProductQuickViewModal() {
                 {/* Primary Add to Bag */}
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#3E2B1E] hover:bg-brand-800 active:scale-[0.98] text-white h-9 rounded-[5px] text-xs font-semibold tracking-wide shadow-md transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#CFAC64] hover:bg-[#B08F4F] active:scale-[0.98] text-white h-9 rounded-[5px] text-xs font-semibold tracking-wide shadow-md transition-all cursor-pointer"
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
                   <span>Add to Bag</span>
@@ -235,12 +232,12 @@ export default function ProductQuickViewModal() {
                   onClick={() => toggleWishlist(quickViewProduct)}
                   className={`w-9 h-9 rounded-[5px] border flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                     isWishlisted
-                      ? 'bg-red-50 border-red-200 text-red-600'
+                      ? 'bg-[#F6F1EC] border-[#CFAC64] text-[#024F5F]'
                       : 'bg-white border-cream-300 text-brand-800 hover:bg-cream-100'
                   }`}
                   aria-label="Wishlist"
                 >
-                  <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+                  <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-[#024F5F] text-[#024F5F]' : ''}`} />
                 </button>
               </div>
 

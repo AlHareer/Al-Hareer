@@ -43,7 +43,7 @@ export default function CouponRow({ coupon }: { coupon: Coupon }) {
       <td className="py-3.5 pr-4 text-sm text-muted">
         {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString('en-IN') : 'Never'}
         {expired && (
-          <span className="ml-2 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-700">
+          <span className="ml-2 rounded-full border border-[#CFAC64] bg-[#F6F1EC] px-2 py-0.5 text-[10px] font-semibold uppercase text-[#024F5F]">
             Expired
           </span>
         )}
@@ -53,7 +53,7 @@ export default function CouponRow({ coupon }: { coupon: Coupon }) {
           onClick={handleToggle}
           disabled={pending}
           className={`rounded-full px-3 py-1 text-xs font-semibold uppercase border transition-all ${
-            coupon.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-cream-100 text-muted border-cream-300'
+            coupon.is_active ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]' : 'bg-cream-100 text-muted border-cream-300'
           }`}
         >
           {coupon.is_active ? 'Active' : 'Inactive'}
@@ -72,7 +72,7 @@ export default function CouponRow({ coupon }: { coupon: Coupon }) {
             onClick={handleDelete}
             disabled={pending}
             className={`rounded-lg p-2 transition-all ${
-              confirming ? 'text-red-600 bg-red-50' : 'text-muted hover:text-red-500 hover:bg-red-50'
+              confirming ? 'text-[#024F5F] bg-[#F6F1EC]' : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
             }`}
             title={confirming ? 'Click again to confirm' : 'Delete'}
           >

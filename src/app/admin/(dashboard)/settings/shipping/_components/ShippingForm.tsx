@@ -45,14 +45,14 @@ export default function ShippingForm({ shipping }: { shipping: ShippingSettings 
 
         {/* Status Alerts */}
         {state?.error && (
-          <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50/90 p-3.5 text-xs sm:text-sm font-semibold text-red-800 shadow-xs">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-[#CFAC64] bg-[#F6F1EC]/90 p-3.5 text-xs sm:text-sm font-semibold text-[#024F5F] shadow-xs">
+            <AlertCircle className="h-4 w-4 shrink-0 text-[#024F5F]" />
             <span>{state.error}</span>
           </div>
         )}
         {state?.success && (
-          <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/90 p-3.5 text-xs sm:text-sm font-semibold text-emerald-800 shadow-xs">
-            <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-[#CFAC64] bg-[#F6F1EC]/90 p-3.5 text-xs sm:text-sm font-semibold text-[#024F5F] shadow-xs">
+            <Check className="h-4 w-4 shrink-0 text-[#024F5F]" />
             <span>Shipping settings saved successfully.</span>
           </div>
         )}
@@ -66,7 +66,7 @@ export default function ShippingForm({ shipping }: { shipping: ShippingSettings 
                 Standard Courier Delivery Fee (₹)
               </label>
               {flatRate === 0 && (
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold text-[#024F5F] bg-[#F6F1EC] border border-[#CFAC64] px-2 py-0.5 rounded-full">
                   Free
                 </span>
               )}

@@ -48,7 +48,7 @@ export default function CategoryRow({ category }: { category: Category }) {
       <td className="py-3.5 pr-4">
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-semibold border ${
-            category.product_count === 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-cream-100 text-brand-700 border-cream-300'
+            category.product_count === 0 ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]' : 'bg-cream-100 text-brand-700 border-cream-300'
           }`}
         >
           {category.product_count}
@@ -57,7 +57,7 @@ export default function CategoryRow({ category }: { category: Category }) {
       <td className="py-3.5 pr-4">
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold uppercase border ${
-            category.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-cream-100 text-muted border-cream-300'
+            category.is_active ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]' : 'bg-cream-100 text-muted border-cream-300'
           }`}
         >
           {category.is_active ? 'Active' : 'Hidden'}
@@ -76,7 +76,7 @@ export default function CategoryRow({ category }: { category: Category }) {
             onClick={handleDelete}
             disabled={pending}
             className={`rounded-lg p-2 transition-all ${
-              confirming ? 'text-red-600 bg-red-50' : 'text-muted hover:text-red-500 hover:bg-red-50'
+              confirming ? 'text-[#024F5F] bg-[#F6F1EC]' : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
             }`}
             title={confirming ? 'Click again to confirm' : 'Delete'}
           >

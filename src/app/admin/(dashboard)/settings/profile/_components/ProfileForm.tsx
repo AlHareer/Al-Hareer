@@ -46,14 +46,14 @@ export default function ProfileForm({ profile }: { profile: AdminProfile | null 
 
         {/* Feedback Messages */}
         {state?.error && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm font-semibold text-red-700">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+          <div className="flex items-center gap-2 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3.5 text-xs sm:text-sm font-semibold text-[#024F5F]">
+            <AlertCircle className="h-4 w-4 shrink-0 text-[#024F5F]" />
             <span>{state.error}</span>
           </div>
         )}
         {state?.success && (
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs sm:text-sm font-semibold text-emerald-800">
-            <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+          <div className="flex items-center gap-2 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3.5 text-xs sm:text-sm font-semibold text-[#024F5F]">
+            <Check className="h-4 w-4 shrink-0 text-[#024F5F]" />
             <span>Profile name updated successfully.</span>
           </div>
         )}
@@ -62,7 +62,7 @@ export default function ProfileForm({ profile }: { profile: AdminProfile | null 
         <div className="space-y-4">
           <div>
             <label className={labelClass}>
-              Full Name <span className="text-red-500">*</span>
+              Full Name <span className="text-[#024F5F]">*</span>
             </label>
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted pointer-events-none" />
@@ -98,7 +98,7 @@ export default function ProfileForm({ profile }: { profile: AdminProfile | null 
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 px-6 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
           >
             {pending ? (
               <>

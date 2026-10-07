@@ -80,8 +80,13 @@ create table if not exists product_variants (
   original_price numeric,
   stock_quantity int not null default 0,
   weight_grams int,
-  is_active boolean not null default true
+  is_active boolean not null default true,
+  image_url text
 );
+-- Backfill for tables created before image_url existed — lets admins set a
+-- distinct photo per exact size+color combination (e.g. "S / Red" vs "S / Blue"),
+-- not just one photo per color.
+alter table product_variants add column if not exists image_url text;
 create index if not exists idx_product_variants_product_id on product_variants(product_id);
 
 create table if not exists product_faqs (
@@ -137,7 +142,7 @@ create table if not exists orders (
   quantity_discount numeric not null default 0,
   coupon_code text,
   total_amount numeric not null default 0,
-  payment_method text not null default 'COD' check (payment_method = 'COD'),
+  payment_method text not null default 'COD',
   payment_status text not null default 'pending',
   order_status text not null default 'processing',
   tracking_number text,
@@ -147,6 +152,10 @@ create table if not exists orders (
   updated_at timestamptz not null default now()
 );
 create index if not exists idx_orders_user_id on orders(user_id);
+-- Drop the old constraint that only ever allowed 'COD' — it silently broke
+-- every Razorpay (online) order, since placeOrder() inserts 'Online Payment'
+-- for those. payment_method is free text now, same as COD/online elsewhere.
+alter table orders drop constraint if exists orders_payment_method_check;
 
 create table if not exists order_items (
   id uuid primary key default gen_random_uuid(),

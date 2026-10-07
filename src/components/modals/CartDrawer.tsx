@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useUI } from '@/context/UIContext';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useQuantityDiscountSettings, computeQuantityDiscount, nextQuantityTier } from '@/hooks/useQuantityDiscount';
+import { getVariantImage } from '@/lib/products';
 
 export default function CartDrawer() {
   const router = useRouter();
@@ -62,8 +63,8 @@ export default function CartDrawer() {
           {/* Free Shipping Progress */}
           <div className="px-6 py-3 bg-cream-200 border-b border-cream-300">
             {subtotal >= freeShippingThreshold ? (
-              <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-emerald-600" /> You unlocked Free Express Shipping!
+              <p className="text-xs font-semibold text-[#024F5F] flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-[#024F5F]" /> You unlocked Free Express Shipping!
               </p>
             ) : (
               <p className="text-xs text-muted">
@@ -104,7 +105,7 @@ export default function CartDrawer() {
                 >
                   <div className="relative w-20 h-24 rounded overflow-hidden flex-shrink-0 bg-cream-200">
                     <Image
-                      src={item.product.image}
+                      src={getVariantImage(item.product, item.selectedSize, item.selectedColor)}
                       alt={item.product.name}
                       fill
                       className="object-cover"
@@ -119,7 +120,7 @@ export default function CartDrawer() {
                       <div className="flex items-center gap-2 text-xs text-muted mt-1">
                         <span>Size: <strong className="text-brand-700">{item.selectedSize}</strong></span>
                         <span>•</span>
-                        <span>Color: <strong className="text-brand-700">{item.selectedColor}</strong></span>
+                        <span className="inline-flex items-center gap-1">Color: <span className="inline-block w-3.5 h-3.5 rounded-full border border-cream-300 align-middle" style={{ backgroundColor: item.product.colors.find((c) => c.name === item.selectedColor)?.hex || '#CCCCCC' }} /><strong className="text-brand-700">{item.selectedColor}</strong></span>
                       </div>
                     </div>
 
@@ -170,7 +171,7 @@ export default function CartDrawer() {
                     onClick={() =>
                       removeFromCart(item.product.id, item.selectedColor, item.selectedSize)
                     }
-                    className="absolute top-2 right-2 text-muted-light hover:text-red-600 transition-colors p-1"
+                    className="absolute top-2 right-2 text-muted-light hover:text-[#024F5F] transition-colors p-1"
                     aria-label="Remove item"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -191,12 +192,12 @@ export default function CartDrawer() {
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span className="text-emerald-700 font-medium">
+                  <span className="text-[#024F5F] font-medium">
                     {subtotal >= freeShippingThreshold ? 'FREE' : flatRate > 0 ? `₹${flatRate}` : 'FREE'}
                   </span>
                 </div>
                 {qtyDiscount > 0 && (
-                  <div className="flex justify-between text-emerald-700">
+                  <div className="flex justify-between text-[#024F5F]">
                     <span className="flex items-center gap-1">
                       <Check className="w-3 h-3" />
                       Quantity Discount
@@ -205,7 +206,7 @@ export default function CartDrawer() {
                   </div>
                 )}
                 {nextTier && (
-                  <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">
+                  <p className="text-[11px] text-[#B08F4F] bg-[#F6F1EC] rounded-lg px-2.5 py-1.5">
                     Add {nextTier.min_quantity - totalItems} more item{nextTier.min_quantity - totalItems > 1 ? 's' : ''} to get <span className="font-bold">₹{nextTier.discount} off</span>
                   </p>
                 )}

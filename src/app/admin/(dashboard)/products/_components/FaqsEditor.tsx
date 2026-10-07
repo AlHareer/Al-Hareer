@@ -17,8 +17,6 @@ export default function FaqsEditor({ faqs, onChange }: { faqs: FaqRow[]; onChang
 
   return (
     <div className="space-y-3.5">
-      <input type="hidden" name="faqs_json" value={JSON.stringify(faqs)} />
-
       {faqs.length === 0 ? (
         <div className="rounded-xl border border-dashed border-cream-300 bg-cream-50/50 p-5 text-center">
           <HelpCircle className="h-6 w-6 text-muted/60 mx-auto mb-1.5" />
@@ -48,7 +46,7 @@ export default function FaqsEditor({ faqs, onChange }: { faqs: FaqRow[]; onChang
                 <button
                   type="button"
                   onClick={() => remove(i)}
-                  className="shrink-0 p-2 text-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="shrink-0 p-2 text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC] rounded-lg transition-colors"
                   title="Delete question"
                 >
                   <Trash2 className="h-4 w-4" />

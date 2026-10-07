@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-export type ProductColor = { name: string; hex: string; image: string | null };
+export type ProductColor = { name: string; hex: string; image: string | null; images?: string[] };
 export type ProductDetails = Record<string, string>;
 
 function slugify(text: string) {
@@ -122,6 +122,10 @@ function validateVariants(variants: VariantInput[]): string | null {
     if (v.price === '' || v.price == null || Number.isNaN(Number(v.price)) || Number(v.price) <= 0) {
       return `${label}: please enter a valid price.`;
     }
+    if (v.original_price !== '' && v.original_price != null && Number(v.original_price) > 0 && Number(v.original_price) <= Number(v.price)) {
+      const combo = v.color ? `${v.color} / ${v.variant_name}` : v.variant_name;
+      return `"${combo}": MRP (₹${v.original_price}) must be higher than the sale price (₹${v.price}). Leave MRP blank if there is no discount.`;
+    }
     if (
       v.stock_quantity === '' ||
       v.stock_quantity == null ||
@@ -205,7 +209,9 @@ function parseProductFields(formData: FormData) {
     seo_description: (formData.get('seo_description') as string) || null,
     is_active: formData.get('is_active') === 'on',
     is_featured: formData.get('is_featured') === 'on',
-    show_in_shop: formData.get('show_in_shop') === 'on',
+    // The product form has no shop-visibility switch (Active already controls
+    // visibility), so a missing field means "show" — never silently hide it.
+    show_in_shop: formData.get('show_in_shop') !== 'off',
     colors: parseJsonArray<ProductColor>(formData, 'colors_json'),
     details: parseJsonObject(formData, 'details_json'),
   };

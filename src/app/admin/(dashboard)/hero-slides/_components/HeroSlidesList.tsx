@@ -59,7 +59,7 @@ export default function HeroSlidesList({ slides }: { slides: HeroSlide[] }) {
         <p className="text-sm text-muted">Slides rotate on the homepage hero banner in the order below.</p>
         <Link
           href="/admin/hero-slides/new"
-          className="inline-flex items-center justify-center gap-1.5 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition-all"
+          className="inline-flex items-center justify-center gap-1.5 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition-all"
         >
           <Plus className="h-4 w-4" /> New Slide
         </Link>
@@ -139,7 +139,7 @@ export default function HeroSlidesList({ slides }: { slides: HeroSlide[] }) {
                   onClick={() => handleDelete(slide.id)}
                   disabled={pending}
                   className={`rounded-lg p-2 transition-all ${
-                    confirmingId === slide.id ? 'text-red-600 bg-red-50' : 'text-muted hover:text-red-500 hover:bg-red-50'
+                    confirmingId === slide.id ? 'text-[#024F5F] bg-[#F6F1EC]' : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]'
                   }`}
                   title={confirmingId === slide.id ? 'Click again to confirm' : 'Delete'}
                 >

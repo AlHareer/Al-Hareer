@@ -151,13 +151,13 @@ export default function TestimonialRow({
             )}
 
             <div className="flex items-center gap-1 ml-auto sm:ml-2">
-              <div className="flex text-amber-400 gap-0.5">
+              <div className="flex text-[#CFAC64] gap-0.5">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
                     className={`h-3.5 w-3.5 ${
                       i < testimonial.rating
-                        ? 'fill-amber-400 text-amber-400'
+                        ? 'fill-[#CFAC64] text-[#CFAC64]'
                         : 'text-cream-300'
                     }`}
                   />
@@ -199,7 +199,7 @@ export default function TestimonialRow({
             disabled={pending}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
               testimonial.is_active
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70 hover:bg-emerald-100/60'
+                ? 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/70 hover:bg-[#F6F1EC]/60'
                 : 'bg-cream-100 text-muted border-cream-300/70 hover:bg-cream-200/50'
             }`}
             title="Click to toggle live storefront visibility"
@@ -207,7 +207,7 @@ export default function TestimonialRow({
             {pending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : testimonial.is_active ? (
-              <Eye className="h-3.5 w-3.5 text-emerald-600" />
+              <Eye className="h-3.5 w-3.5 text-[#024F5F]" />
             ) : (
               <EyeOff className="h-3.5 w-3.5 text-muted" />
             )}
@@ -230,8 +230,8 @@ export default function TestimonialRow({
             disabled={pending}
             className={`flex items-center gap-1 p-2 rounded-xl text-xs font-semibold transition-all ${
               confirmDelete
-                ? 'bg-red-500 text-white shadow-xs px-3'
-                : 'text-muted hover:text-red-600 hover:bg-red-50/80 border border-transparent hover:border-red-200'
+                ? 'bg-[#024F5F] text-white shadow-xs px-3'
+                : 'text-muted hover:text-[#024F5F] hover:bg-[#F6F1EC]/80 border border-transparent hover:border-[#CFAC64]'
             }`}
             title={confirmDelete ? 'Confirm delete now' : 'Delete review'}
           >

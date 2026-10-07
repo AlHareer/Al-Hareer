@@ -26,19 +26,19 @@ export default async function AdminCouponsPage() {
       label: 'Live & Active',
       value: activeCount,
       icon: CheckCircle2,
-      accent: 'bg-emerald-500/10 text-emerald-700 border-emerald-200/60',
+      accent: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
     },
     {
       label: 'Paused / Inactive',
       value: inactiveCount,
       icon: XCircle,
-      accent: 'bg-amber-500/10 text-amber-700 border-amber-200/60',
+      accent: 'bg-[#CFAC64]/10 text-[#B08F4F] border-[#CFAC64]/60',
     },
     {
       label: 'Expired',
       value: expiredCount,
       icon: Clock,
-      accent: 'bg-rose-500/10 text-rose-700 border-rose-200/60',
+      accent: 'bg-[#024F5F]/10 text-[#024F5F] border-[#CFAC64]/60',
     },
   ];
 

@@ -29,7 +29,7 @@ export default async function AdminOrdersPage() {
       sub: processingCount > 0 ? 'Pending dispatch' : 'All caught up',
       icon: Clock,
       color: 'amber',
-      bgClass: 'bg-amber-50 text-amber-700 border-amber-200/60',
+      bgClass: 'bg-[#F6F1EC] text-[#B08F4F] border-[#CFAC64]/60',
       pulse: processingCount > 0,
     },
     {
@@ -38,7 +38,7 @@ export default async function AdminOrdersPage() {
       sub: 'Shipped to customers',
       icon: Truck,
       color: 'blue',
-      bgClass: 'bg-blue-50 text-blue-700 border-blue-200/60',
+      bgClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/60',
     },
     {
       label: 'Total Revenue',
@@ -46,7 +46,7 @@ export default async function AdminOrdersPage() {
       sub: 'Non-cancelled orders',
       icon: IndianRupee,
       color: 'emerald',
-      bgClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+      bgClass: 'bg-[#F6F1EC] text-[#024F5F] border-[#CFAC64]/60',
     },
   ];
 
@@ -88,7 +88,7 @@ export default async function AdminOrdersPage() {
                 {k.value}
               </p>
               <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted">
-                {k.pulse && <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />}
+                {k.pulse && <span className="h-1.5 w-1.5 rounded-full bg-[#CFAC64] animate-pulse" />}
                 <span>{k.sub}</span>
               </div>
             </div>

@@ -36,27 +36,27 @@ export default async function HomePage() {
   } catch { occasions = []; }
 
   return (
-    <main className="min-h-screen flex flex-col bg-cream-100 selection:bg-brand-500 selection:text-white">
+    <main className="min-h-screen flex flex-col bg-cream-100 selection:bg-brand-500 selection:text-white [&>*]:min-w-0">
       {/* Navigation Header */}
       <Navbar />
 
       {/* Hero Banner */}
       <Hero slides={heroSlides} settings={mergedSettings} />
 
-      {/* Shop by Category (circular avatar row) */}
+      {/* Teal feature band */}
+      <TrustBar settings={mergedSettings} />
+
+      {/* Shop By Kurta Type (circular avatars) */}
       <ShopByCategory settings={mergedSettings} />
 
-      {/* Shop by Collection (big image block grid) */}
+      {/* Shop By Category (big image block grid) */}
       <CategoryShowcase items={showcase} settings={mergedSettings} />
 
-      {/* Trust & Value Pillars (Dark Olive Strip) */}
-      <TrustBar settings={mergedSettings} />
+      {/* Premium Fabrics & Elegant Styles banner */}
+      <SplitBanner settings={mergedSettings} />
 
       {/* Shop by Occasion Grid */}
       <ShopByOccasion occasions={occasions} settings={mergedSettings} />
-
-      {/* Comfort & Fabric Split Banner */}
-      <SplitBanner settings={mergedSettings} />
 
       {/* Featured Collection & Product Catalog */}
       <FeaturedCollection products={products} settings={mergedSettings} />

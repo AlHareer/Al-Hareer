@@ -48,14 +48,14 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
 
         {/* Feedback Messages */}
         {state?.error && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm font-semibold text-red-700">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+          <div className="flex items-center gap-2 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3.5 text-xs sm:text-sm font-semibold text-[#024F5F]">
+            <AlertCircle className="h-4 w-4 shrink-0 text-[#024F5F]" />
             <span>{state.error}</span>
           </div>
         )}
         {state?.success && (
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs sm:text-sm font-semibold text-emerald-800">
-            <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+          <div className="flex items-center gap-2 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3.5 text-xs sm:text-sm font-semibold text-[#024F5F]">
+            <Check className="h-4 w-4 shrink-0 text-[#024F5F]" />
             <span>Quantity discount rules saved successfully.</span>
           </div>
         )}
@@ -66,7 +66,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
           onClick={() => setEnabled((prev) => !prev)}
           className={`flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all cursor-pointer ${
             enabled
-              ? 'border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50/70'
+              ? 'border-[#CFAC64] bg-[#F6F1EC]/40 hover:bg-[#F6F1EC]/70'
               : 'border-cream-300 bg-cream-50/40 hover:bg-cream-100/60'
           }`}
         >
@@ -79,8 +79,8 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                   enabled
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-amber-100 text-amber-800 border border-amber-200'
+                    ? 'bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64]'
+                    : 'bg-[#F6F1EC] text-[#B08F4F] border border-[#CFAC64]'
                 }`}
               >
                 {enabled ? 'Active' : 'Disabled'}
@@ -93,7 +93,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
 
           <span
             className={`relative flex h-6 w-11 shrink-0 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-              enabled ? 'bg-emerald-600' : 'bg-cream-400'
+              enabled ? 'bg-[#024F5F]' : 'bg-cream-400'
             }`}
           >
             <span
@@ -116,7 +116,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
             <button
               type="button"
               onClick={addTier}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-cream-300 bg-cream-100 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-500 hover:text-white transition-all shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-cream-300 bg-cream-100 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-[#B08F4F] hover:text-white transition-all shadow-2xs cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" /> Add Tier
             </button>
@@ -169,7 +169,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
                   <button
                     type="button"
                     onClick={() => removeTier(i)}
-                    className="shrink-0 rounded-lg p-2 text-muted hover:bg-red-50 hover:text-red-600 transition-all mt-3.5 cursor-pointer"
+                    className="shrink-0 rounded-lg p-2 text-muted hover:bg-[#F6F1EC] hover:text-[#024F5F] transition-all mt-3.5 cursor-pointer"
                     title="Remove tier"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -184,7 +184,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
           <button
             type="submit"
             disabled={pending}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-60 cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-60 cursor-pointer"
           >
             {pending ? (
               <>
@@ -203,7 +203,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
       <div className="space-y-4">
         <div className="rounded-2xl border border-cream-300/80 bg-gradient-to-br from-cream-100/60 to-cream-50/50 p-5 shadow-2xs space-y-4">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-700 border border-amber-300/60">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#CFAC64]/10 text-[#B08F4F] border border-[#CFAC64]/60">
               <Tag className="h-4 w-4" />
             </span>
             <h3 className="font-heading text-sm font-bold text-brand-700 uppercase tracking-wider">
@@ -217,7 +217,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
 
           <div className="space-y-2">
             {!enabled ? (
-              <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 p-3 text-xs text-amber-800 font-medium">
+              <div className="rounded-xl border border-dashed border-[#CFAC64] bg-[#F6F1EC]/50 p-3 text-xs text-[#B08F4F] font-medium">
                 Quantity discounts are currently <span className="font-bold">disabled</span>. No discount will be given at checkout.
               </div>
             ) : sortedTiers.length === 0 ? (
@@ -234,7 +234,7 @@ export default function QuantityDiscountForm({ settings }: { settings: QuantityD
                     <span className="font-bold text-brand-700">Buy {t.min_quantity}+ Items</span>
                     <span className="text-[11px] text-muted block mt-0.5">Applied on {t.min_quantity} or more items</span>
                   </div>
-                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 font-bold text-emerald-700 text-xs">
+                  <span className="rounded-full bg-[#F6F1EC] border border-[#CFAC64] px-2.5 py-1 font-bold text-[#024F5F] text-xs">
                     -₹{t.discount} OFF
                   </span>
                 </div>

@@ -141,8 +141,8 @@ export default function OrderStatusManager({ order }: { order: Order }) {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
-          <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+        <div className="flex items-center gap-2 rounded-xl border border-[#CFAC64] bg-[#F6F1EC] p-3 text-xs font-semibold text-[#024F5F]">
+          <AlertCircle className="h-4 w-4 shrink-0 text-[#024F5F]" />
           <span>{error}</span>
         </div>
       )}
@@ -150,7 +150,7 @@ export default function OrderStatusManager({ order }: { order: Order }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-luxury hover:shadow-luxury-hover disabled:opacity-60 transition-all cursor-pointer"
       >
         {pending ? (
           <>
@@ -159,7 +159,7 @@ export default function OrderStatusManager({ order }: { order: Order }) {
           </>
         ) : saved ? (
           <>
-            <Check className="h-4 w-4 text-emerald-300" />
+            <Check className="h-4 w-4 text-[#024F5F]" />
             <span>Saved Successfully</span>
           </>
         ) : (

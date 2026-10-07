@@ -4,11 +4,11 @@ import type { Product, ProductColor } from '@/types';
 const SIZE_ORDER = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Free Size', 'Standard'];
 
 const PRODUCT_SELECT = `
-  id, name, slug, badge, product_type, color, fabric, occasion, description, short_description,
+  id, name, slug, badge, product_type, color, fabric, occasion, fit_type, care_instructions, description, short_description,
   featured_image_url, video_url, average_rating, review_count, colors, details, is_featured, created_at,
   categories ( slug ),
   product_images ( image_url, sort_order ),
-  product_variants ( variant_name, price, original_price, stock_quantity, is_active )
+  product_variants ( variant_name, color, price, original_price, stock_quantity, is_active )
 `;
 
 type ProductRow = {
@@ -20,6 +20,8 @@ type ProductRow = {
   color: string | null;
   fabric: string | null;
   occasion: string | null;
+  fit_type: string | null;
+  care_instructions: string | null;
   description: string | null;
   short_description: string | null;
   featured_image_url: string | null;
@@ -32,8 +34,12 @@ type ProductRow = {
   created_at: string;
   categories: { slug: string } | { slug: string }[] | null;
   product_images: { image_url: string; sort_order: number }[] | null;
-  product_variants: { variant_name: string; price: number; original_price: number | null; stock_quantity: number; is_active: boolean }[] | null;
+  product_variants: { variant_name: string; color: string | null; price: number; original_price: number | null; stock_quantity: number; is_active: boolean }[] | null;
 };
+
+// An MRP only counts as a "cut price" when it is above the selling price; a lower or equal
+// one is a data-entry slip and must never show as a strike-through or a discount.
+const validMrp = (price: number, mrp: number | null | undefined) => (mrp != null && mrp > price ? mrp : undefined);
 
 function mapRow(row: ProductRow): Product {
   const category = Array.isArray(row.categories) ? row.categories[0] : row.categories;
@@ -63,11 +69,18 @@ function mapRow(row: ProductRow): Product {
     if (!existing || v.price < existing.price) {
       sizePriceMap.set(v.variant_name, {
         price: v.price,
-        originalPrice: v.original_price ?? undefined,
+        originalPrice: validMrp(v.price, v.original_price),
       });
     }
   }
   const variantPrices = sizes.map((s) => ({ size: s, ...sizePriceMap.get(s)! })).filter((s) => s.price != null);
+  const variants = activeVariants.map((v) => ({
+    size: v.variant_name,
+    color: v.color ?? '',
+    price: v.price,
+    originalPrice: validMrp(v.price, v.original_price),
+    stock: v.stock_quantity,
+  }));
   const images = (row.product_images ?? [])
     .slice()
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -77,7 +90,7 @@ function mapRow(row: ProductRow): Product {
     id: row.slug,
     name: row.name,
     price: cheapest?.price ?? 0,
-    originalPrice: cheapest?.original_price ?? undefined,
+    originalPrice: cheapest ? validMrp(cheapest.price, cheapest.original_price) : undefined,
     rating: row.average_rating ?? 0,
     reviewCount: row.review_count ?? 0,
     image: row.featured_image_url ?? images[0] ?? '',
@@ -89,12 +102,58 @@ function mapRow(row: ProductRow): Product {
     sizes,
     sizesOutOfStock: sizesOutOfStock.length > 0 ? sizesOutOfStock : undefined,
     variantPrices: variantPrices.length > 0 ? variantPrices : undefined,
+    variants: variants.length > 0 ? variants : undefined,
     description: row.description ?? '',
     fabric: row.fabric ?? '',
     inStock: activeVariants.some((v) => v.stock_quantity > 0),
     videoUrl: row.video_url ?? undefined,
-    details: row.details ?? undefined,
+    details: mergeDetails(row),
   };
+}
+
+// The admin form saves fabric/color/occasion/fit/care in their own columns and
+// only set-includes/work in the `details` JSON, while the product page reads
+// everything from `details`. Columns win when filled in (that's what an admin
+// edits today); older seeded products fall back to what's in `details`.
+function mergeDetails(row: ProductRow): Product['details'] {
+  const base = row.details ?? {};
+  const pick = (column: string | null, fallback?: string) => column?.trim() || fallback || undefined;
+  const merged = {
+    ...base,
+    material: pick(row.fabric, base.material),
+    color: pick(row.color, base.color),
+    occasion: pick(row.occasion, base.occasion),
+    fit: pick(row.fit_type, base.fit),
+    care: pick(row.care_instructions, base.care),
+  };
+  return merged;
+}
+
+// Picks the right photo for a chosen color (photos vary by color, not size —
+// a Small and a Medium of the same Red kurta use the same picture). Falls
+// back to the product's default image when that color has none of its own.
+// Used wherever a selected color needs to show a matching picture — product
+// page, cart, wishlist, checkout. The `size` parameter is accepted but
+// unused, kept so call sites don't need to change if size-level photos are
+// ever reintroduced.
+export function getVariantImage(product: Product, _size?: string, color?: string): string {
+  if (color) {
+    const colorMatch = product.colors.find((c) => c.name === color);
+    if (colorMatch?.image) return colorMatch.image;
+  }
+  return product.image;
+}
+
+// The full photo set for a color (for swapping the whole gallery/thumbnail
+// strip when a customer picks a color on the product page), falling back to
+// the product's general gallery when that color has no photos of its own.
+export function getColorGallery(product: Product, color?: string): string[] {
+  if (color) {
+    const colorMatch = product.colors.find((c) => c.name === color);
+    if (colorMatch?.images?.length) return colorMatch.images;
+    if (colorMatch?.image) return [colorMatch.image];
+  }
+  return product.images?.length ? product.images : [product.image];
 }
 
 export async function getAllProducts(): Promise<Product[]> {
@@ -226,102 +285,73 @@ export async function getRelatedProducts(product: Product, limit = 4): Promise<P
 
 export async function searchProducts(q: string, limit = 8): Promise<Product[]> {
   if (!q.trim()) return getFeaturedProducts();
+  // Strip characters that have meaning inside a PostgREST .or() filter.
+  const term = q.replace(/[,()%*\\]/g, ' ').trim();
+  if (!term) return getFeaturedProducts();
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from('products')
     .select(PRODUCT_SELECT)
     .eq('is_active', true)
-    .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
+    .or(`name.ilike.%${term}%,description.ilike.%${term}%,fabric.ilike.%${term}%`)
     .limit(limit);
   if (error) throw error;
   return (data as unknown as ProductRow[]).map(mapRow);
 }
 
-export type NavMenuData = {
-  totalCount: number;
-  categories: { label: string; href: string; count: number }[];
-  occasions: { label: string; href: string; image: string | null }[];
-  fabrics: { label: string; href: string; count: number }[];
-  promo: { tag: string; title: string; desc: string; image: string; href: string } | null;
+export type NavMenuGroup = {
+  label: string;
+  href: string;
+  image: string | null;
 };
 
-// Real counts/lists behind the Navbar's "Collections" mega menu — no
-// hand-picked badges (they were previously invented labels like "Bestseller"/
-// "Chanderi" with no data behind them). Fabric is free-text in the DB (e.g.
-// "100% Breathable Cotton Slub", "Pure Cotton"), so it's bucketed into the
-// same 4 broad groups the menu already showed, by substring match, with real
-// counts per bucket.
+export type NavMenuData = {
+  groups: NavMenuGroup[];
+};
+
+// The Navbar's Shop menu shows every active top-level (parent) category,
+// straight from the database — no product counts, no fabrics, no promo,
+// nothing invented. Links use the category slug, which is what the shop
+// page's category filter matches on (a parent slug also matches its children).
 export async function getNavMenuData(): Promise<NavMenuData> {
-  const { PRODUCT_TYPES } = await import('@/lib/productConstants');
   const supabase = createPublicClient();
 
-  const [{ data: products, error }, categories] = await Promise.all([
-    supabase.from('products').select('product_type, fabric').eq('is_active', true),
-    getActiveCategories(),
-  ]);
+  const { data, error } = await supabase
+    .from('categories')
+    .select('name, slug, image_url, parent_id')
+    .eq('is_active', true)
+    .is('parent_id', null)
+    .order('sort_order', { ascending: true });
   if (error) throw error;
 
-  const typeCounts = new Map<string, number>();
-  // Match priority differs from display order: a fabric string explicitly
-  // saying "blend" (e.g. "Silk Blend", "Linen-Cotton Weave") should count as
-  // Blended even though it also mentions silk/cotton — checked most-specific
-  // first so "cotton" (the most generic word) doesn't swallow everything.
-  const FABRIC_MATCH_ORDER: [string, string[]][] = [
-    ['Blended', ['blend', 'viscose', 'rayon']],
-    ['Linen', ['linen']],
-    ['Silk', ['silk']],
-    ['Cotton', ['cotton']],
-  ];
-  const FABRIC_DISPLAY_ORDER = ['Cotton', 'Silk', 'Linen', 'Blended'];
-  const fabricCounts = new Map<string, number>();
+  const groups: NavMenuGroup[] = (data ?? []).map((c) => ({
+    label: c.name,
+    href: `/shop?category=${encodeURIComponent(c.slug)}`,
+    image: c.image_url,
+  }));
 
-  for (const p of products ?? []) {
-    if (p.product_type) typeCounts.set(p.product_type, (typeCounts.get(p.product_type) ?? 0) + 1);
-    const fabricLower = (p.fabric ?? '').toLowerCase();
-    for (const [bucket, keywords] of FABRIC_MATCH_ORDER) {
-      if (keywords.some((k) => fabricLower.includes(k))) {
-        fabricCounts.set(bucket, (fabricCounts.get(bucket) ?? 0) + 1);
-        break;
-      }
-    }
-  }
+  return { groups };
+}
 
-  const totalCount = (products ?? []).length;
+// Price/stock for the exact size + color a customer picked. Falls back to the
+// cheapest variant of that size (or the product's overall price) when the
+// exact combination isn't found, so a price is always shown.
+export function getVariantPricing(
+  product: Product,
+  size?: string,
+  color?: string
+): { price: number; originalPrice?: number; stock: number | null } {
+  const rows = product.variants ?? [];
+  const exact = rows.find((v) => v.size === size && (v.color || '') === (color || ''));
+  const bySize = rows.filter((v) => v.size === size).sort((a, b) => a.price - b.price)[0];
+  const hit = exact ?? bySize;
+  if (hit) return { price: hit.price, originalPrice: hit.originalPrice, stock: exact ? hit.stock : null };
+  return { price: product.price, originalPrice: product.originalPrice, stock: null };
+}
 
-  // Only top-level categories (Men/Boys/Kids/Accessories) show in the nav —
-  // their style sub-categories (Saudi/Designer/...) live one level down, on
-  // the shop page's own category filter, not duplicated here.
-  const topLevelCategories = categories.filter((c) => !c.parentId);
-
-  // No single category is special-cased as "the" promo — just use the first
-  // top-level one (by sort_order), whatever an admin has it set to.
-  const flagshipCategory = topLevelCategories[0];
-
-  return {
-    totalCount,
-    categories: PRODUCT_TYPES.filter((t) => typeCounts.has(t)).map((t) => ({
-      label: t,
-      href: `/shop?category=${encodeURIComponent(t)}`,
-      count: typeCounts.get(t)!,
-    })),
-    occasions: topLevelCategories.map((c) => ({
-      label: c.name,
-      href: `/shop?occasion=${encodeURIComponent(c.slug)}`,
-      image: c.image,
-    })),
-    fabrics: FABRIC_DISPLAY_ORDER.filter((bucket) => fabricCounts.has(bucket)).map((bucket) => ({
-      label: bucket,
-      href: `/shop?fabric=${encodeURIComponent(bucket)}`,
-      count: fabricCounts.get(bucket)!,
-    })),
-    promo: flagshipCategory
-      ? {
-          tag: flagshipCategory.name,
-          title: `The ${flagshipCategory.name} Edit`,
-          desc: `Explore our ${flagshipCategory.name.toLowerCase()} collection.`,
-          image: flagshipCategory.image ?? '/images/shopby/wedding.jpg',
-          href: `/shop?occasion=${encodeURIComponent(flagshipCategory.slug)}`,
-        }
-      : null,
-  };
+// Lowest price among a color's in-stock-or-not variants, for "from" prices on cards.
+export function getColorStartPrice(product: Product, color?: string): { price: number; originalPrice?: number } {
+  const rows = (product.variants ?? []).filter((v) => (v.color || '') === (color || ''));
+  const cheapest = rows.sort((a, b) => a.price - b.price)[0];
+  return cheapest ? { price: cheapest.price, originalPrice: cheapest.originalPrice } : { price: product.price, originalPrice: product.originalPrice };
 }
