@@ -8,6 +8,13 @@ import { redirect } from 'next/navigation';
 // `getFaqs()` in `src/lib/siteSettings.ts`), so every mutation here
 // revalidates both '/faq' and the admin list page.
 
+// FAQs show on /faq and (when "show on home" is set) on the home page, both of
+// which are statically rendered — refresh every storefront page so a create,
+// edit, delete or toggle is visible right away.
+function refreshFaqPages() {
+  revalidatePath('/', 'layout');
+}
+
 export async function getFaqCategories(): Promise<string[]> {
   const supabase = createAdminClient();
   const { data } = await supabase.from('faqs').select('category').order('category', { ascending: true });
@@ -59,7 +66,7 @@ export async function createFaq(_prevState: FaqFormState, formData: FormData): P
 
   if (error) return { error: error.message };
   revalidatePath('/admin/faqs');
-  revalidatePath('/faq');
+  refreshFaqPages();
   redirect('/admin/faqs');
 }
 
@@ -85,7 +92,7 @@ export async function updateFaq(_prevState: FaqFormState, formData: FormData): P
 
   if (error) return { error: error.message };
   revalidatePath('/admin/faqs');
-  revalidatePath('/faq');
+  refreshFaqPages();
   redirect('/admin/faqs');
 }
 
@@ -94,7 +101,7 @@ export async function toggleFaqShowOnHome(id: string, showOnHome: boolean) {
   const { error } = await supabase.from('faqs').update({ show_on_home: showOnHome }).eq('id', id);
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/faqs');
-  revalidatePath('/');
+  refreshFaqPages();
   return { success: true };
 }
 
@@ -103,7 +110,7 @@ export async function toggleFaqActive(id: string, isActive: boolean) {
   const { error } = await supabase.from('faqs').update({ is_active: isActive }).eq('id', id);
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/faqs');
-  revalidatePath('/faq');
+  refreshFaqPages();
   return { success: true };
 }
 
@@ -112,7 +119,7 @@ export async function deleteFaq(id: string) {
   const { error } = await supabase.from('faqs').delete().eq('id', id);
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/faqs');
-  revalidatePath('/faq');
+  refreshFaqPages();
   return { success: true };
 }
 
@@ -124,6 +131,6 @@ export async function reorderFaqs(orderedIds: string[]) {
   const failed = results.find((r) => r.error);
   if (failed?.error) return { success: false, error: failed.error.message };
   revalidatePath('/admin/faqs');
-  revalidatePath('/faq');
+  refreshFaqPages();
   return { success: true };
 }

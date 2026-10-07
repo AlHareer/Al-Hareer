@@ -85,8 +85,11 @@ export async function updateSiteSetting(key: string, value: string | null | unde
 
     revalidatePath('/admin/hero-slides');
     revalidatePath('/admin/about');
-    revalidatePath('/');
-    revalidatePath('/shop');
+    revalidatePath('/admin/story');
+    // Every storefront page (Our Story, About, Contact, FAQ, Shop, footer…)
+    // reads these settings and is statically rendered, so refresh them all —
+    // listing individual paths missed /story and /about.
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Failed to update setting.' };

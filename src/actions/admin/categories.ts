@@ -77,6 +77,7 @@ export async function createCategory(_prevState: CategoryFormState, formData: Fo
   if (error) return { error: error.message };
   revalidatePath('/admin/categories');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   redirect('/admin/categories');
 }
 
@@ -103,6 +104,7 @@ export async function updateCategory(_prevState: CategoryFormState, formData: Fo
   if (error) return { error: error.message };
   revalidatePath('/admin/categories');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   redirect('/admin/categories');
 }
 
@@ -116,6 +118,7 @@ export async function toggleCategoryStatus(id: string, currentStatus: boolean) {
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/categories');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   return { success: true };
 }
 
@@ -125,5 +128,6 @@ export async function deleteCategory(id: string) {
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/categories');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   return { success: true };
 }

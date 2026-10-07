@@ -89,5 +89,6 @@ export async function updateBrandSetting(key: string, value: string): Promise<Up
 
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/settings');
+  revalidatePath('/', 'layout');
   return { success: true };
 }

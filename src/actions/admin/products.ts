@@ -243,6 +243,7 @@ export async function createProduct(_prevState: ProductFormState, formData: Form
 
   revalidatePath('/admin/products');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   redirect('/admin/products');
 }
 
@@ -274,6 +275,7 @@ export async function updateProduct(_prevState: ProductFormState, formData: Form
 
   revalidatePath('/admin/products');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   redirect('/admin/products');
 }
 
@@ -287,6 +289,7 @@ export async function toggleProductStatus(id: string, currentStatus: boolean) {
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/products');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   return { success: true };
 }
 
@@ -296,5 +299,6 @@ export async function deleteProduct(id: string) {
   if (error) return { success: false, error: error.message };
   revalidatePath('/admin/products');
   revalidatePath('/shop');
+  revalidatePath('/', 'layout');
   return { success: true };
 }

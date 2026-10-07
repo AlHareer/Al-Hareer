@@ -9,7 +9,6 @@ import DashboardRecentOrders from './_components/DashboardRecentOrders';
 import DashboardQuickActions from './_components/DashboardQuickActions';
 import DashboardOrderStatus from './_components/DashboardOrderStatus';
 import DashboardLowStock from './_components/DashboardLowStock';
-import DashboardCustomerEngagement from './_components/DashboardCustomerEngagement';
 
 export const metadata = { title: 'Dashboard — Al Hareer' };
 
@@ -48,7 +47,7 @@ export default async function AdminDashboardPage() {
           <DashboardRecentOrders orders={data.recentOrders} />
         </div>
 
-        {/* Right Column (4 cols): Quick Operations Hub, Fulfillment Pipeline, Low Stock Alerts, Customer Voice */}
+        {/* Right Column (4 cols): Quick Operations Hub, Fulfillment Pipeline, Low Stock Alerts */}
         <div className="lg:col-span-4 space-y-4 sm:space-y-6 min-w-0">
           <DashboardQuickActions
             processingOrders={data.stats.processingOrders}
@@ -59,12 +58,6 @@ export default async function AdminDashboardPage() {
           <DashboardLowStock
             lowStockItems={data.lowStockItems}
             totalCount={data.stats.lowStockCount}
-          />
-          <DashboardCustomerEngagement
-            pendingReviews={data.pendingReviews}
-            recentInquiries={data.recentInquiries}
-            pendingReviewCount={data.stats.pendingReviewCount}
-            unresolvedInquiryCount={data.stats.unresolvedInquiryCount}
           />
         </div>
       </div>

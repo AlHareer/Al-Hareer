@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import OrderTracking from '@/components/account/OrderTracking';
+import { printInvoice } from '@/lib/invoice';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -1465,7 +1466,7 @@ function AuthAndDashboardContent() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      showToast(`📄 Downloading invoice receipt for ${order.id}...`, 'info');
+                                      printInvoice(order, supportEmail);
                                     }}
                                     className="px-3.5 py-2 sm:px-4 sm:py-2 bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] text-xs font-semibold rounded-xl border border-[#CFAC64] transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                                   >
@@ -2001,7 +2002,7 @@ function AuthAndDashboardContent() {
               <button
                 type="button"
                 onClick={() => {
-                  showToast(`📄 Downloading invoice receipt for ${selectedOrder.id}...`, 'info');
+                  printInvoice(selectedOrder, supportEmail);
                 }}
                 className="mt-3 px-5 py-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
               >
