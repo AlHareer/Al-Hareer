@@ -49,7 +49,9 @@ function buildSteps(order: Order): Step[] {
   });
 }
 
-export default function OrderTracking({ order }: { order: Order }) {
+// showSummary=false drops the address/items block for places (like the order
+// details popup) that already show them.
+export default function OrderTracking({ order, showSummary = true }: { order: Order; showSummary?: boolean }) {
   const [copied, setCopied] = useState(false);
   const steps = buildSteps(order);
   const hasShipment = Boolean(order.courierName || order.trackingNumber || order.trackingUrl);
@@ -142,46 +144,48 @@ export default function OrderTracking({ order }: { order: Order }) {
       </div>
 
       {/* Destination & items */}
-      <div className={`grid grid-cols-1 ${hasAddress ? 'md:grid-cols-2' : ''} gap-3 sm:gap-4 pt-3 border-t border-[#F6F1EC]`}>
-        {hasAddress && address && (
-          <div className="p-3.5 sm:p-4 rounded-xl bg-[#F6F1EC]/60 border border-[#CFAC64] space-y-1.5">
-            <p className="text-xs font-bold text-[#00303A] flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#024F5F]" />
-              <span>Delivery Address</span>
-            </p>
-            <div className="text-xs text-[#024F5F] pl-5 space-y-0.5">
-              {address.fullName && <p className="font-bold text-[#00303A]">{address.fullName}</p>}
-              <p>
-                {[address.address, address.city, address.state].filter(Boolean).join(', ')}
-                {address.pinCode ? ` - ${address.pinCode}` : ''}
+      {showSummary && (
+        <div className={`grid grid-cols-1 ${hasAddress ? 'md:grid-cols-2' : ''} gap-3 sm:gap-4 pt-3 border-t border-[#F6F1EC]`}>
+          {hasAddress && address && (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-[#F6F1EC]/60 border border-[#CFAC64] space-y-1.5">
+              <p className="text-xs font-bold text-[#00303A] flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-[#024F5F]" />
+                <span>Delivery Address</span>
               </p>
-              {address.phone && <p>Phone: {address.phone}</p>}
-            </div>
-          </div>
-        )}
-
-        <div className="p-3.5 sm:p-4 rounded-xl bg-[#F6F1EC]/60 border border-[#CFAC64] space-y-2.5">
-          <p className="text-xs font-bold text-[#00303A]">Items ({order.itemsCount})</p>
-          {(order.items ?? []).map((it, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="relative w-11 h-14 rounded-lg bg-white border border-[#CFAC64] overflow-hidden shrink-0">
-                {it.image && <Image src={it.image} alt={it.name} fill sizes="44px" className="object-cover object-top" />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-heading text-xs sm:text-sm font-bold text-[#00303A] truncate">{it.name}</p>
-                <p className="text-[11px] text-[#024F5F]">
-                  {[it.size && `Size ${it.size}`, it.color, `Qty ${it.qty ?? 1}`].filter(Boolean).join(' • ')}
+              <div className="text-xs text-[#024F5F] pl-5 space-y-0.5">
+                {address.fullName && <p className="font-bold text-[#00303A]">{address.fullName}</p>}
+                <p>
+                  {[address.address, address.city, address.state].filter(Boolean).join(', ')}
+                  {address.pinCode ? ` - ${address.pinCode}` : ''}
                 </p>
+                {address.phone && <p>Phone: {address.phone}</p>}
               </div>
-              <p className="text-xs font-bold text-[#00303A] shrink-0">₹{((it.price ?? 0) * (it.qty ?? 1)).toLocaleString('en-IN')}</p>
             </div>
-          ))}
-          <p className="text-xs font-bold text-[#00303A] pt-2 border-t border-[#CFAC64]/50 flex justify-between">
-            <span>Order Total</span>
-            <span>₹{order.total.toLocaleString('en-IN')}</span>
-          </p>
+          )}
+
+          <div className="p-3.5 sm:p-4 rounded-xl bg-[#F6F1EC]/60 border border-[#CFAC64] space-y-2.5">
+            <p className="text-xs font-bold text-[#00303A]">Items ({order.itemsCount})</p>
+            {(order.items ?? []).map((it, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="relative w-11 h-14 rounded-lg bg-white border border-[#CFAC64] overflow-hidden shrink-0">
+                  {it.image && <Image src={it.image} alt={it.name} fill sizes="44px" className="object-cover object-top" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-heading text-xs sm:text-sm font-bold text-[#00303A] truncate">{it.name}</p>
+                  <p className="text-[11px] text-[#024F5F]">
+                    {[it.size && `Size ${it.size}`, it.color, `Qty ${it.qty ?? 1}`].filter(Boolean).join(' • ')}
+                  </p>
+                </div>
+                <p className="text-xs font-bold text-[#00303A] shrink-0">₹{((it.price ?? 0) * (it.qty ?? 1)).toLocaleString('en-IN')}</p>
+              </div>
+            ))}
+            <p className="text-xs font-bold text-[#00303A] pt-2 border-t border-[#CFAC64]/50 flex justify-between">
+              <span>Order Total</span>
+              <span>₹{order.total.toLocaleString('en-IN')}</span>
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

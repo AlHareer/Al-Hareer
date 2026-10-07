@@ -369,7 +369,8 @@ function AuthAndDashboardContent() {
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab) {
-      setActiveTab(tab);
+      // Order tracking now lives inside My Orders (order details popup).
+      setActiveTab(tab === 'track' ? 'orders' : tab);
     }
   }, [searchParams]);
 
@@ -555,9 +556,7 @@ function AuthAndDashboardContent() {
     if (found) {
       setTrackedOrderResult(found);
       setTrackError('');
-      if (activeTab !== 'track') {
-        setIsTrackingModalOpen(true);
-      }
+      setIsTrackingModalOpen(true);
       showToast(`📦 Live tracking retrieved for order ${found.id}`, 'success');
     } else {
       setTrackedOrderResult(null);
@@ -787,19 +786,6 @@ function AuthAndDashboardContent() {
 
                   <button
                     type="button"
-                    onClick={() => setActiveTab('track')}
-                    className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95 ${
-                      activeTab === 'track'
-                        ? 'bg-[#00303A] text-white shadow-xs'
-                        : 'bg-white text-[#024F5F] border border-[#CFAC64] hover:bg-[#F6F1EC]'
-                    }`}
-                  >
-                    <Truck className="w-3.5 h-3.5" />
-                    <span>Track Order</span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => setActiveTab('addresses')}
                     className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer shrink-0 active:scale-95 ${
                       activeTab === 'addresses'
@@ -885,19 +871,6 @@ function AuthAndDashboardContent() {
                         <span className="text-[10.5px] font-bold bg-[#F6F1EC] px-2 py-0.5 rounded-full text-[#024F5F] border border-[#CFAC64]">
                           {orders.length}
                         </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('track')}
-                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                          activeTab === 'track'
-                            ? 'bg-[#F6F1EC] text-[#00303A] shadow-2xs font-bold'
-                            : 'text-[#024F5F] hover:text-[#00303A] hover:bg-[#F6F1EC]'
-                        }`}
-                      >
-                        <Truck className="w-4 h-4 text-[#024F5F]" />
-                        <span>Track Order</span>
                       </button>
 
                       <button
@@ -1034,10 +1007,10 @@ function AuthAndDashboardContent() {
                       </div>
 
                       {/* 3. TWO-COLUMN SPLIT: RECENT ORDERS (LEFT) & QUICK ACTIONS (RIGHT) */}
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+                      <div className="grid grid-cols-1 gap-5 lg:gap-6 items-start">
                         
                         {/* Left: Recent Orders Table Card (Exact Screenshot Match) */}
-                        <div className="lg:col-span-7 xl:col-span-7 bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-6 space-y-4">
+                        <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-6 space-y-4">
                           <div className="flex items-center justify-between pb-3 border-b border-[#F6F1EC]">
                             <h3 className="font-heading text-base sm:text-lg font-bold text-[#00303A]">
                               Recent Orders
@@ -1052,26 +1025,26 @@ function AuthAndDashboardContent() {
                           </div>
 
                           {/* Desktop Structured Table Header */}
-                          <div className="hidden sm:grid grid-cols-12 gap-2 text-[11px] font-bold text-[#024F5F] px-3 py-2 bg-[#F6F1EC] rounded-xl border border-[#F6F1EC]">
-                            <div className="col-span-4">Product</div>
-                            <div className="col-span-2">Order ID</div>
-                            <div className="col-span-2">Date</div>
-                            <div className="col-span-2">Status</div>
-                            <div className="col-span-1">Total</div>
-                            <div className="col-span-1 text-right">Action</div>
+                          <div className="hidden sm:grid sm:grid-cols-[minmax(0,1.4fr)_9.5rem_5.5rem_5.5rem_4.5rem_3.5rem] gap-3 text-[11px] font-bold text-[#024F5F] px-3 py-2 bg-[#F6F1EC] rounded-xl border border-[#F6F1EC]">
+                            <div>Product</div>
+                            <div>Order ID</div>
+                            <div>Date</div>
+                            <div>Status</div>
+                            <div>Total</div>
+                            <div className="text-right">Action</div>
                           </div>
 
                           {/* Table Body / Rows */}
                           <div className="divide-y divide-[#F6F1EC]">
-                            {orders.slice(0, 3).map((order) => (
+                            {orders.slice(0, 5).map((order) => (
                               <div
                                 key={order.id}
                                 className="py-3 first:pt-0 sm:first:pt-1 last:pb-0"
                               >
                                 {/* Desktop Row */}
-                                <div className="hidden sm:grid grid-cols-12 gap-2 items-center px-3 py-1 text-xs">
+                                <div className="hidden sm:grid sm:grid-cols-[minmax(0,1.4fr)_9.5rem_5.5rem_5.5rem_4.5rem_3.5rem] gap-3 items-center px-3 py-1 text-xs">
                                   {/* Product Thumbnail & Title */}
-                                  <div className="col-span-4 flex items-center gap-2.5 min-w-0">
+                                  <div className="flex items-center gap-2.5 min-w-0">
                                     <div className="relative w-10 h-12 rounded-md bg-[#F6F1EC] border border-[#CFAC64] overflow-hidden shrink-0">
                                       <Image
                                         src={order.productImage}
@@ -1087,17 +1060,17 @@ function AuthAndDashboardContent() {
                                   </div>
 
                                   {/* Order ID */}
-                                  <div className="col-span-2 text-xs font-semibold text-[#024F5F]">
+                                  <div className="text-xs font-semibold text-[#024F5F] whitespace-nowrap">
                                     {order.id}
                                   </div>
 
                                   {/* Date */}
-                                  <div className="col-span-2 text-xs text-[#024F5F]">
+                                  <div className="text-xs text-[#024F5F] whitespace-nowrap">
                                     {order.date}
                                   </div>
 
                                   {/* Status Badge */}
-                                  <div className="col-span-2">
+                                  <div>
                                     <span
                                       className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-block ${
                                         order.status === 'Delivered'
@@ -1112,13 +1085,13 @@ function AuthAndDashboardContent() {
                                   </div>
 
                                   {/* Total */}
-                                  <div className="col-span-1 font-heading text-xs font-bold text-[#00303A]">
+                                  <div className="font-sans text-xs font-bold text-[#00303A] whitespace-nowrap">
                                     ₹{order.total.toLocaleString('en-IN')}
                                   </div>
 
                                   {/* Action Button */}
-                                  <div className="col-span-1 text-right">
-                                    <button
+                                  <div className="text-right">
+                  <button
                                       type="button"
                                       onClick={() => setSelectedOrder(order)}
                                       className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] transition-colors cursor-pointer"
@@ -1167,7 +1140,7 @@ function AuthAndDashboardContent() {
                                   </div>
 
                                   <div className="shrink-0">
-                                    <button
+                  <button
                                       type="button"
                                       onClick={() => setSelectedOrder(order)}
                                       className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] border border-[#CFAC64] transition-colors cursor-pointer active:scale-95"
@@ -1182,15 +1155,15 @@ function AuthAndDashboardContent() {
                         </div>
 
                         {/* Right: Quick Actions Card */}
-                        <div className="lg:col-span-5 xl:col-span-5 bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-6 space-y-3.5">
+                        <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-6 space-y-3.5">
                           <h3 className="font-heading text-base sm:text-lg font-bold text-[#00303A] pb-3 border-b border-[#F6F1EC]">
                             Quick Actions
                           </h3>
 
-                          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
                             {/* Action 1: Track Order */}
                             <div
-                              onClick={() => setActiveTab('track')}
+                              onClick={() => setActiveTab('orders')}
                               className="p-3 sm:p-4 rounded-xl bg-[#F6F1EC]/70 hover:bg-[#F6F1EC] border border-[#CFAC64] transition-all cursor-pointer group flex flex-col justify-between active:scale-95"
                             >
                               <div className="flex items-start justify-between">
@@ -1199,10 +1172,10 @@ function AuthAndDashboardContent() {
                               </div>
                               <div className="mt-2.5 sm:mt-3">
                                 <h4 className="font-heading text-xs sm:text-sm font-bold text-[#00303A]">
-                                  Track Order
+                                  My Orders
                                 </h4>
                                 <p className="text-[10px] sm:text-[10.5px] text-[#024F5F] mt-0.5 truncate">
-                                  Live order status
+                                  Track &amp; manage
                                 </p>
                               </div>
                             </div>
@@ -1345,7 +1318,7 @@ function AuthAndDashboardContent() {
                             </span>
                           </div>
                           <p className="text-xs sm:text-sm text-[#024F5F] mt-1">
-                            Track, review, and manage invoices for all your bespoke Al Hareer purchases.
+                            Open any order to track its progress, view shipping details and download the invoice.
                           </p>
                         </div>
 
@@ -1518,7 +1491,7 @@ function AuthAndDashboardContent() {
                                   </button>
 
                                   {canCancel && (
-                                    <button
+                  <button
                                       type="button"
                                       onClick={() => handleCancelOrder(order.id)}
                                       className="col-span-2 sm:col-span-1 px-3 py-1.5 text-[11px] font-semibold text-[#024F5F] hover:bg-[#F6F1EC]/60 rounded-xl transition-colors cursor-pointer text-center active:scale-95"
@@ -1560,94 +1533,6 @@ function AuthAndDashboardContent() {
                             <span>Start Shopping</span>
                           </Link>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* ------------------------------------------------------------- */}
-                {/* SUB-TAB: DEDICATED TRACK ORDER VIEW (RIGHT SIDE DISPLAY)      */}
-                {/* ------------------------------------------------------------- */}
-                {activeTab === 'track' && (
-                  <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
-                    {/* Header */}
-                    <div className="bg-white rounded-2xl border border-[#CFAC64] shadow-2xs p-4 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                      <div>
-                        <h2 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold text-[#00303A]">
-                          Track Your Orders
-                        </h2>
-                        <p className="text-xs sm:text-sm text-[#024F5F] mt-1">
-                          Select an order to see its progress and shipping details.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleRefreshTracking}
-                        disabled={isRefreshing}
-                        className="px-3.5 py-2 bg-[#F6F1EC] text-[#024F5F] text-xs font-semibold rounded-xl border border-[#CFAC64] transition-colors self-start sm:self-auto flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-60"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-                      </button>
-                    </div>
-
-                    {orders.length === 0 ? (
-                      <div className="bg-white rounded-2xl border border-[#CFAC64] p-8 text-center space-y-3">
-                        <Package className="w-8 h-8 text-[#CFAC64] mx-auto" />
-                        <p className="text-sm font-semibold text-[#00303A]">No orders to track yet</p>
-                        <Link href="/shop" className="inline-block rounded-xl bg-[#CFAC64] hover:bg-[#B08F4F] px-5 py-2.5 text-xs font-semibold text-white">
-                          Start Shopping
-                        </Link>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {orders.map((o) => {
-                          const isOpen = trackedOrderResult?.id === o.id;
-                          const badge = getStatusBadge(o.status);
-                          return (
-                            <div
-                              key={o.id}
-                              className={`bg-white rounded-2xl border transition-all ${isOpen ? 'border-[#024F5F] shadow-md' : 'border-[#CFAC64] shadow-2xs'}`}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => setTrackedOrderResult(isOpen ? null : o)}
-                                className="w-full flex items-center gap-3 sm:gap-4 p-3.5 sm:p-5 text-left cursor-pointer"
-                              >
-                                <div className="relative w-12 h-16 sm:w-14 sm:h-18 rounded-lg bg-[#F6F1EC] border border-[#CFAC64] overflow-hidden shrink-0">
-                                  {o.productImage && (
-                                    <Image src={o.productImage} alt={o.productName} fill sizes="56px" className="object-cover object-top" />
-                                  )}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <h3 className="font-heading text-sm sm:text-base font-bold text-[#00303A]">{o.id}</h3>
-                                    <span className={`text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 ${badge.bg}`}>
-                                      {badge.icon}
-                                      <span>{badge.label}</span>
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-[#024F5F] mt-0.5 truncate">
-                                    {o.productName}
-                                    {o.itemsCount > 1 ? ` +${o.itemsCount - 1} more` : ''}
-                                  </p>
-                                  <p className="text-[11px] text-[#024F5F]/80 mt-0.5">
-                                    {o.date} • ₹{o.total.toLocaleString('en-IN')}
-                                  </p>
-                                </div>
-                                <ChevronDown className={`w-5 h-5 text-[#024F5F] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                              </button>
-
-                              {isOpen && (
-                                <div className="px-3.5 pb-4 sm:px-5 sm:pb-6 pt-1 border-t border-[#F6F1EC] animate-in fade-in duration-200">
-                                  <div className="pt-4">
-                                    <OrderTracking order={o} />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
                       </div>
                     )}
                   </div>
@@ -2103,8 +1988,8 @@ function AuthAndDashboardContent() {
 
       {/* 3. ORDER DETAILS MODAL */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-[#00303A]/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white rounded-2xl border border-[#CFAC64] shadow-2xl p-4 sm:p-7 relative max-h-[88vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-[#00303A]/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full h-full sm:h-auto max-w-none sm:max-w-3xl bg-white rounded-none sm:rounded-2xl border-0 sm:border border-[#CFAC64] shadow-2xl p-4 pt-5 sm:p-8 relative sm:max-h-[88vh] overflow-y-auto">
             <button
               onClick={() => setSelectedOrder(null)}
               className="absolute top-3.5 right-3.5 p-1.5 text-[#024F5F] hover:text-[#00303A] rounded-full hover:bg-[#F6F1EC] transition-colors cursor-pointer"
@@ -2205,6 +2090,11 @@ function AuthAndDashboardContent() {
                 <p className="text-[#024F5F]">
                   Phone: {selectedOrder.shippingAddress?.phone || '+91 98765 43210'}
                 </p>
+              </div>
+
+              {/* Live tracking timeline + courier details */}
+              <div className="p-3 sm:p-4 rounded-xl bg-white border border-[#CFAC64]">
+                <OrderTracking order={selectedOrder} showSummary={false} />
               </div>
 
               {/* Price Breakdown */}

@@ -69,23 +69,8 @@ export default function CheckoutPage() {
   }, [user]);
 
   // Fill the delivery address from the customer's saved addresses: the default
-  // one (else the first) loads automatically into empty fields, and any other
-  // saved address can be picked from the list above the form.
+  // one (else the newest) loads automatically into empty fields.
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState('');
-
-  const applySavedAddress = (a: SavedAddress) => {
-    setSelectedAddressId(a.id);
-    setFormData((prev) => ({
-      ...prev,
-      fullName: a.name || prev.fullName,
-      phone: (a.phone || '').replace(/\D/g, '').slice(-10) || prev.phone,
-      address: [a.address, a.addressLine2].filter(Boolean).join(', '),
-      city: a.city,
-      state: a.state,
-      pinCode: a.pinCode,
-    }));
-  };
 
   useEffect(() => {
     if (!user) {
@@ -112,7 +97,6 @@ export default function CheckoutPage() {
             pinCode: preferred.pinCode,
           };
         });
-        setSelectedAddressId(preferred.id);
       })
       .catch(() => {});
     return () => {
@@ -175,7 +159,8 @@ export default function CheckoutPage() {
   const currentSubtotal = subtotal;
   const currentTotalItems = totalItems;
 
-  const shippingCost = 0;
+  // Same rule as the cart drawer: flat rate unless the free-shipping threshold is met.
+  const shippingCost = currentSubtotal >= shipping.free_threshold ? 0 : shipping.flat_rate;
   const codFee = paymentMethod === 'cod' ? (currentSubtotal >= shipping.free_threshold ? 0 : shipping.cod_charge) : 0;
   const qtyDiscountAmount = computeQuantityDiscount(qtySettings, currentTotalItems);
   const finalTotal = Math.max(0, currentSubtotal - discountAmount - qtyDiscountAmount + shippingCost + codFee);
@@ -422,36 +407,6 @@ export default function CheckoutPage() {
                       <Link href="/account?mode=register" className="border border-[#CFAC64] text-[#00303A] px-4 py-2 rounded-lg text-xs font-bold hover:bg-white transition-colors">
                         Create Account
                       </Link>
-                    </div>
-                  </div>
-                )}
-
-                {/* Saved addresses picker (signed-in customers with addresses on file) */}
-                {savedAddresses.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-[#00303A]">Deliver to a saved address</p>
-                    <div className="flex flex-wrap gap-2">
-                      {savedAddresses.map((a) => (
-                        <button
-                          type="button"
-                          key={a.id}
-                          onClick={() => applySavedAddress(a)}
-                          className={`text-left max-w-full rounded-xl border px-3 py-2 text-[11px] sm:text-xs transition-all ${
-                            selectedAddressId === a.id
-                              ? 'border-[#024F5F] bg-[#F6F1EC] shadow-2xs'
-                              : 'border-[#CFAC64] bg-white hover:bg-[#F6F1EC]/60'
-                          }`}
-                        >
-                          <span className="flex items-center gap-1.5 font-bold text-[#00303A]">
-                            {a.name}
-                            <span className="rounded-full bg-[#CFAC64]/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-[#024F5F]">{a.type}</span>
-                            {a.isDefault && <span className="rounded-full bg-[#024F5F] px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">Default</span>}
-                          </span>
-                          <span className="block text-[#024F5F] truncate max-w-[260px]">
-                            {[a.address, a.city, a.pinCode].filter(Boolean).join(', ')}
-                          </span>
-                        </button>
-                      ))}
                     </div>
                   </div>
                 )}
@@ -847,9 +802,13 @@ export default function CheckoutPage() {
 
                   <div className="flex items-center justify-between text-[#024F5F]">
                     <span>Shipping</span>
-                    <span className="font-bold text-[#024F5F] bg-[#024F5F]/10 px-2 py-0.5 rounded text-[11px]">
-                      FREE
-                    </span>
+                    {shippingCost > 0 ? (
+                      <span className="font-semibold text-[#00303A]">₹{shippingCost.toLocaleString('en-IN')}</span>
+                    ) : (
+                      <span className="font-bold text-[#024F5F] bg-[#024F5F]/10 px-2 py-0.5 rounded text-[11px]">
+                        FREE
+                      </span>
+                    )}
                   </div>
 
                   {codFee > 0 && (

@@ -1,12 +1,13 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import { VISIBLE_ORDERS_FILTER } from '@/lib/orderVisibility';
 
 export async function getSidebarBadgeCounts() {
   const supabase = createAdminClient();
 
   const [{ count: newOrders }, { count: pendingReviewCount }, { count: unresolvedInquiryCount }] = await Promise.all([
-    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('order_status', 'processing'),
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('order_status', 'processing').or(VISIBLE_ORDERS_FILTER),
     supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('is_approved', false),
     supabase.from('inquiries').select('id', { count: 'exact', head: true }).eq('is_resolved', false),
   ]);
@@ -127,10 +128,11 @@ export async function getDashboardStats(): Promise<FullDashboardData> {
     couponsRes,
   ] = await Promise.all([
     supabase.from('products').select('id, is_active, category_id'),
-    supabase.from('orders').select('id, total_amount, order_status, created_at'),
+    supabase.from('orders').select('id, total_amount, order_status, created_at').or(VISIBLE_ORDERS_FILTER),
     supabase
       .from('orders')
       .select('id, order_number, total_amount, order_status, payment_status, created_at, guest_email, user_id, profiles(full_name, email), order_items(id, quantity)')
+      .or(VISIBLE_ORDERS_FILTER)
       .order('created_at', { ascending: false })
       .limit(8),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'customer'),

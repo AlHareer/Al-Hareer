@@ -1,6 +1,7 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import { VISIBLE_ORDERS_FILTER } from '@/lib/orderVisibility';
 import { revalidatePath } from 'next/cache';
 
 export type AdminUserItem = {
@@ -30,6 +31,7 @@ export async function getAllUsers(): Promise<AdminUserItem[]> {
   const { data: orders } = await supabase
     .from('orders')
     .select('id, user_id, total_amount, order_number, created_at, order_status')
+    .or(VISIBLE_ORDERS_FILTER)
     .order('created_at', { ascending: false });
 
   return profiles.map((p) => {

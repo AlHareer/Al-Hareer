@@ -104,7 +104,8 @@ export async function getAddressesForUser(): Promise<SavedAddress[]> {
   const { data, error } = await supabase
     .from('addresses')
     .select('id, full_name, phone, address_line_1, address_line_2, city, state, postal_code, address_type, is_default')
-    .order('is_default', { ascending: false });
+    .order('is_default', { ascending: false })
+    .order('created_at', { ascending: false });
 
   if (error) throw error;
 

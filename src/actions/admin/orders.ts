@@ -1,6 +1,7 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import { VISIBLE_ORDERS_FILTER } from '@/lib/orderVisibility';
 import { revalidatePath } from 'next/cache';
 import { ORDER_STATUSES } from '@/lib/orderConstants';
 
@@ -28,6 +29,7 @@ export async function getAllOrdersAdmin(): Promise<OrderListItem[]> {
     .select(
       'id, order_number, guest_email, guest_phone, total_amount, order_status, payment_status, payment_method, tracking_number, courier_name, created_at, user_id, profiles ( full_name, email, phone ), order_items ( id )'
     )
+    .or(VISIBLE_ORDERS_FILTER)
     .order('created_at', { ascending: false });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

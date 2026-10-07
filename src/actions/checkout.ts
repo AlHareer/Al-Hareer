@@ -119,19 +119,23 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
   // A signed-in customer re-ordering to an address already on file reuses it
   // instead of piling up a duplicate saved address on every order.
-  let existingAddressId: string | null = null;
-  {
-    const { data: existing } = await supabase
-      .from('addresses')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('postal_code', input.pinCode)
-      .eq('city', input.city)
-      .eq('address_line_1', input.address)
-      .limit(1)
-      .maybeSingle();
-    existingAddressId = existing?.id ?? null;
-  }
+  // The checkout form joins line 1 + line 2 into one string, so match either shape.
+  const { data: userAddresses } = await supabase
+    .from('addresses')
+    .select('id, address_line_1, address_line_2, city, postal_code, is_default')
+    .eq('user_id', userId);
+  const norm = (v?: string | null) => (v ?? '').trim().toLowerCase();
+  const existingAddressId =
+    (userAddresses ?? []).find(
+      (a) =>
+        a.postal_code === input.pinCode &&
+        norm(a.city) === norm(input.city) &&
+        [a.address_line_1, [a.address_line_1, a.address_line_2].filter(Boolean).join(', ')]
+          .map(norm)
+          .includes(norm(input.address))
+    )?.id ?? null;
+  // The customer's first saved address becomes their default.
+  const hasDefaultAddress = (userAddresses ?? []).some((a) => a.is_default);
 
   const { data: address, error: addrErr } = existingAddressId
     ? { data: { id: existingAddressId }, error: null }
@@ -145,6 +149,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       city: input.city,
       state: input.state,
       postal_code: input.pinCode,
+      is_default: !hasDefaultAddress,
     })
     .select('id')
     .single();
