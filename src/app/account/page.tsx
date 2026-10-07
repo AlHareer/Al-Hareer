@@ -44,7 +44,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { createCustomerAccount, updateCustomerProfile } from '@/actions/customerAuth';
 import { getOrdersForUser, getAddressesForUser } from '@/lib/orders';
-import { cancelOwnOrder, addCustomerAddress } from '@/actions/customerAccount';
+import { addCustomerAddress } from '@/actions/customerAccount';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { getFooterSettings } from '@/lib/siteSettings';
 
@@ -436,24 +436,6 @@ function AuthAndDashboardContent() {
         order.items.some((it: any) => it.name && it.name.toLowerCase().includes(query)));
     return statusMatch && searchMatch;
   });
-
-  // Handle Cancel Order — persists to Supabase (own_rows RLS on orders is
-  // SELECT-only, so this goes through a server action that re-checks
-  // ownership before writing).
-  const handleCancelOrder = async (orderId: string) => {
-    if (!user) return;
-    const result = await cancelOwnOrder(user.id, orderId);
-    if (!result.success) {
-      showToast(result.error || 'Failed to cancel order.', 'error');
-      return;
-    }
-    const updated = orders.map((o) => (o.id === orderId ? { ...o, status: 'Cancelled' } : o));
-    setOrders(updated);
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: 'Cancelled' });
-    }
-    showToast(`Order ${orderId} has been cancelled.`, 'info');
-  };
 
   // Sign In Form State
   const [signInData, setSignInData] = useState({
@@ -1397,7 +1379,6 @@ function AuthAndDashboardContent() {
                           const isMultiItem = order.items && Array.isArray(order.items) && order.items.length > 1;
                           const displayImage = order.items && order.items[0]?.image ? order.items[0].image : order.productImage;
                           const displayTitle = order.productName;
-                          const canCancel = ['pending', 'processing'].includes((order.status || '').toLowerCase());
 
                           return (
                             <div
@@ -1491,16 +1472,6 @@ function AuthAndDashboardContent() {
                                     <FileText className="w-3.5 h-3.5" />
                                     <span>Invoice</span>
                                   </button>
-
-                                  {canCancel && (
-                  <button
-                                      type="button"
-                                      onClick={() => handleCancelOrder(order.id)}
-                                      className="col-span-2 sm:col-span-1 px-3 py-1.5 text-[11px] font-semibold text-[#024F5F] hover:bg-[#F6F1EC]/60 rounded-xl transition-colors cursor-pointer text-center active:scale-95"
-                                    >
-                                      Cancel Order
-                                    </button>
-                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1991,7 +1962,7 @@ function AuthAndDashboardContent() {
       {/* 3. ORDER DETAILS MODAL */}
       {selectedOrder && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-[#00303A]/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full h-full sm:h-auto max-w-none sm:max-w-3xl bg-white rounded-none sm:rounded-2xl border-0 sm:border border-[#CFAC64] shadow-2xl p-4 pt-5 sm:p-8 relative sm:max-h-[88vh] overflow-y-auto">
+          <div className="w-full h-full sm:h-auto max-w-none sm:max-w-3xl bg-white rounded-none sm:rounded-2xl border-0 sm:border border-[#CFAC64] shadow-2xl relative sm:max-h-[88vh] flex flex-col overflow-hidden">
             <button
               onClick={() => setSelectedOrder(null)}
               className="absolute top-3.5 right-3.5 p-1.5 text-[#024F5F] hover:text-[#00303A] rounded-full hover:bg-[#F6F1EC] transition-colors cursor-pointer"
@@ -1999,6 +1970,7 @@ function AuthAndDashboardContent() {
               <X className="w-5 h-5" />
             </button>
 
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 pt-5 sm:p-8">
             <div className="pb-3.5 border-b border-[#F6F1EC]">
               <div className="flex items-center justify-between pr-8">
                 <div>
@@ -2026,6 +1998,15 @@ function AuthAndDashboardContent() {
                   </span>
                 )}
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  showToast(`📄 Downloading invoice receipt for ${selectedOrder.id}...`, 'info');
+                }}
+                className="mt-3 px-5 py-2 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
+              >
+                Download Invoice Receipt
+              </button>
             </div>
 
             <div className="py-3.5 space-y-3.5">
@@ -2121,26 +2102,6 @@ function AuthAndDashboardContent() {
               </div>
             </div>
 
-            <div className="space-y-2 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  showToast(`📄 Downloading invoice receipt for ${selectedOrder.id}...`, 'info');
-                }}
-                className="w-full py-2.5 bg-[#CFAC64] hover:bg-[#B08F4F] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
-              >
-                Download Invoice Receipt
-              </button>
-
-              {['pending', 'processing'].includes((selectedOrder.status || '').toLowerCase()) && (
-                <button
-                  type="button"
-                  onClick={() => handleCancelOrder(selectedOrder.id)}
-                  className="w-full py-2 bg-[#F6F1EC] hover:bg-[#F6F1EC] text-[#024F5F] text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95"
-                >
-                  Cancel Order
-                </button>
-              )}
             </div>
           </div>
         </div>

@@ -9,23 +9,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export type ActionResult = { success: boolean; error?: string };
 
-export async function cancelOwnOrder(userId: string, orderNumber: string): Promise<ActionResult> {
-  const supabase = createAdminClient();
-  const { data: order } = await supabase
-    .from('orders')
-    .select('id, user_id')
-    .eq('order_number', orderNumber)
-    .maybeSingle();
-
-  if (!order || order.user_id !== userId) {
-    return { success: false, error: 'Order not found.' };
-  }
-
-  const { error } = await supabase.from('orders').update({ order_status: 'cancelled' }).eq('id', order.id);
-  if (error) return { success: false, error: error.message };
-  return { success: true };
-}
-
 export type NewAddressInput = {
   name: string;
   phone: string;
